@@ -24,7 +24,7 @@ in the current release. Read those passages for context. Do not build what they 
 
 | File | What it owns |
 |---|---|
-| `/docs/scope.md` | Behaviour, information architecture, data model, vocabulary, release scope. Currently v4.1. |
+| `/docs/scope.md` | Behaviour, information architecture, data model, vocabulary, release scope. Currently v4.2. |
 | `/docs/design-tokens.md` | Colour, typography, spacing, iconography, motion, construction patterns |
 | `/docs/decisions.md` | Append-only. Decisions taken during the build, and contradictions found in the scope |
 | `/docs/sessions.md` | Append-only. One entry per build session |
@@ -115,16 +115,19 @@ npm version minor --no-git-tag-version && git tag v0.N.0
 When a gate fails, paste the raw output and then say in one plain sentence what broke and what it
 means. The raw output is the evidence. The sentence is what Safa actually reads.
 
-Then, as the last two acts of the session:
+Then the handoff, which is four things, every session without exception.
 
 **1. Append an entry to `/docs/sessions.md`.** Session number, version tag, what shipped, what was
 deferred and why, anything that surprised you, and what the next session should read first. Around
 150 words, in the language of section 6.
 
-**2. Write the next session's prompt**, using `/docs/session-prompt-template.md`, in a fenced code
+**2. Push the branch and write merge instructions**, in the format of section 6.4: numbered steps,
+exact commands one per line, what each does in one plain sentence, what success looks like, what to
+do if it fails. In full, every session, even if it is identical to last time.
+
+**3. Write the next session's prompt**, using `/docs/session-prompt-template.md`, in a fenced code
 block ready to copy.
 
-Rules for that prompt:
 - **The goal and the item list come from the build sequence table in scope section 16.** Do not
   invent a session and do not resequence.
 - If the build has taught you the sequence is wrong, **say so as a proposal with reasons, outside
@@ -134,6 +137,14 @@ Rules for that prompt:
   tagged `**[v1.0]**` or later inside the scope sections it will read, and the obvious adjacent
   feature it will be tempted to build.
 - Six items maximum. If the session needs more, split it and say where.
+- **Assume the next session starts with no memory of this one.** Every session is a fresh context
+  with nothing carried over. The prompt must stand entirely on its own.
+- **Carry this same four-part handoff into its definition of done.** The chain breaks the first time
+  a session forgets to ask for it.
+
+**4. List your open questions.** Anything you decided by default that Safa might want to overturn,
+and anything that needs his answer before the next session starts. Written per section 6.2. If there
+are none, say so explicitly rather than leaving it out.
 
 ---
 

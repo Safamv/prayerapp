@@ -1,13 +1,41 @@
 # By Heart
 ## Bahá'í Prayer and Memorisation App
-### Scope Document v4.1
+### Scope Document v4.2
 
 **Status:** Agreed, ready to build
-**Date:** 23 August 2026
+**Date:** 24 August 2026
 **Owner:** Safa
-**Supersedes:** v4.0 (23 August 2026)
+**Supersedes:** v4.1 (23 August 2026)
 **Repo path:** `/docs/scope.md`
 **Spelling:** Australian English throughout
+
+---
+
+## Why 4.2
+
+v4.2 moves Ruhi, and changes nothing else. It was issued by Claude Code on Safa's explicit
+instruction during build session 1, which is the one departure from the rule in CLAUDE.md section 2
+that only Safa revises this document. Recorded in `/docs/decisions.md` D1.11.
+
+Two things prompted it. The extracted Ruhi quotation dataset turned out to exist already, ahead of
+the build, which removes the reason Ruhi was gated behind v1.0. And Safa decided that Ruhi must not
+appear in Discover, which contradicted 5.4 and 6.1 as written.
+
+**What changed:**
+
+1. **Ruhi moves from v1.0 to v0.1**, as one build session immediately after the V0 exit review.
+   Sections 3.2, 5, 14 and 16. Decision 18.24. It stays out of V0.
+2. **Ruhi is reached from the memorisation side and never appears in Discover.** Sections 5.4 and
+   6.1 said the opposite. Decision 18.25.
+3. **`designation` added to `ruhi_quotations`** (section 10), holding the To Memorise or Reflection
+   category. Decision 18.26.
+4. **A Ruhi quotation is stored as a `passages` record** in a `ruhi` collection, so that memorising
+   one is the same code path as memorising a prayer. Section 10. Decision 18.27.
+5. **`**[v0.1]**` added to the tag legend.** It was already in use in 12.3 without being listed.
+6. **Curation status recorded in 5.1**, including the two pieces still missing.
+7. **Decisions 18.24 to 18.27 added.**
+
+No requirement has changed. Nothing has moved into V0, and nothing has left it.
 
 ---
 
@@ -35,6 +63,7 @@ Everything else is v4.0 verbatim.
 | Tag | Meaning |
 |---|---|
 | *untagged* | In V0. Build it. |
+| `**[v0.1]**` | Immediately after the V0 exit review. Read for context, do not build. |
 | `**[v1.0]**` | Soft launch. Read for context, do not build. |
 | `**[v1.1]**` | Read for context, do not build. |
 | `**[v2]**` | Native. Read for context, do not build. |
@@ -137,8 +166,14 @@ specific passages. The recommended tool for this has been abandoned.
 This is a curriculum with a fixed list, a recurring cohort, and a stated obligation. It requires no
 social features, because the curriculum is the content and the group is irrelevant.
 
-**Ruhi collections ship in v1.0.** They are not in V0, because V0 exists to validate the scheduler
-and Ruhi mapping is slow manual curation that would gate it.
+**Ruhi collections ship at v0.1**, as one build session immediately after the V0 exit review. They
+are still not in V0, but the reason has changed. The original reason was that Ruhi mapping is slow
+manual curation which would gate the scheduler. That curation is largely done, ahead of the build;
+see 5.1. The remaining reason matters more anyway: V0 exists to produce a fortnight of real use, and
+a session in front of that delays the only evidence V0 is for.
+
+**Ruhi is reached from the memorisation side of the app and never appears in Discover**, in browse or
+in search. See 5.4 and 18.25.
 
 ### 3.3 Name
 
@@ -222,7 +257,8 @@ because it never leaves their account. Segmentation applies identically.
 
 ## 5. Ruhi Collections
 
-**[v1.0]** — this entire section.
+**[v0.1]** — this entire section. One build session, immediately after the V0 exit review. See
+18.24 and section 16.
 
 ### 5.1 The mapping is the proprietary asset
 
@@ -234,6 +270,15 @@ this product that no competitor has and no API will provide.
 reproduce Ruhi book content, exercises or commentary, which are the Institute's own materials.
 
 **Permission status:** no block. Decision logged, owner Safa, 23 August 2026. See 18.4.
+
+**Curation status, 24 August 2026.** Largely done, ahead of the build, and held in
+`/Ruhi Books/Extracted Quotes`. 314 quotations from books 1 to 3, each recorded verbatim with its
+unit, its section and a fully resolved citation including the resolved "Ibid." chains. Books 1 and 2
+are categorised To Memorise or Reflection throughout, 178 quotations in total. **Two pieces remain.**
+Book 3's 136 quotations carry no category. And Book 3's extraction deliberately stops before its
+twenty four per-lesson memorisation quotations, which are the child-facing memorisation content and
+arguably the most useful part of that book here. Until the first is done, the To Memorise filter of
+5.4 does nothing in Book 3, which reads as broken rather than absent. See `/docs/decisions.md` D1.9.
 
 ### 5.2 Version the mapping against a stated edition
 
@@ -249,20 +294,35 @@ credits screen, and the dataset is versioned independently of the app.
 ruhi_books        id, number, title, edition
 ruhi_units        id, book_id, number, title
 ruhi_sections     id, unit_id, number, title
-ruhi_quotations   id, section_id, passage_id, order_index
+ruhi_quotations   id, section_id, passage_id, order_index,
+                  designation (memorise | reflection)
 ```
+
+`passage_id` always points at a `passages` record. A quotation whose text is not in the devotional
+corpus gets its own `passages` record in the `ruhi` collection, so that memorising a quotation is
+the same code path as memorising a prayer rather than a second one kept in step by hand. See 18.27.
+
+`designation` sits on the quotation and not on the passage, because the category belongs to the
+quotation's appearance in a section: 20 of the 314 quotations appear in two books, and the category
+can differ between the appearances. See 18.26.
 
 ### 5.4 Behaviour
 
-- Discover surfaces Ruhi books as a browse axis.
+- **The Ruhi route is reached from the memorisation side of the app. Discover never surfaces a Ruhi
+  quotation, in browse or in search.** Meeting a study curriculum while opening the app to pray is
+  the wrong experience, which is the same reasoning as principle 7.6. See 18.25.
 - Drill from book to unit to section to quotations.
 - Every quotation shows its source work and its Ruhi reference together.
+- **Filter a section's quotations by To Memorise or Reflection.** See 18.26.
+- Search within the Ruhi route. Separate from the full-text search of 6.3, which is a Discover
+  surface and stays at v1.0.
 - Add a single quotation, a whole section, or a whole book to the list in one action.
-- **Progress per Ruhi book.** "4 of 7 quotations from Book 1 committed to memory." A natural
-  completion unit, not a leaderboard. Lives in Log, never in Discover.
+- **[v1.0]** **Progress per Ruhi book.** "4 of 7 quotations from Book 1 committed to memory." A
+  natural completion unit, not a leaderboard. Lives in Log, never in Discover.
 
-**Scope:** Books 1 to 3 in v1.0. Start the curation early; it is the slowest non-code item in the
-project.
+**Scope:** Books 1 to 3 at v0.1, as one build session. The curation is no longer the slowest
+non-code item in the project, because it is largely done. See 5.1 for its status and what is still
+missing.
 
 ---
 
@@ -275,7 +335,7 @@ Three browse axes, all reachable from the Discover tab. Category is the default.
 | Axis | Behaviour | Release |
 |---|---|---|
 | **By category** | Alphabetical list of topic tags from the API tag feed, each with a passage count. Drill in to a passage list. | **V0** |
-| **By collection** | Prayers, Hidden Words, Gleanings, Prayers and Meditations, Ruhi, My own. | **[v1.0]** |
+| **By collection** | Prayers, Hidden Words, Gleanings, Prayers and Meditations, My own. **Ruhi is deliberately absent:** it is not a Discover surface. See 5.4 and 18.25. | **[v1.0]** |
 | **By author** | Bahá'u'lláh, the Báb, 'Abdu'l-Bahá. | **[v1.0]** |
 
 Plus **Bookmarks** (V0), and **[v1.0]** **Recents** and **Search** as saved surfaces.
@@ -591,10 +651,11 @@ passage_segments       id, passage_id, order_index, text
 tags                   id, name, source_tag_id
 passage_tags           passage_id, tag_id
 
-ruhi_books             id, number, title, edition                      [v1.0]
-ruhi_units             id, book_id, number, title                      [v1.0]
-ruhi_sections          id, unit_id, number, title                      [v1.0]
-ruhi_quotations        id, section_id, passage_id, order_index         [v1.0]
+ruhi_books             id, number, title, edition                      [v0.1]
+ruhi_units             id, book_id, number, title                      [v0.1]
+ruhi_sections          id, unit_id, number, title                      [v0.1]
+ruhi_quotations        id, section_id, passage_id, order_index,        [v0.1]
+                       designation (memorise | reflection)
 
 bookmarks              id, user_id, passage_id, created_at
 
@@ -861,6 +922,8 @@ picker.
 
 ### v0.1 — immediately after the V0 exit review
 
+- [ ] Ruhi: books 1 to 3, units, sections, quotations, the To Memorise and Reflection filter, bulk
+      add, and search within the Ruhi route. Reached from the memorisation side, never from Discover
 - [ ] Typeface picker, seven options
 - [ ] Playwright E2E suite, three specs, running on every push
 
@@ -875,7 +938,6 @@ Ten to twenty people.
 - [ ] Search within what I know
 - [ ] Recents, with clear and delete
 - [ ] Length filter chip
-- [ ] Ruhi collections: books 1 to 3, units, sections, quotations, bulk add
 - [ ] Progress per Ruhi book
 - [ ] Personal library for user-added text
 - [ ] Ingestion pipeline: scheduled, idempotent, logged
@@ -964,15 +1026,34 @@ fully unit-tested against synthetic data before a single screen exists. v3.0 pla
 of 15, behind six sessions of plumbing, which is layer-sequencing. Risk-sequencing puts the thing
 that can invalidate the project at the front, where it costs least to be wrong.
 
+### v0.1 — after the V0 exit review
+
+| # | Session | Model | Effort | Version |
+|---|---|---|---|---|
+| 10 | **Ruhi**: normalise the three extracted quotation files to committed JSON, load to IndexedDB, the book to unit to section route on the memorisation side, the To Memorise and Reflection filter, bulk add, search within the route | Opus | Max | 0.10.0 |
+
+The rest of v0.1, the typeface picker and the Playwright suite of section 14, is not sequenced yet.
+
+**Why Ruhi is session 10 and not session 3 or 4.** The extracted dataset arrived earlier than the
+scope assumed, which made it tempting to fold the parsing into session 3 and the browsing into
+session 4. Both sessions would have grown past the six-item limit, and both sit in front of the
+fortnight of real use that V0 exists to produce. Ruhi is purely additive and invalidates nothing, so
+it costs least at the front of v0.1 and nothing at all in V0. Session 2 still declares the four
+`ruhi_*` tables and leaves them empty, so session 10 needs no schema migration on a device that
+already holds a tester's data.
+
 ### v1.0
 
-Sequenced after the V0 exit review, not before. Roughly eight to ten further sessions. Do not plan
-them in detail until V0 has been used for a real fortnight.
+Sequenced after v0.1, not before. Roughly eight to ten further sessions. Do not plan them in detail
+until V0 has been used for a real fortnight.
 
 ### Parallel, non-coding
 
-**Ruhi mapping dataset for Books 1 to 3.** Start early. It gates the Ruhi work in v1.0 and it is the
-slowest item in the project. Version it against a stated Ruhi edition (5.2).
+**Ruhi mapping dataset for Books 1 to 3.** Largely done, ahead of the build. See 5.1 for its status
+and the two pieces still missing, both of which are Book 3: categorising its 136 quotations, and
+extracting its twenty four per-lesson memorisation quotations. Neither blocks session 10 starting;
+the first blocks the filter being honest in Book 3. Version the dataset against a stated Ruhi
+edition (5.2).
 
 ---
 
@@ -1042,3 +1123,7 @@ Structured conversations with the soft-launch group. Two questions carry the mos
 | 18.21 | Two palettes and adjustable text size in V0; seven-typeface picker at v0.1; theme system registry-driven from session 2 | Palettes are near-free once a theme provider exists and give V0 testers something useful to react to; seven font families is load weight and seven interactions with the text size range, none of which the V0 exit criteria ask about. Registry-driven from the start because "I may add more palettes, typefaces or whole designs later" is a session 2 decision, not a v1.1 one | Safa | 23 Aug 2026 |
 | 18.22 | Fonts self-hosted and subset, never loaded from a CDN | A CDN font load is a runtime network call that fails offline and produces unstyled text, which contradicts 4.2 and 12.2 | Safa | 23 Aug 2026 |
 | 18.23 | `display_title` added to `passages` | The reading view title carries an authored line break; corpus titles arrive as plain strings and the break would be lost | Safa | 23 Aug 2026 |
+| 18.24 | **Ruhi moved from v1.0 to v0.1**, as one build session after the V0 exit review | The manual curation that gated it is largely done ahead of the build (5.1), but V0 exists to produce a fortnight of real use and a session in front of that delays the only evidence V0 is for | Safa | 24 Aug 2026 |
+| 18.25 | **Ruhi is reached from the memorisation side and never appears in Discover**, in browse or in search | Meeting a study curriculum while opening the app to pray is the wrong experience. Same reasoning as principle 7.6, which 5.4 and 6.1 contradicted as written | Safa | 24 Aug 2026 |
+| 18.26 | **`designation` added to `ruhi_quotations`**, holding To Memorise or Reflection | The category belongs to a quotation's appearance in a section, not to the text: 20 of the 314 extracted quotations appear in two books and the category can differ between the two appearances | Safa | 24 Aug 2026 |
+| 18.27 | **A Ruhi quotation is stored as a `passages` record** in a `ruhi` collection, kept out of Discover by the data layer rather than by a filter | The only arrangement in which "memorised identically to a prayer" is one code path rather than two that must be kept in step across segmentation, the queue, the quiz ladder, the scheduler, the log and freshness | Safa | 24 Aug 2026 |
