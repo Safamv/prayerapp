@@ -113,13 +113,18 @@ the functions that load it, and `scripts/`, which is empty and is where the two 
 
 **Shipped.** Real prayers, for the first time. A script fetches all four English feeds from
 bahaiprayers.net plus their topic tags, turns each record into a passage the way the schema expects,
-and commits the result: 473 prayers, 153 Hidden Words, 166 Gleanings, 184 Prayers and Meditations, 61
+and commits the result: 473 prayers, 153 Hidden Words, 166 Gleanings, 184 Prayers and Meditations, 62
 tags, one JSON file per feed. The app loads all of it into its local database the first time it opens,
 in the background, without holding up the first screen, and opening it a second time does not add a
 second copy. Italiana and Cormorant, the two fonts the app needs for now, are fetched and cut down to
 size and sit in the repository as two small files, nothing bought or downloaded by hand. One schema
 change: passages gained a `text` column, because nothing held a prayer's full wording yet (D3.1, your
-call). 68 new tests, several against real prayers with real oddities in them.
+call). Two refinements after your first read of this session: a title now reaches past a bare
+invocation like "He is God." into the sentence after it, so it actually tells one prayer from another
+(D3.9); and 21 prayers that are themselves named tablets — the Tablet of Aḥmad, the Fire Tablet, the
+Tablet of Visitation and 18 others — carry that tablet's own name as their title and sit together in a
+new "Special Tablets" category (D3.8). 72 new tests, several against real prayers with real oddities in
+them.
 
 **Deferred.** Nothing from this session's list.
 
@@ -131,7 +136,8 @@ out to be short a few, found by checking the real text rather than trusting the 
 
 **Next session should read first.** `/CLAUDE.md` in full. Scope sections 6.1, 6.5, 6.6, 7, 8.4, and 10
 (the `passages`, `bookmarks` and `user_prayers` entries). `/docs/design-tokens.md` sections 5.3, 5.4,
-5.5 and 7. Decisions D3.1 (the new `text` column) and D3.4 (why some prayers open with an editorial
-note stripped out). In the repo, `src/data/passages.ts` and `src/data/tags.ts` for what Discover is
-already allowed to read, and `src/data/bookmarks.ts` and `src/data/userPrayers.ts` for what "bookmark"
-and "add to my list" already do.
+5.5 and 7. Decisions D3.1 (the new `text` column), D3.4 (why some prayers open with an editorial note
+stripped out) and D3.8 (the "Special Tablets" category, which the category browse will list exactly
+like any other tag — nothing special to build for it). In the repo, `src/data/passages.ts` and
+`src/data/tags.ts` for what Discover is already allowed to read, and `src/data/bookmarks.ts` and
+`src/data/userPrayers.ts` for what "bookmark" and "add to my list" already do.

@@ -943,17 +943,79 @@ than falling back to the phone's system font for that one letter.
 - **`collection` is the same value as `source_feed`** for every passage from the four content feeds:
   `prayers`, `hidden-words`, `gleanings`, `prayers-and-meditations`. The simplest mapping, and the one
   `src/data/fixtures.ts` already assumed.
-- **`translator` is `null` for every V0 passage.** The API supplies no translator field anywhere.
-  Gleanings, the Hidden Words and Prayers and Meditations are well known to be Shoghi Effendi's
-  translations, but the prayers feed is a compiled anthology with no single translator, and session 3
-  did not want to name one work correctly and leave the others silently wrong. Open question below.
-- **`source_work` is `null` for the prayers feed**, and is the book's name for the other three
+- **`translator` is `null` for every V0 passage, confirmed by Safa, 25 August 2026.** The API supplies
+  no translator field anywhere, and he does not want translator credit to be user-facing or
+  app-facing for now regardless. Recorded in the database, in case it is wanted later, but nothing
+  reads it.
+- **`source_work` is the tablet's own name for the 21 prayers D3.8 names, and `null` for every other
+  prayer in the feed.** The book's name for the other three feeds
   (`"The Hidden Words"`, `"Gleanings from the Writings of Bahá'u'lláh"`, `"Prayers and Meditations"`).
-  See D3.4: the prayers feed sometimes names its source tablet inline, but not reliably enough to
-  parse automatically.
 - **A title longer than eight words is cut at the eighth with an ellipsis**, the same convention a
   printed prayer-book index uses for a long opening line. `display_title` is the title unchanged. No
   authored line break exists in the source data to give it one (design-tokens 8.2); see open questions.
 - **`search_vector` is the title, the full text and the author, lowercased and joined.** Search itself
   is `[v1.0]` (scope 6.3); this is a placeholder good enough to search against later without
   re-ingesting the corpus, not a real search index.
+
+---
+
+### D3.8 — 21 prayers are named tablets, and get their own name and a "Special Tablets" category
+
+**Decision, requested by Safa, 25 August 2026.** 21 prayers in the prayers feed are themselves
+well-known, individually named tablets — the Tablet of Aḥmad, the Fire Tablet, the Tablet of
+Visitation, and 18 others — rather than ordinary prayers. Each now carries its tablet's own name as
+its `title` and its `source_work`, in place of an opening line, and all 21 are linked to a new tag,
+"Special Tablets", that exists only in this app rather than being one of the feed's own topic tags.
+
+**How the 21 were found.** Not guessed: read from the same embedded editorial lines D3.4 already
+strips out of the prayer text, which turn out to also carry each tablet's name — sometimes its
+English name alone ("Fire Tablet"), sometimes both its English and its original Arabic or Persian
+name ("Tablet of the Branch" beside "Súriy-i-Ghusn"). English is kept. Cross-checked where possible
+against the feed's own topic tags: the Tablet of Aḥmad, the Fire Tablet, the Tablet of the Holy
+Mariner, the Tablet(s) of Visitation and the Epistle to the Son of the Wolf already carry a
+matching tag of their own in the feed, which the new "Special Tablets" tag sits alongside rather
+than replaces. The other 16 have no tag of their own in the feed — Bahá'í Prayers files them only
+under the occasion each was revealed for (Ascension of Bahá'u'lláh, Ridván, Martyrdom of the Báb,
+Declaration of the Báb) — so "Special Tablets" is the only place the app gathers them together.
+
+**What was deliberately left out.** The three Obligatory Prayers (Long, Medium, Short) are each
+individually named in the feed's own tags too, but Safa's examples were specifically tablets, and an
+Obligatory Prayer is a different kind of thing in Bahá'í practice, not a tablet. Left as ordinary
+prayers for now; see the session's open questions if a category for these is wanted as well. The
+"Tablets of the Divine Plan" prayers were also left out, because that set already has its own
+functioning topic tag from the feed and gains nothing from a second one.
+
+**Reversible.** Yes. `NAMED_TABLETS` in `scripts/lib/normalise.ts` is one table mapping a prayer's feed
+id to its tablet name; adding, removing or renaming an entry and re-running the fetch script is the
+whole change.
+
+**What this means for you.** Discover's category list, once session 4 builds it, will show a "Special
+Tablets" category holding all 21, and each of those 21 will read by its own name in every list rather
+than by its opening words.
+
+---
+
+### D3.9 — A passage's opening reaches past a bare invocation, so titles are more distinctive
+
+**Decision, requested by Safa, 25 August 2026.** `first_line` (and the title built from it) no longer
+stops at the passage's first sentence, full stop. It keeps gathering whole sentences until it has at
+least eight words, the same width a title is truncated to, so a short opening like "He is God." or "O
+Lord!" is extended into the sentence that follows rather than left to stand alone as the entire title.
+
+**Why it came up.** About an eighth of the prayers feed opens with a bare, repeated invocation before
+the prayer proper. Left as the whole title, dozens of rows in a future browse list would have read "He
+is God." with nothing to tell them apart (named as an open question at the end of the session's first
+pass; Safa asked for the fix rather than leaving it).
+
+**What was not done.** No attempt to detect and specifically skip "the invocation" as its own category
+of sentence — a rule like that is fragile (which sentences count as an invocation is a judgement call)
+and unnecessary, because gathering by word count until the title's own width is reached already solves
+it: a two-word first sentence is never distinctive enough to reach the eight-word floor on its own, so
+it always pulls in more.
+
+**Reversible.** Yes, one number (`TITLE_WORDS` in `scripts/lib/textCleaning.ts`) and a re-run of the
+fetch script.
+
+**What this means for you.** "O Lord! Bless this family and grant it…" instead of "O Lord!". Nothing
+changes for a prayer whose first sentence was already long enough on its own, such as "Blessed is the
+spot" or "Is there any Remover of difficulties save God?".
