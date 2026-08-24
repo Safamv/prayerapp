@@ -143,3 +143,36 @@ stripped out) and D3.8 (the "Special Tablets" category, which the category brows
 like any other tag — nothing special to build for it). In the repo, `src/data/passages.ts` and
 `src/data/tags.ts` for what Discover is already allowed to read, and `src/data/bookmarks.ts` and
 `src/data/userPrayers.ts` for what "bookmark" and "add to my list" already do.
+
+---
+
+## Session 4 — Discover: category browse, passage list, reading view
+
+**Version:** v0.4.0   **Branch:** session-04-discover   **Date:** 25 Aug 2026
+
+**Shipped.** The prayer book, readable. Open the app and you get 63 categories in alphabetical order
+with a count beside each, tap one for its prayers with the author and an exact word count on every
+row, tap a prayer and read it in full: gold drop cap, the twin rules, the fleuron, the attribution
+and the copyright line, set to the typography document exactly, with the header staying put while the
+prayer scrolls under it. Two marks at the top right, a ribbon to keep the place and lines with a plus
+to add it to your list. 118 new tests, including principle 7.6 checked against the rendered screen
+rather than only against what the code can import: no freshness word, no streak, no star, and on a
+prayer whose own text has no digit in it, no digit anywhere.
+
+**Deferred.** Nothing from this session's list. Bookmarks has no screen of its own yet; scope 6.1
+lists it as V0 but this session's six items did not include it, and there is nowhere to see your
+bookmarks until one is built.
+
+**Surprises.** Two, both in `decisions.md`. More than half the library cannot be reached: the tag
+feed tags prayers and nothing else, so all 153 Hidden Words, 166 Gleanings and 184 Prayers and
+Meditations have no category to be found under, and the axis that would reach them is `[v1.0]`
+(D4.1). And three characters the app draws itself — the dot between an author and a work, the
+copyright sign, and the fleuron — had no glyph in the subset font and would have been drawn by the
+phone's default face on every screen (D4.7).
+
+**Next session should read first.** `/CLAUDE.md` in full. Scope sections 8.1, 8.4, 9.7, 11.5, and 10
+(the `passage_segments` and `user_prayers` entries). `/docs/design-tokens.md` sections 5.3, 5.5 and
+7. Decisions D4.2 (the door Discover adds through, which session 5 puts a screen in front of) and
+D4.3 (why adding is one way). In the repo, `src/features/discover/ReadingScreen.tsx` for where the
+add happens now, `src/data/passages.ts` for `addPassageToList`, and `src/data/corpus.ts` for
+`putPassageSegments`, which nothing has written to yet.

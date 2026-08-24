@@ -68,12 +68,88 @@ export const strings = {
   },
 
   /**
+   * Discover: the library. Scope 6.1, 6.5 and 6.6.
+   *
+   * **Nothing here may name a due date, a streak, a freshness state or any
+   * other memorisation word.** Principle 7.6 is enforced against the folder by
+   * `src/principles/discover-isolation.test.ts`, but a label is the one way
+   * memorisation chrome could reach a devotional screen without importing
+   * anything, so it is worth saying here too.
+   */
+  discover: {
+    /** Tall header eyebrow on the library's first screen: the app's own name. */
+    eyebrow: 'BY HEART',
+    /** Section header above the alphabetical list of categories (scope 6.1). */
+    categoriesSection: 'CATEGORIES',
+    /** The count on a category row. Scope 6.1: "each with a passage count". */
+    passageCount: (count: number) => (count === 1 ? '1 PASSAGE' : `${String(count)} PASSAGES`),
+    /**
+     * The count on a passage row. Scope 6.2: "Word count is precise, honest, and
+     * free at ingestion. It is not a band and not a judgement."
+     */
+    wordCount: (count: number) => (count === 1 ? '1 WORD' : `${String(count)} WORDS`),
+  },
+
+  /**
+   * The reading view. Scope 6.6, design-tokens 5.4.
+   *
+   * Scope 6.6 gives the toolbar two actions and says they are different intents:
+   * a bookmark is "find this again on Sunday", the list is "I intend to learn
+   * this". The labels keep them apart rather than blurring them into one saved
+   * state, which is why neither says "save".
+   */
+  reading: {
+    bookmarkAdd: 'Bookmark',
+    bookmarkRemove: 'Remove bookmark',
+    listAdd: 'Add to my list',
+    /**
+     * Principle 7.6: "a passage already on your list shows nothing in the
+     * reading view except that the add button reads as already added". This is
+     * that, and it is the whole of what Discover is permitted to say about it.
+     */
+    listAlreadyAdded: 'On my list',
+    /**
+     * Design-tokens 7.2 and scope 4.3. The Bahá'í International Community, not
+     * the publishing trust: the source handoff had the wrong body and
+     * design-tokens section 9 corrects it.
+     */
+    copyright: "© BAHÁ'Í INTERNATIONAL COMMUNITY",
+    /** Scope 4.3 requires the translator "where relevant". No corpus text has one yet. */
+    translatedBy: 'TRANSLATED BY',
+  },
+
+  /**
+   * The four collections of scope 4.1, in the caps slot.
+   *
+   * Written out in capitals rather than uppercased from the column, because
+   * these are labels the app owns (design-tokens 2.3). A collection with no
+   * entry here falls back to the passage's own collection value, so a fifth
+   * feed shows something rather than nothing.
+   */
+  collections: {
+    prayers: 'PRAYERS',
+    'hidden-words': 'THE HIDDEN WORDS',
+    gleanings: 'GLEANINGS',
+    'prayers-and-meditations': 'PRAYERS AND MEDITATIONS',
+  },
+
+  /** What kind of text a passage is, for the reading-surface eyebrow. */
+  textTypes: {
+    prayer: 'PRAYER',
+    'hidden-word': 'HIDDEN WORD',
+    gleaning: 'GLEANING',
+  },
+
+  /**
    * Read by screen readers and never drawn. They are user-facing all the same,
    * so they live here rather than in a component.
    */
   accessibility: {
     back: 'Back',
     primaryNavigation: 'Main',
+    /** The library's category list, and a chosen category's passage list. */
+    categoryList: 'Categories',
+    passageList: 'Passages',
   },
 } as const
 
