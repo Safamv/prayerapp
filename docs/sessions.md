@@ -119,11 +119,13 @@ in the background, without holding up the first screen, and opening it a second 
 second copy. Italiana and Cormorant, the two fonts the app needs for now, are fetched and cut down to
 size and sit in the repository as two small files, nothing bought or downloaded by hand. One schema
 change: passages gained a `text` column, because nothing held a prayer's full wording yet (D3.1, your
-call). Two refinements after your first read of this session: a title now reaches past a bare
+call). Three refinements after your first read of this session: a title now reaches past a bare
 invocation like "He is God." into the sentence after it, so it actually tells one prayer from another
-(D3.9); and 21 prayers that are themselves named tablets — the Tablet of Aḥmad, the Fire Tablet, the
+(D3.9); 21 prayers that are themselves named tablets — the Tablet of Aḥmad, the Fire Tablet, the
 Tablet of Visitation and 18 others — carry that tablet's own name as their title and sit together in a
-new "Special Tablets" category (D3.8). 72 new tests, several against real prayers with real oddities in
+new "Special Tablets" category (D3.8); and the three Obligatory Prayers get the same treatment in
+their own "Obligatory Prayers" category (D3.10). 79 new tests, several against real prayers with real
+oddities in
 them.
 
 **Deferred.** Nothing from this session's list.

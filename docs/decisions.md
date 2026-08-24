@@ -1019,3 +1019,22 @@ fetch script.
 **What this means for you.** "O Lord! Bless this family and grant it…" instead of "O Lord!". Nothing
 changes for a prayer whose first sentence was already long enough on its own, such as "Blessed is the
 spot" or "Is there any Remover of difficulties save God?".
+
+---
+
+### D3.10 — The three Obligatory Prayers get their own name and category too
+
+**Decision, requested by Safa, 25 August 2026.** The same treatment as D3.8, for the three daily
+Obligatory Prayers: each now carries its own name — "Short Obligatory Prayer", "Medium Obligatory
+Prayer", "Long Obligatory Prayer" — as its `title` and `source_work`, and all three are linked to a
+new "Obligatory Prayers" tag, a category of its own, separate from "Special Tablets".
+
+**One small correction made along the way.** The embedded marker for the Short Obligatory Prayer
+reads "Short obligatory prayer", inconsistently cased against the other two. The feed's own topic tag
+for all three is correctly and consistently cased, so the tag's name is used as the title rather than
+the embedded marker's.
+
+**Reversible.** Yes, the same way as D3.8: `NAMED_OBLIGATORY_PRAYERS` in `scripts/lib/normalise.ts`.
+
+**What this means for you.** A second clickable category next to "Special Tablets" once session 4
+builds category browse, holding these three.
