@@ -8,6 +8,7 @@
 export { applyThemeVariables, roleVariablePrefix, themeVariables } from './cssVariables'
 export { DEFAULT_PALETTE_ID, PALETTES, defaultPalette, getPalette } from './palettes'
 export type { Palette, PaletteTokens } from './palettes'
+export { FLEURON, FLEURON_SIZE } from './ornaments'
 export { ThemeProvider } from './ThemeProvider'
 export type { ThemeProviderProps, ThemeSelection } from './ThemeProvider'
 export type { ThemeContextValue } from './themeContext'
