@@ -1,11 +1,11 @@
 {
-  "fetchedAt": "2026-08-24T22:48:46.235Z",
+  "fetchedAt": "2026-08-24T22:59:08.577Z",
   "source": "https://bahaiprayers.net",
   "languageId": 1,
   "files": {
     "prayers.json": {
       "records": 473,
-      "sha256": "fd75188f7a2127edc4f8da7b5b6f1338d199a015bd267154f85b6e88dbaaf85d"
+      "sha256": "f60c5d6d7ac791fac6dbc1f3a825137ff0328c980f409fa4b4ac96d64b854013"
     },
     "hidden-words.json": {
       "records": 153,
@@ -20,12 +20,12 @@
       "sha256": "21197a9f3f0a05e4c5fc8ab25af363daf623b15cf784ad5c86ced62d74f9391e"
     },
     "tags.json": {
-      "records": 62,
-      "sha256": "c926628a3e1251c28e0ac3c374244cc199bb240366adf491f3efe9fa65c7e5c9"
+      "records": 63,
+      "sha256": "b4af67dc8118f38eaadcdaf9c42410780edebbde6378eb93f69b2e72f90c03bc"
     },
     "passage-tags.json": {
-      "records": 499,
-      "sha256": "21bb2cc659e7ec6cfc51b788be9c63d09bcd14844c6378ef7e5e67becbbe164e"
+      "records": 502,
+      "sha256": "f9e21c5dad38b97065b666d4ad0c3db2bc6b43935834cad82ae7d5fc454793d2"
     }
   }
 }

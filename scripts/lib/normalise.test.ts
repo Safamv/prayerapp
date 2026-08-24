@@ -6,6 +6,7 @@ import {
   normalisePrayer,
   normalisePrayerAndMeditation,
   normaliseTag,
+  OBLIGATORY_PRAYERS_TAG,
   passageTagLinksForPrayer,
   SPECIAL_TABLETS_TAG,
 } from './normalise'
@@ -129,6 +130,19 @@ const PRAYER_TABLET_OF_AHMAD: RawPrayer = {
   Tags: [{ Id: 97, Name: 'Tablet of Ahmad', Kind: 'GENERAL' }],
 }
 
+// The Short Obligatory Prayer. Its embedded marker is inconsistently cased
+// ("Short obligatory prayer"); the feed's own tag is correctly cased.
+const PRAYER_SHORT_OBLIGATORY: RawPrayer = {
+  Id: 391,
+  AuthorId: 2,
+  LanguageId: 1,
+  Text:
+    '#Short obligatory prayer\n##To be recited once in twenty-four hours, at noon\n\n' +
+    '*God hath exempted women who are in their courses from obligatory prayer and fasting.\n\n' +
+    'I bear witness, O my God, that Thou hast created me to know Thee and to worship Thee.',
+  Tags: [{ Id: 101, Name: 'Short Obligatory Prayer', Kind: 'GENERAL' }],
+}
+
 describe('normalisePrayer', () => {
   it("maps AuthorId 3 to 'Abdu'l-Bahá and reaches past a short opening sentence for the title", () => {
     const row = normalisePrayer(PRAYER_15692)
@@ -206,6 +220,14 @@ describe('normalisePrayer', () => {
     // first_line still opens on the real text, the preamble already stripped.
     expect(row.first_line.startsWith('He is the King')).toBe(true)
     expect(row.text.startsWith('**')).toBe(false)
+  })
+
+  it('names the Short Obligatory Prayer from its tag, not its inconsistently-cased marker (D3.10)', () => {
+    const row = normalisePrayer(PRAYER_SHORT_OBLIGATORY)
+    expect(row.title).toBe('Short Obligatory Prayer')
+    expect(row.display_title).toBe('Short Obligatory Prayer')
+    expect(row.source_work).toBe('Short Obligatory Prayer')
+    expect(row.text.startsWith('#')).toBe(false)
   })
 })
 
@@ -295,6 +317,20 @@ describe('passageTagLinksForPrayer', () => {
       {
         passage_id: deterministicUuid(CORPUS_NAMESPACE, 'prayers:386'),
         tag_id: SPECIAL_TABLETS_TAG.id,
+      },
+    ])
+  })
+
+  it('also links the Short Obligatory Prayer to Obligatory Prayers, alongside its ordinary tags', () => {
+    const links = passageTagLinksForPrayer(PRAYER_SHORT_OBLIGATORY)
+    expect(links).toEqual([
+      {
+        passage_id: deterministicUuid(CORPUS_NAMESPACE, 'prayers:391'),
+        tag_id: deterministicUuid(CORPUS_NAMESPACE, 'tag:101'),
+      },
+      {
+        passage_id: deterministicUuid(CORPUS_NAMESPACE, 'prayers:391'),
+        tag_id: OBLIGATORY_PRAYERS_TAG.id,
       },
     ])
   })

@@ -104,6 +104,20 @@ const NAMED_TABLETS: Readonly<Record<number, string>> = {
 }
 
 /**
+ * The three daily Obligatory Prayers (scope glossary: prayers a believer must
+ * choose one of each day), each carrying its own name and, in the Short
+ * Obligatory Prayer's case, inconsistent casing in the embedded marker
+ * ("Short obligatory prayer") — the feed's own topic tag is used instead,
+ * which is already correctly cased for all three (decision D3.10, Safa, 25
+ * August 2026).
+ */
+const NAMED_OBLIGATORY_PRAYERS: Readonly<Record<number, string>> = {
+  391: 'Short Obligatory Prayer',
+  392: 'Medium Obligatory Prayer',
+  393: 'Long Obligatory Prayer',
+}
+
+/**
  * A category that exists only in this app, not in the feed: every prayer in
  * `NAMED_TABLETS` gathered in one place (decision D3.8). Its id is
  * deterministic like every other corpus id (decision D3.3), so re-running the
@@ -116,13 +130,25 @@ export const SPECIAL_TABLETS_TAG: TagRow = {
   source_tag_id: 'special-tablets',
 }
 
+/** The three prayers in `NAMED_OBLIGATORY_PRAYERS`, gathered the same way (decision D3.10). */
+export const OBLIGATORY_PRAYERS_TAG: TagRow = {
+  id: deterministicUuid(CORPUS_NAMESPACE, 'synthetic-tag:obligatory-prayers'),
+  name: 'Obligatory Prayers',
+  source_tag_id: 'obligatory-prayers',
+}
+
+/** A prayer's tablet or Obligatory Prayer name, if it is one, in place of a derived title. */
+function namedPrayerTitle(id: number): string | undefined {
+  return NAMED_TABLETS[id] ?? NAMED_OBLIGATORY_PRAYERS[id]
+}
+
 export function normalisePrayer(record: RawPrayer): PassageRow {
   const lines = cleanLines(record.Text, 'plain')
   const text = joinLines(lines, 'plain')
   const line = firstLine(text)
   const author = authorForPrayer(record.AuthorId)
-  const tabletName = NAMED_TABLETS[record.Id]
-  const title = tabletName ?? deriveTitle(line)
+  const namedTitle = namedPrayerTitle(record.Id)
+  const title = namedTitle ?? deriveTitle(line)
 
   return {
     id: passageId('prayers', String(record.Id)),
@@ -135,10 +161,10 @@ export function normalisePrayer(record: RawPrayer): PassageRow {
     author,
     translator: null,
     text_type: 'prayer',
-    // A named tablet's source_work is its own name. Otherwise, the compiled
-    // "Bahá'í Prayers" anthology draws on many separate tablets and no single
-    // source_work names it. See the session's open questions.
-    source_work: tabletName ?? null,
+    // A named tablet or Obligatory Prayer's source_work is its own name.
+    // Otherwise, the compiled "Bahá'í Prayers" anthology draws on many
+    // separate tablets and no single source_work names it.
+    source_work: namedTitle ?? null,
     collection: 'prayers',
     language: 'en',
     word_count: wordCount(text),
@@ -248,7 +274,9 @@ export function normaliseTag(record: RawTag): TagRow {
 /**
  * The `passage_tags` links carried on a prayer record's own embedded `Tags`
  * array, plus a link to `SPECIAL_TABLETS_TAG` when the prayer is a named
- * tablet (decision D3.8) — on top of, not instead of, its ordinary tags.
+ * tablet (decision D3.8) or to `OBLIGATORY_PRAYERS_TAG` when it is one of the
+ * three Obligatory Prayers (decision D3.10) — on top of, not instead of, its
+ * ordinary tags.
  */
 export function passageTagLinksForPrayer(record: RawPrayer): PassageTagRow[] {
   const thisPassageId = passageId('prayers', String(record.Id))
@@ -258,6 +286,9 @@ export function passageTagLinksForPrayer(record: RawPrayer): PassageTagRow[] {
   }))
   if (record.Id in NAMED_TABLETS) {
     links.push({ passage_id: thisPassageId, tag_id: SPECIAL_TABLETS_TAG.id })
+  }
+  if (record.Id in NAMED_OBLIGATORY_PRAYERS) {
+    links.push({ passage_id: thisPassageId, tag_id: OBLIGATORY_PRAYERS_TAG.id })
   }
   return links
 }

@@ -308,5 +308,10 @@
     "id": "49740525-b20a-5dd5-8a9f-cae4bdcb1a33",
     "name": "Special Tablets",
     "source_tag_id": "special-tablets"
+  },
+  {
+    "id": "57db1764-d998-5635-b75f-62e72bcbe68e",
+    "name": "Obligatory Prayers",
+    "source_tag_id": "obligatory-prayers"
   }
 ]

@@ -9,6 +9,7 @@ import {
   normalisePrayerAndMeditation,
   normaliseTag,
   passageTagLinksForPrayer,
+  OBLIGATORY_PRAYERS_TAG,
   SPECIAL_TABLETS_TAG,
 } from './lib/normalise.ts'
 import type {
@@ -94,7 +95,11 @@ async function main(): Promise<void> {
   const hiddenWords: PassageRow[] = byId(rawHiddenWords).map(normaliseHiddenWord)
   const gleanings: PassageRow[] = byId(rawGleanings).map(normaliseGleaning)
   const prayersAndMeditations: PassageRow[] = byId(rawPms).map(normalisePrayerAndMeditation)
-  const tags: TagRow[] = [...byId(rawTags).map(normaliseTag), SPECIAL_TABLETS_TAG]
+  const tags: TagRow[] = [
+    ...byId(rawTags).map(normaliseTag),
+    SPECIAL_TABLETS_TAG,
+    OBLIGATORY_PRAYERS_TAG,
+  ]
   const passageTags: PassageTagRow[] = sortedPrayers.flatMap(passageTagLinksForPrayer)
 
   const files: readonly { name: string; records: readonly unknown[] }[] = [
