@@ -191,3 +191,162 @@ without the build failing.
 ---
 
 *Session entries begin below.*
+
+## D1 — Session 1, repo scaffold and SM-2 scheduler
+
+---
+
+### D1.1 — The upkeep multiplier is applied to the date, never stored in the interval
+
+**Decision.** A segment's stored `interval_days` is always the plain SM-2 number. The occasional
+upkeep multiplier of three is applied at the moment a due date is chosen, and never written back.
+
+**Options considered.**
+- *Store the multiplied interval.* Simpler to read in the database, and wrong. The next review
+  works out its interval by multiplying the previous one, so a tripled interval gets tripled again.
+  Three months on occasional upkeep quietly becomes nine, then twenty seven. Nobody would notice
+  until a passage failed to come round for two years.
+- *Store the plain interval and multiply when choosing the date.* Chosen. It also means moving a
+  passage between active and occasional loses nothing, because the underlying SM-2 state was never
+  contaminated.
+
+**Reversible.** Yes now, awkward after session 6 builds the queue on top of it, and awkward after
+real tester data exists, because the stored numbers would mean two different things depending on
+when they were written.
+
+**What this means for you.** Putting a passage on occasional upkeep makes it come round about three
+times less often, and putting it back on active returns it to its old rhythm immediately. Neither
+switch damages what the app has learned about how well you know it.
+
+---
+
+### D1.2 — A resting passage still gets a due date
+
+**Decision.** Resting is a separate question from how long the interval is. The scheduler works out
+a date as though the passage were active, and a separate check keeps resting material out of the
+queue.
+
+**Reversible.** Yes, trivially.
+
+**What this means for you.** Scope 8.5 says a resting passage never decays into "needs review", and
+it does not: it is simply never queued. But when you wake it up, the app knows what is genuinely
+overdue rather than pushing everything a fresh week into the future. Waking a passage shows you
+where you actually are.
+
+---
+
+### D1.3 — "The slowest of its segments' intervals" is read as the shortest interval
+
+**Decision.** Scope 8.7 says a promoted whole-passage card is scheduled on the slowest of its
+segments' intervals. That is read as the segment with the shortest interval, which is the segment
+that still needs seeing most often. The promoted passage also inherits that segment's ease factor
+and repetition count.
+
+**Options considered.**
+- *Shortest interval, meaning the weakest line sets the pace.* Chosen. Conservative. A passage with
+  one shaky line keeps coming round until that line is solid.
+- *Longest interval.* The other reading of the same word. A passage where every line is strong
+  except one would disappear for months on the strength of the others. Scope 8.7 says this
+  arrangement is "the only one in which the freshness states in section 11 mean anything", and a
+  passage that vanishes for months is exactly what empties those states out.
+
+**Reversible.** Yes, cheaply, until session 8 builds the milestone screen and testers start
+reaching milestones. It is one line of code and one test either way.
+
+**What this means for you.** This is on the open questions list, because the scope sentence genuinely
+reads both ways and it is your call. As built: when you finish memorising a passage, it comes back
+as often as its weakest line needed, not as rarely as its strongest line allowed. So a passage you
+have just finished will come round fairly soon at first, and then stretch out.
+
+---
+
+### D1.4 — The SM-2 numbers
+
+**Decision.** Ease factor starts at 2.5 and never goes below 1.3. Again lowers it by 0.20, Hard by
+0.15, Good leaves it alone, Easy raises it by 0.10. The first successful review waits one day, the
+second waits six, and from the third the interval is multiplied by the ease factor. Hard grows the
+interval by a fixed 1.2 instead. Easy adds a further 1.3 on top. Again drops the interval back to
+one day and starts the count again. No interval is ever shorter than one day or longer than 365.
+
+**Options considered.** The original 1987 SM-2 formula grades on a scale of nought to five and
+derives the ease change arithmetically. It needs a six point rating and we have four (scope 9.6), so
+the mapping would have been invented anyway. The numbers above are the widely used four button
+variant, which has two decades of practical use behind it.
+
+**Reversible.** Yes. Every one of these numbers is a named field in one object, changeable without
+touching any logic, and the whole module is designed to be swapped for FSRS.
+
+**What this means for you.** A passage you always rate Good comes round after 1 day, then 6, then
+15, then 38, then 95, then 238. Six reviews in eight months. A passage you keep rating Again or Hard
+stays on a roughly weekly cycle and does not run away from you. If it feels too slack or too
+relentless when you use it, these are the numbers to change, and changing them is one file.
+
+---
+
+### D1.5 — A lapse starts the count again rather than shortening the interval
+
+**Decision.** Rating Again puts the segment back to a one day interval and resets its repetition
+count, so it walks the one day and six day steps again. The ease factor keeps its penalty, so
+recovery is slightly slower than starting fresh.
+
+**Options considered.** Anki's relearning approach keeps a fraction of the old interval, which is
+gentler and gets a lapsed item back to long intervals faster. Rejected for now: this is devotional
+text recited from memory, and "I could not remember it" is a real signal rather than a slip of the
+mouse.
+
+**Reversible.** Yes, it is one branch and one config number.
+
+**What this means for you.** Forgetting a line puts it back to tomorrow, then six days, then a
+fortnight. It costs you three or four reviews to rebuild. That is deliberate, and it is the
+behaviour most likely to be worth revisiting once you have used the app for a fortnight.
+
+---
+
+### D1.6 — The scheduler wall is enforced with `no-restricted-syntax`, not `no-restricted-imports`
+
+**Decision.** CLAUDE.md section 10 names ESLint's `no-restricted-imports` as the mechanism for the
+module boundaries. For the scheduler it does not work, so the wall is built from
+`no-restricted-syntax` instead. `no-restricted-imports` is still the right tool for the boundaries
+session 2 needs, and will be used there.
+
+**Why.** `no-restricted-imports` matches import names using the same rules as a `.gitignore` file,
+and in those rules an exception cannot re-permit a relative path. So "block everything except
+imports from inside this folder" cannot be written. The rule that was written instead inspects the
+code directly, and as a bonus it also catches two things the other rule misses entirely: type-only
+imports, and imports loaded on demand at runtime.
+
+**Reversible.** Yes, it is one config file.
+
+**What this means for you.** Nothing about how the app behaves. The seal on the scheduler that
+decision D0.3 promised is real, and slightly tighter than planned. It is also double-checked by a
+test that reads the scheduler's own source code, so switching the lint rule off would not quietly
+open the door.
+
+---
+
+### D1.7 — Contained decisions
+
+- **One `tsconfig.json` rather than the three the scaffolder generates.** The generated arrangement
+  makes `npx tsc --noEmit`, the first gate in CLAUDE.md section 5, check nothing at all. One config
+  file makes the gate real. Changes nothing about how the app behaves.
+- **ESLint replaces oxlint.** The Vite scaffolder now ships oxlint by default. CLAUDE.md section 10
+  specifies ESLint, and the import boundaries are the reason, so oxlint was removed.
+- **`npm run lint` runs Prettier as well as ESLint.** Formatting is then a gate rather than a
+  suggestion. Prettier is configured never to touch anything in `/docs` or any `.md` file, so it
+  cannot reformat your documents.
+- **The scheduler's tuneable numbers live inside `src/scheduler/`, not `src/config/`.** CLAUDE.md
+  section 9 lists SM-2 defaults under `src/config/`, and CLAUDE.md section 4 rule 5 forbids the
+  scheduler importing anything, including that. The scheduler owns its own defaults and accepts an
+  override as an argument. Session 2's `src/config/` will hold the app's own constants and pass them
+  in. This keeps both rules intact.
+- **A day is a plain `YYYY-MM-DD` string, checked when it arrives.** Not a specially typed value,
+  which would have made every call site noisier for no practical gain. A malformed or impossible
+  date throws immediately rather than becoming a silent "Invalid Date".
+- **All date arithmetic is done in UTC.** Tested against the start of Australian daylight saving,
+  which is where day counting done in local time loses or gains a day.
+- **The ease factor has a floor but no ceiling.** Since no interval may exceed 365 days, an ease
+  factor that climbs past 3 has no practical effect.
+- **Dependencies added this session.** `vitest`, `tailwindcss` with `@tailwindcss/vite`, `eslint`
+  with `@eslint/js`, `typescript-eslint` and `globals`, and `prettier`. All are development tools
+  except Tailwind, and all are named in CLAUDE.md section 10. Nothing ships to the browser from the
+  scheduler.

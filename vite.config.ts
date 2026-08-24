@@ -9,5 +9,8 @@ export default defineConfig({
     // component tests for the chip quiz.
     environment: 'node',
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    // The scheduler simulation prints interval tables. They are the point of
+    // the test, so they must survive `npm run test` rather than needing a flag.
+    disableConsoleIntercept: true,
   },
 })
