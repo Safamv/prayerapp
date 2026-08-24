@@ -19,3 +19,8 @@ supabase/
 # macOS and iCloud Drive clutter
 .DS_Store
 *.icloud
+
+# Local editor and tool caches
+*.local
+*.log
+.eslintcache

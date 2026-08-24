@@ -1,0 +1,9 @@
+dist
+coverage
+node_modules
+package-lock.json
+
+# Safa's documents. Prettier must never reformat these, and scope.md must
+# never be edited at all (CLAUDE.md section 2).
+*.md
+docs/
