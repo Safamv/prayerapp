@@ -1038,3 +1038,255 @@ the embedded marker's.
 
 **What this means for you.** A second clickable category next to "Special Tablets" once session 4
 builds category browse, holding these three.
+
+---
+
+## D4 — Session 4, Discover: category browse, passage list, reading view
+
+---
+
+### D4.1 — More than half the library cannot be reached in V0, because the tag feed only tags prayers
+
+**A contradiction the build found in the scope, not a decision taken freely.** Recorded here so the
+next session does not rediscover it, and named in this session's open questions because it is Safa's
+to resolve.
+
+**What was found.** The corpus holds 976 passages. 503 of them carry no topic tag at all: every one
+of the 153 Hidden Words, the 166 Gleanings and the 184 Prayers and Meditations. The tag feed at
+bahaiprayers.net tags the prayers feed and nothing else. Category browse is built on those tags, so
+it reaches the 473 prayers and no more.
+
+**Why this matters.** Scope 6.1 says "V0 ships category browse only" and calls it "the single axis
+that makes the library usable for the devotional case". That reasoning holds for prayers and does not
+hold for the rest: browse by collection, which is the axis that would reach The Hidden Words and
+Gleanings, is tagged `[v1.0]` in the same table. So in V0, a tester can read any of 473 prayers and
+cannot reach a single Hidden Word except by knowing its address.
+
+**What was built instead.** Exactly what scope 6.1 specifies, unchanged. CLAUDE.md is explicit that
+`[v1.0]` content is read for context and not built, and adding four collection rows to the category
+list would have been building it. The three untagged collections are loaded, stored, and openable by
+their address; nothing in the interface leads to them.
+
+**Reversible.** Cheaply, in either direction. Making collections browsable is one more list on the
+screen that already exists and reads through `listDevotionalPassagesByCollection`, which is already
+written and already excludes Ruhi material. About half a session, whenever you want it.
+
+**What this means for you.** If you open the app today and go looking for a Hidden Word, you will not
+find one. Everything else works: 473 prayers, 63 categories, all of it readable and bookmarkable. The
+question of whether V0 should reach the other 503 is in this session's open questions.
+
+---
+
+### D4.2 — Discover commits a passage to the list through a door that hands nothing back
+
+**Decision.** Adding a passage to the list from the reading view calls a new function,
+`addPassageToList`, in `src/data/passages.ts`, rather than `addToList` in `src/data/userPrayers.ts`
+where the writing actually happens. It returns nothing.
+
+**Why it came up.** Scope 6.6 puts "add to my list" in the reading view's toolbar, so Discover has to
+be able to make that commitment. But the function that makes it returns the row it just wrote, and
+that row carries the passage's due date, its upkeep state and its focus flag. Both walls around
+Discover, the lint rule and the test, refuse that module and refuse that name, and they are right to:
+a screen holding the row could render every piece of chrome principle 7.6 exists to keep out of the
+library.
+
+**Options considered.**
+1. **A function in the module Discover already reads from, returning nothing** (chosen). The
+   commitment crosses the boundary; the progress does not, because there is nothing to cross with.
+2. **Let Discover import `userPrayers` and trust it not to render the row.** Rejected. That is
+   exactly the trust the two walls were built to replace, and it would have meant switching off a
+   lint rule and deleting a test to get a green build.
+3. **Route the write through the Memorise side.** Rejected as ceremony: a second module doing nothing
+   but forwarding the same two arguments.
+
+This is the same reasoning that already made `isOnList` return a boolean instead of a row, so it sits
+next to it in the same file, under the same comment.
+
+**Reversible.** Yes, trivially. It is four lines.
+
+**What this means for you.** Nothing you can see. It is the reason the reading view can never grow a
+"due in 3 days" line by accident.
+
+---
+
+### D4.3 — "Add to my list" is one way from the reading view
+
+**Decision, defaulted rather than asked, and the one most likely to be overturned.** Bookmarking
+toggles: tap to keep a place, tap again to let it go. Adding to the list does not. Once a passage is
+added, the button reads as already added and stops responding.
+
+**Why.** Removing a passage from the list is not the opposite of adding it. `removeFromList` deletes
+the row and, with it, every segment's progress and the whole review history for that passage — which
+is correct, because leaving them behind would resurrect a half-learnt state if the passage were ever
+re-added. But that makes removal a destructive act, and putting it one mis-tap away from a reading
+screen means a moment's fumble can throw away three weeks of work with no warning and no undo.
+
+**Options considered.**
+1. **One way from here, removable from the list itself** (chosen). The commitment is easy, undoing it
+   happens where you can see what you are undoing.
+2. **A toggle, like bookmark.** Simpler and symmetrical, and it puts a destructive action on a
+   surface whose whole purpose is reading.
+3. **A toggle with a confirmation.** Rejected for V0: a confirmation dialogue on a devotional screen
+   is exactly the study-app furniture principle 7.6 is written against.
+
+Principle 7.6's own wording supports this: "a passage already on your list shows nothing in the
+reading view except that the add button reads as already added". It describes a state, not a control.
+
+**Reversible.** Yes, easily, and worth revisiting once the list screen exists in session 6 and you
+can see both halves.
+
+**What this means for you.** Tapping the list mark on a prayer you have already added does nothing
+and shows a tick. To take something off your list you will go to the list, which does not exist yet.
+If you would rather it toggled here, say so and it is a small change.
+
+---
+
+### D4.4 — The reading view's toolbar carries two marks where design-tokens describes one
+
+**Decision.** Design-tokens 5.1's compact header has "an optional 17px trailing icon", singular.
+Scope 6.6 requires two: "Different icons, both one tap, neither nested in a menu. They are different
+intents and conflating them makes both worse." The header carries two.
+
+CLAUDE.md section 2 settles it: the scope owns behaviour, the tokens document owns appearance, and
+where they conflict the scope wins. Every measurement the tokens table gives is kept — 46px 22px 15px
+padding, 17px marks, the same gold.
+
+**One measurement was added rather than changed.** Each mark sits in a 44px touch target, because
+design-tokens 5.3 sets 44px as the production minimum and calls the reference's 43px "a bug in the
+reference, not a spec". A bare 17px mark would have been a far smaller target than that on the two
+actions the scope insists are one tap. The marks still land 22px from the edge; the target simply
+extends past them.
+
+**Reversible.** Yes.
+
+**What this means for you.** Two small gold marks at the top right of a prayer: a ribbon to keep the
+place, and lines with a plus to add it to your list.
+
+---
+
+### D4.5 — The two new marks, drawn from the product rather than from an icon set
+
+**Decision.** Design-tokens 8.3 defines six drawings for the whole app and neither a bookmark nor an
+add-to-list mark is among them, so two were drawn, in the same idiom as the tab icons and as open to
+being redrawn as those were (D2.10).
+
+- **Bookmark** is a ribbon marker, notched at the foot: the thing you actually put in a prayer book.
+- **Add to my list** is the Memorise tab's three ascending rules, which are cumulative line building
+  (scope 8.1), with a mark beside them. A plus before adding, a tick after.
+
+**Deliberately not used: the nine-pointed star.** It is the obvious mark for "saved", and
+design-tokens 4 reserves it for the freshness state and bans it from the reading view by name. A star
+here would have read as a rating and breached principle 7.6 by looking like it, without importing a
+single thing.
+
+**State is carried by colour and by the mark, never by a fill**, because design-tokens 8.3's drawing
+rules permit no fills. An unset mark is `on-field-66`, a set one is gold.
+
+**Reversible.** Yes. Two small files, and nothing depends on which shapes they are.
+
+**What this means for you.** Two marks you have not approved. They are in the screenshots; say if
+either is wrong and they are quick to redraw.
+
+---
+
+### D4.6 — The drop cap's defined fallback is no drop cap
+
+**Decision.** Design-tokens 8.2 asked for one: "The drop cap takes the first character of the
+passage. Corpus text may open with a quotation mark, a diacritic, or a non-Latin character. The drop
+cap logic needs a defined fallback." It is this: if the passage does not open with a letter, it is
+set without a drop cap and simply begins at reading size.
+
+**Options considered.**
+1. **No drop cap** (chosen). Loses an ornament, never mangles anything.
+2. **Set the punctuation as the cap.** A 64px opening quotation mark floated into the margin reads as
+   a mistake rather than as an ornament.
+3. **Skip the punctuation and cap the letter after it.** Rejected outright: it silently moves a
+   character of the text, and moving characters of sacred text to make a layout work is not a trade
+   this app gets to make.
+
+**A letter carrying a diacritic is a letter** and gets a cap like any other. `Ḥ` comes through whole,
+including when the accent is stored as a separate mark after the letter, which a naive first-character
+slice would have split down the middle.
+
+**Reversible.** Yes, and it is one small tested function.
+
+**What this means for you.** Nothing you will see today: all 976 passages open with a plain capital,
+and every one of them has a drop cap. This is the answer for the personal library at v1.0 and for
+whatever a later feed contains.
+
+---
+
+### D4.7 — The subset font was widened three times, each for a mark the app draws rather than quotes
+
+**Decision.** `scripts/lib/fontCharset.ts` gained three groups of characters and the font script was
+re-run. Nothing was hand-edited; the two font files in the repository are what came out.
+
+**Why it came up.** The subset is cut from the characters the committed corpus actually contains,
+which is exactly right for text and silently wrong for anything the interface writes on top of it. A
+test that put the app's own output through the same charset found three:
+
+- **The uppercase forms of every accented letter.** The caps slot renders an author or a work's name
+  in capitals, and those are data, so the app folds the case at render time. "Súrih of the Pen"
+  becomes "SÚRIH OF THE PEN", and Ú appears nowhere in the corpus in that case.
+- **The middle dot and the copyright sign.** The dot separates every attribution on every row and in
+  every reading view, and the copyright sign opens the notice principle 7.10 requires. Neither is in
+  any prayer.
+- **The fleuron**, the ornament that closes every reading view. Cormorant draws it, so it is now set
+  in the same face as the text above it rather than in whatever the phone has.
+
+Every one of these would have fallen back to the system serif on the most-repeated characters in the
+app. This is decision D3.6's bug again, one step further on, which is why the check is now a test
+(`src/strings/attribution.test.ts`) rather than an observation: every character the app can produce
+must have a glyph in the subset.
+
+**Cost.** The two font files grew by 700 bytes together.
+
+**Reversible.** Yes, by changing the script and re-running it, which is the only way either file is
+ever allowed to change (CLAUDE.md rule 12).
+
+**What this means for you.** Small marks on the reading screen — the dot between the author and the
+work, the copyright symbol, the little flower — are now drawn in the app's own typeface instead of
+the phone's default, which on some Android phones would have been a blank box.
+
+---
+
+### D4.8 — Contained decisions
+
+- **The shell stopped scrolling and each screen started.** Design-tokens 5.1 and 5.4 want a fixed
+  header with the body scrolling beneath it, and a header inside a scrolling box scrolls with it. The
+  three existing screens were wrapped in the same `Screen` component so none of them clips the day it
+  holds more than a screenful. Nothing looks different today.
+- **The library's eyebrow is the app's own name, "BY HEART".** Design-tokens 5.1's tall header has an
+  eyebrow above the title and the scope names no text for it. The app's name on its opening screen is
+  a masthead, and it invents no vocabulary. Easy to change.
+- **The reading view's fixed header names the collection**, in capitals, from a four-entry list in
+  the strings module: PRAYERS, THE HIDDEN WORDS, GLEANINGS, PRAYERS AND MEDITATIONS. It is the only
+  thing on screen that still says what you are reading once you have scrolled past the title. The
+  reading surface's own eyebrow names the kind of text instead: PRAYER, HIDDEN WORD, GLEANING.
+- **The byline under a title is the author's name alone.** The reference design read "Revealed by
+  Bahá'u'lláh". "Revealed by" is correct for Bahá'u'lláh and the Báb and is not the word Bahá'ís use
+  of 'Abdu'l-Bahá's prayers, and the byline is generated from a column rather than written per
+  passage. The name alone is always right. On the open questions list.
+- **Case is folded in JavaScript, not in CSS.** Design-tokens 2.3 bans `text-transform` because
+  tracking on transformed text renders inconsistently and screen readers announce it differently. An
+  author's name cannot be a literal, so real capitals are produced before the text reaches the page.
+  D4.7 is the other half of that bargain.
+- **A passage row shows the author and the word count, and not the work.** Scope 6.2 asks for title,
+  author and word count. A screen of Hidden Words repeating "THE HIDDEN WORDS" 153 times down one
+  column tells a reader nothing; the work is one tap away in the reading view, where the full
+  attribution is.
+- **A category that carries no passage is not offered.** Nothing in the corpus is in that state. It
+  would take a later feed tagging only Ruhi material.
+- **The back chevron goes back one step, not up one level.** A reader who reaches a passage from a
+  category expects that category back, and when search and browse-by-author arrive they will expect
+  those. A passage opened cold — a reload, a shared link — has nothing behind it, so it falls back to
+  the library rather than stepping out of the app.
+- **The first-run corpus load is shared.** The app starts loading the library beside the first render,
+  and Discover waits on the same promise rather than starting a second load and reading an empty
+  table before the first has finished.
+- **The Discover component test lives in `src/app/`, not in the Discover folder.** It reads the
+  database directly, to prove that adding a passage really wrote a row and really did not segment
+  anything. Both walls forbid that import inside the folder and both are right to. A test driving the
+  app from outside is not part of the folder, so it sits beside the existing shell test.
+
+---
