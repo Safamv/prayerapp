@@ -39,8 +39,12 @@ export type Collection = string
  */
 export const RUHI_COLLECTION = 'ruhi'
 
-/** Scope 6.2. Session 3 assigns the bands; the column exists from the first schema. */
-export type LengthBand = 'short' | 'medium' | 'long'
+/**
+ * Scope 6.2. Session 3 assigns the bands; the column exists from the first schema.
+ * Widened to add `'extended'` in session 3: scope 6.2 defines four bands (Short,
+ * Medium, Long, Extended) but session 2 typed only three. See decision D3.2.
+ */
+export type LengthBand = 'short' | 'medium' | 'long' | 'extended'
 
 /** Scope 10. `private` is the v1.0 personal library; V0 writes only `global`. */
 export type Visibility = 'global' | 'private'
@@ -68,6 +72,13 @@ export interface PassageRow {
   /** Scope 18.23. Carries an authored line break for the reading view layout. */
   readonly display_title: string
   readonly first_line: string
+  /**
+   * The passage in full, plain text, paragraphs separated by a blank line.
+   * Added session 3 (decision D3.1): the reading view (scope 6.6) needs the
+   * whole passage, and `passage_segments` stays empty until a user adds the
+   * passage to their list (scope 8.4), so nothing else in the schema carries it.
+   */
+  readonly text: string
   readonly author: string
   readonly translator: string | null
   readonly text_type: string

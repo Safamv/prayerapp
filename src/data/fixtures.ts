@@ -20,6 +20,10 @@ export function makePassage(overrides: Partial<PassageRow> = {}): PassageRow {
     title,
     display_title: title,
     first_line: 'Blessed is the spot, and the house',
+    text:
+      'Blessed is the spot, and the house, and the place, and the city, and the heart, and the ' +
+      'mountain, and the refuge, and the cave, and the valley, and the land, and the sea, and the ' +
+      'island, and the meadow where mention of God hath been made and His praise glorified.',
     author: "Bahá'u'lláh",
     translator: null,
     text_type: 'prayer',
