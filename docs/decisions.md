@@ -350,3 +350,70 @@ open the door.
   with `@eslint/js`, `typescript-eslint` and `globals`, and `prettier`. All are development tools
   except Tailwind, and all are named in CLAUDE.md section 10. Nothing ships to the browser from the
   scheduler.
+
+---
+
+### D1.8 — The fonts need no manual download. A build script fetches and cuts them down
+
+**Decision.** All ten typefaces named in design-tokens 2.1 and 8.1 are Google Fonts, published under
+the SIL Open Font Licence, which permits self-hosting and redistribution. Nothing needs to be bought
+or obtained by hand. A script under `scripts/` downloads them and cuts them down to only the
+characters the corpus uses, and the resulting files are committed to the repository. CLAUDE.md rule
+11 forbids network calls from application code and exempts `scripts/`, which is exactly this case.
+
+**Why this came up.** Session 1 flagged the fonts as something Safa might have to supply. Reading
+the original design handoff shows it loaded all ten families from Google's servers at runtime, which
+design-tokens 8.1 correctly rejects because a font fetched over the network fails when the app is
+offline and the text comes out unstyled. The fix is to fetch them once at build time instead, and
+that removes the manual step entirely.
+
+**What V0 actually needs.** Two families, not ten. Scope 12.3 and design-tokens 2.1 both say V0
+ships the Italiana option only, which is Italiana for display and caps and Cormorant for body text.
+The other eight families arrive with the typeface picker after V0.
+
+**Reversible.** Yes. It is one script and two committed font files.
+
+**What this means for you.** Nothing to download and nothing to buy. The app will carry its own
+fonts inside it, so it looks right the first time it opens with no signal, which is the whole point
+of building it local-first.
+
+---
+
+### D1.9 — The Ruhi quotations dataset exists, and it is stronger than the scope assumed
+
+**Decision.** Recorded here as a finding that needs a scope revision from Safa, not as a decision
+taken. Scope section 16 calls the Ruhi mapping "the slowest item in the project" and gates it behind
+v1.0. Most of it is already done.
+
+**What is in `/Ruhi Books/Extracted Quotes`.**
+
+| Book | Quotations | To Memorise | Reflection | Untagged |
+|---|---|---|---|---|
+| 1, Reflections on the Life of the Spirit | 71 | 24 | 47 | 0 |
+| 2, Arising to Serve | 107 | 59 | 48 | 0 |
+| 3, Teaching Children's Classes Grade 1 | 136 | 0 | 0 | 136 |
+| **Total** | **314** | **83** | **95** | **136** |
+
+Every quotation carries its unit, its section, its verbatim text and a resolved full citation. The
+citations are genuinely resolved, including the "Ibid." chains, and the extraction notes record what
+was left out and why. This is good data.
+
+**Three things stand between it and the app.**
+
+1. **The three files are in three different formats.** Book 1 marks the category inline before the
+   quote. Book 2 puts it on a line after the citation. Book 3 has no category line at all. One
+   build script normalises all three into a single dataset, which is a session 3 job.
+2. **Book 3 has no To Memorise or Reflection tags,** so the filter Safa asked for would silently do
+   nothing for 136 of the 314 quotations, which reads as a broken feature rather than an absent one.
+   Book 3 is also deliberately partial: it stops before the twenty four per-lesson memorisation
+   quotations, which are the child-facing memorisation content and arguably the most useful part of
+   that book for this app.
+3. **No quotation is linked to a passage record yet.** Scope section 10 gives `ruhi_quotations` a
+   `passage_id`, and both extraction files note that matching quotes to a passages corpus is a
+   separate pass that has not been done. Many citations are from works that the corpus feed may not
+   carry at all, such as The Advent of Divine Justice, Paris Talks and messages of the Universal
+   House of Justice.
+
+**What this means for you.** The Ruhi part of the app is months closer than the scope thought. Three
+questions need your answer before it can be built, and they are in the session summary rather than
+here, because they are yours to decide and not mine.
