@@ -425,3 +425,67 @@ was left out and why. This is good data.
 **What this means for you.** The Ruhi part of the app is months closer than the scope thought. Three
 questions need your answer before it can be built, and they are in the session summary rather than
 here, because they are yours to decide and not mine.
+
+---
+
+### D1.10 — Ruhi lives on the memorisation side of the app, never in Discover
+
+**Decision, taken by Safa, 24 August 2026.** A Ruhi quotation is never findable when browsing or
+searching for prayers. It has its own route, reached from the memorisation side of the app, drilling
+from book to unit to section to quotation. It is searchable within that route. It is memorised by
+exactly the same machinery as a prayer. The To Memorise and Reflection category belongs to the
+quotation's appearance in a section, not to the text.
+
+**This contradicts the scope in two places and needs a revision from Safa.**
+
+- **Scope 5.4** states "Discover surfaces Ruhi books as a browse axis."
+- **Scope 6.1** lists Ruhi as one of the values of the By Collection browse axis, which is a Discover
+  surface.
+
+Both describe the opposite arrangement. The reason given for the change is that opening the library
+at a devotional gathering and finding study-curriculum quotations mixed in with prayers is the wrong
+experience. That reasoning is the same reasoning as principle 7.6, which the scope names as the
+principle protecting the devotional half of the product, so the change strengthens 7.6 rather than
+straining it. Scope 5.4's other clause, "Progress per Ruhi book lives in Log, never in Discover",
+already points the same way.
+
+**How it is built, which is not the same question as where it appears.**
+
+Everything Safa described is about where a quotation appears. None of it is about how it is stored,
+and separating the two is what makes all of it possible at once.
+
+- **Stored as a passage record,** with `collection` set to `ruhi`, plus a `ruhi_quotations` row
+  pointing at it and carrying the section and the category. This is the shape scope section 10
+  already describes. It is the only arrangement in which "memorised identically to a prayer" is
+  literally true rather than a second code path that has to be kept in step. Segmentation, the
+  queue, the quiz ladder, the scheduler, the log and freshness all work on it unchanged, with no new
+  code at all.
+- **Kept out of Discover by the data layer, not by discipline.** `src/data/` exposes separate
+  functions for the devotional surfaces and for the Ruhi route, and the devotional ones do not
+  return the Ruhi collection. Discover cannot show a Ruhi quotation because the function it calls
+  does not return one. This is decision D0.9's discipline doing the work it was created for, and it
+  is checkable by test in the same way principle 7.6 is.
+- **One column added to scope section 10:** `ruhi_quotations.designation`, holding `memorise` or
+  `reflection`. Chosen over a shared tag because 20 of the 314 quotations appear in two books and the
+  category can differ between the appearances. See D1.9 point 4.
+
+**Some Ruhi quotations are excerpts of, or entire, prayers or Hidden Words that also exist in the
+devotional corpus.** Those will exist twice: once as a devotional passage and once as a Ruhi
+quotation. That is correct rather than duplication to be cleaned up, because the two are read in
+different contexts, carry different citations, and one of them must not appear in Discover.
+Memorising one does not memorise the other. If that turns out to feel wrong in use, linking them is
+an additive change later.
+
+**Sequencing.** Ruhi becomes a session of its own after the V0 exit review, rather than being spread
+through sessions 3 and 4. Scope section 14 already lists Ruhi under "Not in V0", so this restores
+the release plan rather than departing from it, and it avoids delaying the fortnight of real use that
+V0 exists to produce. Sessions 2 to 9 are unchanged. The four `ruhi_*` tables are still declared in
+session 2 and left empty, because declaring the schema once is the reason D0.9 exists.
+
+**Reversible.** The storage shape, not cheaply, once real use has begun. Where it appears, yes,
+easily and at any time: it is which function a screen calls.
+
+**What this means for you.** Opening the app to pray shows you prayers, and nothing from a study
+course. The Ruhi material has its own way in, on the side of the app that is about memorising, and
+once you are memorising a quotation it behaves exactly like memorising a prayer. It arrives as one
+session after you have used the rest of the app for a fortnight.
