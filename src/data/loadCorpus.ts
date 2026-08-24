@@ -37,3 +37,30 @@ export async function loadCorpusIfNeeded(): Promise<void> {
   ])
   await putPassageTags(passageTags.default)
 }
+
+/**
+ * The same load, shared. Every caller waits on one promise.
+ *
+ * `main.tsx` starts the load beside the first render, and Discover needs to
+ * read the library the moment it draws. Without sharing, both would call
+ * `loadCorpusIfNeeded` on a first run, both would find an empty table, and both
+ * would import and write the corpus - and worse, the first screen would settle
+ * on an empty list because it read before the write finished. Waiting on one
+ * promise means the library appears as soon as it exists, and on every run after
+ * the first it costs a single count.
+ */
+let sharedLoad: Promise<void> | null = null
+
+export function corpusReady(): Promise<void> {
+  sharedLoad ??= loadCorpusIfNeeded()
+  return sharedLoad
+}
+
+/**
+ * Forgets the shared promise, so a test that has just reset the database loads
+ * into the new one rather than resolving against the old. Tests only, in the
+ * same spirit as `forgetAnonymousUserId`.
+ */
+export function forgetCorpusLoad(): void {
+  sharedLoad = null
+}

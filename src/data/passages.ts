@@ -1,5 +1,6 @@
 import { db } from './db'
 import { RUHI_COLLECTION, type PassageRow, type PassageSegmentRow } from './types'
+import { addToList } from './userPrayers'
 
 /**
  * **The devotional surface.** Everything Discover reads, it reads from here.
@@ -25,6 +26,16 @@ import { RUHI_COLLECTION, type PassageRow, type PassageSegmentRow } from './type
  * know that "the add button reads as already added" and permits it nothing
  * further: no due date, no freshness, no progress. Returning the row would hand
  * a component every one of those. Returning a boolean cannot.
+ *
+ * `addPassageToList` is the same idea pointed the other way, and it is the one
+ * write in this module. Scope 6.6 puts "add to my list" in the reading view's
+ * toolbar, so Discover has to be able to commit a passage — but `addToList` in
+ * `userPrayers.ts` returns the row it wrote, and that row carries
+ * `passage_due_date`, `upkeep_state` and `is_focus`. Both the ESLint Discover
+ * wall and `discover-isolation.test.ts` refuse that module and that name, and
+ * they are right to: a component holding the row could render every piece of
+ * chrome principle 7.6 forbids. So the commitment crosses the boundary and the
+ * progress does not, because this returns nothing at all.
  */
 
 /** True when a passage belongs to the devotional corpus rather than the Ruhi route. */
@@ -94,6 +105,21 @@ export async function isOnList(userId: string, passageId: string): Promise<boole
     .equals([userId, passageId])
     .count()
   return count > 0
+}
+
+/**
+ * Adds the passage to the user's list, and reports nothing back.
+ *
+ * Deliberately `void`: see the note on principle 7.6 at the top of this file.
+ * Idempotent, because `addToList` is - a second tap writes nothing and changes
+ * no `list_order`.
+ *
+ * **This does not segment the passage.** Scope 8.4 runs segmentation at the
+ * moment of adding, suggested then confirmed by the user, and confirmation is a
+ * screen Discover does not own. Session 5 builds it and calls it from here.
+ */
+export async function addPassageToList(userId: string, passageId: string): Promise<void> {
+  await addToList(userId, passageId)
 }
 
 /**

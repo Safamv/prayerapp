@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import { App } from './app/App'
-import { loadCorpusIfNeeded } from './data/loadCorpus'
+import { corpusReady } from './data/loadCorpus'
 import {
   applyThemeVariables,
   defaultPalette,
@@ -16,8 +16,11 @@ import './index.css'
  * Fired here rather than from a component, and never awaited: the committed
  * corpus (scope 4.2) loads into IndexedDB in the background, in parallel with
  * the first render, so a first run is never held up waiting for it.
+ *
+ * `corpusReady` rather than `loadCorpusIfNeeded` because Discover waits on the
+ * same promise: one load, shared, rather than two racing each other.
  */
-void loadCorpusIfNeeded().catch((error: unknown) => {
+void corpusReady().catch((error: unknown) => {
   console.error('Failed to load the corpus', error)
 })
 

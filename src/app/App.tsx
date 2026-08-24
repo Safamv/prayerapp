@@ -1,18 +1,30 @@
 import { useCallback } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 import { TabBar } from '../components/TabBar'
+import { CategoryScreen } from '../features/discover/CategoryScreen'
 import { DiscoverScreen } from '../features/discover/DiscoverScreen'
+import { ReadingScreen } from '../features/discover/ReadingScreen'
 import { LogScreen } from '../features/log/LogScreen'
 import { MemoriseScreen } from '../features/memorise/MemoriseScreen'
 import { SettingsScreen } from '../features/settings/SettingsScreen'
 import { ThemeProvider, type ThemeSelection } from '../theme'
+import { UserContext } from './userContext'
 import { persistThemeSelection, useBootstrap } from './useBootstrap'
 
 /**
  * The three-tab shell. Scope 3.1, design-tokens 5.6.
  *
- * The tab bar is fixed and persists through every route, including Settings and,
- * from session 4, the reading view (design-tokens 5.6).
+ * The tab bar is fixed and persists through every route, including Settings and
+ * the reading view (design-tokens 5.6).
+ *
+ * ## `<main>` holds the screens; it no longer scrolls them
+ *
+ * Until session 4 this was one scrolling box, which was right while every screen
+ * was a title and a paragraph. Design-tokens 5.1 and 5.4 want a fixed header
+ * with the body scrolling beneath it, and a header inside a scrolling box
+ * scrolls with it. So each screen now owns its own scroll through `Screen` in
+ * `src/components/Screen.tsx`, and this is the fixed frame the three of them sit
+ * in, between the top of the phone and the tab bar.
  *
  * The router is deliberately outside this component, in `main.tsx`, so that a
  * test can render the whole app inside a `MemoryRouter` and drive it without a
@@ -34,19 +46,23 @@ export function App() {
 
   return (
     <ThemeProvider initial={bootstrap.theme} onChange={onThemeChange}>
-      <div className="flex h-full flex-col bg-paper">
-        <main className="paper-grain min-h-0 flex-1 overflow-y-auto">
-          <Routes>
-            <Route path="/" element={<Navigate to="/discover" replace />} />
-            <Route path="/discover" element={<DiscoverScreen />} />
-            <Route path="/memorise" element={<MemoriseScreen />} />
-            <Route path="/log" element={<LogScreen />} />
-            <Route path="/settings" element={<SettingsScreen />} />
-            <Route path="*" element={<Navigate to="/discover" replace />} />
-          </Routes>
-        </main>
-        <TabBar />
-      </div>
+      <UserContext value={bootstrap.userId}>
+        <div className="flex h-full flex-col bg-paper">
+          <main className="min-h-0 flex-1 overflow-hidden bg-paper">
+            <Routes>
+              <Route path="/" element={<Navigate to="/discover" replace />} />
+              <Route path="/discover" element={<DiscoverScreen />} />
+              <Route path="/discover/category/:tagId" element={<CategoryScreen />} />
+              <Route path="/discover/passage/:passageId" element={<ReadingScreen />} />
+              <Route path="/memorise" element={<MemoriseScreen />} />
+              <Route path="/log" element={<LogScreen />} />
+              <Route path="/settings" element={<SettingsScreen />} />
+              <Route path="*" element={<Navigate to="/discover" replace />} />
+            </Routes>
+          </main>
+          <TabBar />
+        </div>
+      </UserContext>
     </ThemeProvider>
   )
 }
