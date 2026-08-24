@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.vite/
+
+# Environment secrets. .env.example is deliberately kept.
+.env
+.env.*
+!.env.example
+
+# Test coverage reports
+coverage/
+
+# Local Supabase working files. Not used in V0.
+supabase/
+
+# macOS and iCloud Drive clutter
+.DS_Store
+*.icloud
