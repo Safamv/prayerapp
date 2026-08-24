@@ -690,3 +690,85 @@ which is comfortable. Tangerine arrives with the typeface picker at v0.1.
 **What this means for you.** Nothing in V0. When the typeface picker is built, turn the text size to
 maximum in Tangerine and tell me whether the big first letter looks right. A test records the
 number so it is in front of whoever builds that screen.
+
+---
+
+### D2.9 — Claude merges its own work. Safa reads and answers, and does nothing else
+
+**Decision, taken by Safa, 24 August 2026.** At the end of every session Claude pushes the branch,
+pushes the tag, merges into `main` and pushes `main`. Safa runs no commands. His two jobs are
+reading and answering questions.
+
+**Why it came up.** Sessions 1 and 2 both ended with a page of numbered git instructions for Safa to
+copy out. Safa's words: "I don't want to merge myself, what a waste. I don't want to have to do
+anything but read and answer questions." He is right, and the instructions were a page of work
+handed over for no benefit.
+
+**What this changes in the build contract.** CLAUDE.md rule 14 said "never push to `main`". It now
+says never merge a branch whose five gates have not all passed. Section 5's handoff replaces "write
+merge instructions" with "merge it yourself". Section 6.4, "when Safa has to do something himself",
+now says merging is not on that list and adds the standing instruction that before asking him to do
+anything at a keyboard, work out whether you can do it yourself.
+
+**What was kept, and why.** The five gates still run first and their output is still pasted, so
+nothing reaches `main` unproven. The branch and the tag are still pushed before `main` is, so every
+session can be read back on its own and any bad merge is recoverable. **If a merge conflicts, it is
+aborted, `main` is left untouched, and Safa is told plainly.** Conflicts are never resolved on
+`main` to get a merge through. And a fix between sessions is not an exception: same branch, same
+five gates, same merge, patch version bump.
+
+**What was considered and not done.** Requiring Safa to approve each merge in advance, which is the
+same interruption in a smaller box. And merging without the gates, which is how a broken `main`
+happens on a Sunday.
+
+**Reversible.** Yes, entirely. It is a paragraph in CLAUDE.md.
+
+**What this means for you.** Nothing to do at the end of a session. When you open a session summary
+it will tell you what landed, what the version is, and what you would see if you opened the app.
+The only two things that will ever come back to you are a question and a merge that would not go
+through cleanly, and the second should be rare.
+
+---
+
+### D2.10 — The three tab icons, drawn from the product rather than from an icon set
+
+**Decision, requested by Safa, 24 August 2026.** The tab bar gets icons. Safa asked for something to
+look at now and said he can edit it later, so these are a first pass rather than a settled design.
+Design-tokens 8.3 is updated to record them; it previously named only three drawings for the whole
+app and none of them was a tab icon (D2.5).
+
+**What each one is, and why.**
+
+- **Discover, an open book.** Discover is the library, and an open book is the plainest possible
+  statement of that. It is the only one of the three that could have come from an icon set, and
+  that is fine: it needs no explaining.
+- **Memorise, three lines of text growing downward.** Not a generic mark. Scope 8.1's method is
+  cumulative line building: you learn line one, then lines one and two, then one, two and three. The
+  icon is that.
+- **Log, a shelf of bound volumes**, one leaning the way a shelf of books actually leans. Log is
+  what you have taken in and still hold.
+
+**Two marks were deliberately not used.** The nine-pointed star, which design-tokens 4 reserves for
+the freshness state and which on a tab would read as a rating. And a flame, which on every other app
+on the phone means a streak, and a streak on a tab is precisely what principle 7.6 forbids.
+
+**Reversible.** Completely, and cheaply. They are three shapes in one file, `TabIcons.tsx`. Nothing
+else in the app knows what they look like, and a test asserts only that there are three of them,
+that they are all different, and that they name no colour of their own.
+
+**What this means for you.** The bottom bar now has a small gold drawing above each word, dimmed on
+the two tabs you are not on. If you want different shapes, describe them in words and it is a
+ten-minute change.
+
+---
+
+### D2.11 — The weakest line sets the pace, confirmed
+
+**Decision, taken by Safa, 24 August 2026.** Scope 8.7's "the slowest of its segments' intervals"
+reads both ways. Session 1 built it as the **shortest** interval and flagged it. Safa has confirmed
+that reading, so D1.3 stands as built and the open question is closed.
+
+**What this means for you.** When you finish memorising a passage, it comes back as often as its
+weakest line needed rather than as rarely as its strongest line allowed. So a passage you have just
+finished comes round fairly soon at first and then stretches out. Nothing in the code changes; this
+entry exists so that no later session reopens the question.

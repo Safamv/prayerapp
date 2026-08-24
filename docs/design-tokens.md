@@ -1,8 +1,8 @@
 # Design Tokens and Patterns
 ## By Heart — Bahá'í Prayer and Memorisation App
 
-**Version:** 1.0
-**Date:** 23 August 2026
+**Version:** 1.1
+**Date:** 24 August 2026
 **Supersedes:** `Handoff: Bahá'í Prayer Memorization — Library, Reader, Typeface settings`
 **Repo path:** `/docs/design-tokens.md`
 **Spelling:** Australian English throughout
@@ -373,9 +373,23 @@ Both are scope-side data model items, recorded here because the visual pattern d
 
 ### 8.3 Icons
 
-No image or icon files. Three inline SVGs: the nine-pointed star (path in section 4), the magnifier
-(section 5.2), and the back chevron (`polyline 15,5 8,12 15,19`, stroke `accent`, width 1.6). The
-fleuron is a text glyph.
+**No image or icon files.** Every mark in the app is an inline SVG. The fleuron is a text glyph.
+
+| Icon | Where | Drawing |
+|---|---|---|
+| Nine-pointed star | Freshness state (section 4) | Path in section 4 |
+| Magnifier | Search field (section 5.2) | Section 5.2 |
+| Back chevron | Any pushed screen | `polyline 15,5 8,12 15,19`, stroke `accent`, width 1.6 |
+| Open book | Discover tab | Two page quadrilaterals rising from a centre gutter |
+| Three ascending rules | Memorise tab | Cumulative line building (scope 8.1) |
+| Shelf of volumes | Log tab | Three uprights, one leaning, on a baseline |
+
+The three tab icons were added in session 2 at Safa's request; see decision D2.10. They are a first
+pass, explicitly open to being redrawn, and nothing in the tab bar depends on which shapes they are.
+
+**Common drawing rules.** Stroke 1.6, square caps, mitred joins, no fills, no rounded corners, no
+shadows (section 3). Colour comes from `currentColor` so the container sets it from a token; no icon
+names a colour.
 
 ### 8.4 Enforcement
 
@@ -412,3 +426,4 @@ For the record, so nobody restores it by accident.
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 23 Aug 2026 | Derived from the design handoff. Product scoping and information architecture removed, nine conflicts with scope v4.0 resolved in the scope's favour, screens converted to patterns, theming made registry-driven, fonts moved to self-hosted, text size interaction specified. |
+| 1.1 | 24 Aug 2026 | Section 8.3: three tab icons added and the icon list turned into a table with common drawing rules. Requested by Safa in session 2, recorded as decision D2.10. No other section changed. |

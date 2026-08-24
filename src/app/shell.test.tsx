@@ -6,6 +6,7 @@ import { resetDatabase } from '../data/db'
 import { forgetAnonymousUserId } from '../data/userId'
 import { getOrCreateUserSettings } from '../data/userSettings'
 import { strings } from '../strings'
+import { TAB_ICON_SIZE } from '../components/TabIcons'
 import { getPalette } from '../theme'
 import { App } from './App'
 
@@ -101,6 +102,50 @@ describe('principle 7.6 - no memorisation chrome on the tab bar', () => {
     expect(nav.textContent).toBe(
       `${strings.tabs.discover}${strings.tabs.memorise}${strings.tabs.log}`,
     )
+  })
+})
+
+describe('the tab icons', () => {
+  it('gives each tab one icon at the size design-tokens 5.6 asks for', async () => {
+    renderApp()
+
+    const nav = await waitFor(() => screen.getByRole('navigation'))
+    const icons = nav.querySelectorAll('svg')
+    expect(icons).toHaveLength(3)
+    for (const icon of icons) {
+      expect(icon.getAttribute('width')).toBe(String(TAB_ICON_SIZE))
+      expect(icon.getAttribute('aria-hidden')).toBe('true')
+    }
+  })
+
+  it('draws three different marks, so no two tabs look alike', async () => {
+    renderApp()
+
+    const nav = await waitFor(() => screen.getByRole('navigation'))
+    const shapes = [...nav.querySelectorAll('svg')].map((icon) => icon.innerHTML)
+    expect(new Set(shapes).size).toBe(3)
+  })
+
+  it('names no colour of its own, so the icons follow the palette', async () => {
+    renderApp()
+
+    const nav = await waitFor(() => screen.getByRole('navigation'))
+    for (const icon of nav.querySelectorAll('svg')) {
+      expect(icon.getAttribute('stroke')).toBe('currentColor')
+      expect(icon.getAttribute('fill')).toBe('none')
+    }
+  })
+
+  it('marks the open tab in gold and dims the other two, per design-tokens 5.6', async () => {
+    renderApp('/memorise')
+
+    const nav = await waitFor(() => screen.getByRole('navigation'))
+    const wrappers = [...nav.querySelectorAll('svg')].map((icon) => icon.parentElement)
+
+    expect(wrappers[1]?.style.color).toBe('var(--accent)')
+    expect(wrappers[1]?.style.opacity).toBe('1')
+    expect(wrappers[0]?.style.color).toBe('var(--paper)')
+    expect(wrappers[0]?.style.opacity).toBe('0.42')
   })
 })
 

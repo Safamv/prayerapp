@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router'
 import { strings } from '../strings'
 import { typeStyle } from '../theme'
+import { DiscoverIcon, LogIcon, MemoriseIcon } from './TabIcons'
 
 /**
  * The three-tab bar. Scope 3.1 and design-tokens 5.6.
@@ -16,24 +17,25 @@ import { typeStyle } from '../theme'
  * into a chore reminder. There is deliberately no prop here through which a
  * count could be passed.
  *
- * ## The missing icons
+ * ## The icons
  *
- * Design-tokens 5.6 calls for a 15px icon above each label. Design-tokens 8.3
- * defines exactly three inline SVGs for the whole app - the nine-pointed star,
- * the magnifier and the back chevron - and none of them is a tab icon. Rather
- * than invent three marks for the app's most permanent piece of chrome, the bar
- * ships as three tracked caps labels and the icon is an open question for Safa.
- * The 6px gap and the icon row are not stubbed out; they are simply absent until
- * there is something to put there.
+ * A 15px icon above a caps label with a 6px gap, per design-tokens 5.6. Active:
+ * icon and label both `accent`. Inactive: icon `paper` at .42 opacity, label
+ * `on-field-45`. The three marks live in `TabIcons.tsx` and are a first pass
+ * Safa asked for and can edit (decision D2.10); nothing here depends on which
+ * shapes they are.
  */
 
 /** Design-tokens 5.6: three 80px items. */
 const ITEM_WIDTH = 80
 
+/** Design-tokens 5.6: 6px between the icon and the label. */
+const ICON_LABEL_GAP = 6
+
 const TABS = [
-  { to: '/discover', label: strings.tabs.discover },
-  { to: '/memorise', label: strings.tabs.memorise },
-  { to: '/log', label: strings.tabs.log },
+  { to: '/discover', label: strings.tabs.discover, Icon: DiscoverIcon },
+  { to: '/memorise', label: strings.tabs.memorise, Icon: MemoriseIcon },
+  { to: '/log', label: strings.tabs.log, Icon: LogIcon },
 ] as const
 
 export function TabBar() {
@@ -47,18 +49,29 @@ export function TabBar() {
         <NavLink
           key={tab.to}
           to={tab.to}
-          className="flex items-center justify-center text-center"
-          style={{ width: ITEM_WIDTH }}
+          className="flex flex-col items-center text-center"
+          style={{ width: ITEM_WIDTH, gap: ICON_LABEL_GAP }}
         >
           {({ isActive }) => (
-            <span
-              style={{
-                ...typeStyle('tabLabel'),
-                color: isActive ? 'var(--accent)' : 'var(--on-field-45)',
-              }}
-            >
-              {tab.label}
-            </span>
+            <>
+              <span
+                className="flex"
+                style={{
+                  color: isActive ? 'var(--accent)' : 'var(--paper)',
+                  opacity: isActive ? 1 : 0.42,
+                }}
+              >
+                <tab.Icon />
+              </span>
+              <span
+                style={{
+                  ...typeStyle('tabLabel'),
+                  color: isActive ? 'var(--accent)' : 'var(--on-field-45)',
+                }}
+              >
+                {tab.label}
+              </span>
+            </>
           )}
         </NavLink>
       ))}

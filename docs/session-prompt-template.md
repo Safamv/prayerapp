@@ -33,8 +33,10 @@ Recommended: [Sonnet|Opus] / [Normal|High|Max] effort
 - …
 
 **Definition of done**
-The five gates in CLAUDE.md section 5, output pasted. Version bumped to 0.N.0 and tagged.
-Entry appended to /docs/sessions.md.
+The five gates in CLAUDE.md section 5, run in order, output pasted verbatim. Version bumped
+to 0.N.0, tagged, branch pushed, merged into main and main pushed, by you and not by Safa.
+Entry appended to /docs/sessions.md. Next session's prompt in a fenced code block. Open
+questions for Safa, or an explicit statement that there are none.
 ```
 
 ---

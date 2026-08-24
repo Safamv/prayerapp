@@ -89,7 +89,8 @@ decision.
 13. Never commit `.env`, keys, or anything under `supabase/`.
 
 **Git**
-14. Never `--force`. Never rewrite history. Never push to `main`.
+14. Never `--force`. Never rewrite history. Never merge a branch whose five gates have not all
+    passed in the same session (section 5).
 
 **Language**
 15. Australian English everywhere, including code comments and commit messages. No em dashes in
@@ -121,9 +122,20 @@ Then the handoff, which is four things, every session without exception.
 deferred and why, anything that surprised you, and what the next session should read first. Around
 150 words, in the language of section 6.
 
-**2. Push the branch and write merge instructions**, in the format of section 6.4: numbered steps,
-exact commands one per line, what each does in one plain sentence, what success looks like, what to
-do if it fails. In full, every session, even if it is identical to last time.
+**2. Merge the branch yourself, and push.** Tag it, push the branch, merge it into `main`, push
+`main`, push the tag. Then say in three or four plain sentences what landed on `main`, what the
+version is, and what Safa would see if he opened the app. **Safa does not run git.** His only jobs
+are reading and answering questions (section 6).
+
+Preconditions, all five, every time:
+- All five gates passed **in this session**, with their output already pasted above.
+- The working tree is clean.
+- The merge is clean. **If there is a conflict, `git merge --abort`, leave `main` untouched, and say
+  so plainly with the conflicting files named.** Never resolve a conflict on `main` to get a merge
+  through.
+- The branch and the tag are pushed before `main` is, so the session is recoverable if the merge
+  goes wrong.
+- You created the branch this session. Never merge somebody else's.
 
 **3. Write the next session's prompt**, using `/docs/session-prompt-template.md`, in a fenced code
 block ready to copy.
@@ -151,7 +163,12 @@ are none, say so explicitly rather than leaving it out.
 ## 6. Talking to Safa
 
 **Safa does not have a technical background.** He owns every product decision here and makes them
-well, but only when the question is put in language he can actually evaluate. A question he cannot
+well, but only when the question is put in language he can actually evaluate.
+
+**His only two jobs are reading and answering.** He does not run commands, merge branches, install
+anything or check anything in a browser unless it is genuinely impossible for you to do it. Every
+time you are about to ask him to do something at a keyboard, first work out whether you can do it
+yourself. Usually you can. A question he cannot
 fully parse gets a rubber-stamped answer, and a rubber-stamped answer is worse than not asking.
 
 **The test: if you cannot explain the tradeoff without jargon, you have not understood it well
@@ -199,10 +216,13 @@ changes nothing about how the app behaves.
 
 Both are printed in the session output as you go **and** appended to `/docs/decisions.md`.
 
-### 6.4 When Safa has to do something himself
+### 6.4 When Safa genuinely has to do something himself
 
-Merging a branch, installing something, obtaining a key, checking something in a browser, deciding
-something at his end. Every handoff carries:
+Rare, and getting rarer. Obtaining a key or an account you cannot create, deciding something at his
+end, or looking at something on a physical device. **Merging is not on this list any more**: you do
+it yourself at the end of every session (section 5).
+
+When it is genuinely his to do, the handoff carries:
 
 1. **What to do**, as numbered steps.
 2. **The exact commands**, one per line, ready to copy. Never a command containing a placeholder
@@ -218,11 +238,14 @@ you stated the same thing last session.
 
 ## 7. Git
 
-- **Branch per session**, named `session-04-discover`. Push the branch. Never push to `main`.
+- **Branch per session**, named `session-04-discover`. Work on the branch, never directly on `main`.
 - **Conventional commits**: `feat:`, `fix:`, `test:`, `chore:`, `docs:`.
 - **Tag at session end** with the version from section 8.
-- **Safa merges.** Hand it over using the format in section 6.4: exact commands, what each does,
-  what success looks like, what to do if it fails. Every time, in full.
+- **You merge, at the end of the session, once all five gates have passed.** Push the branch, push
+  the tag, merge into `main`, push `main`. The branch stays, so any session can be read back on its
+  own. Preconditions and the conflict rule are in section 5.
+- **A fix between sessions** is a patch bump (section 8), its own branch, the same five gates and
+  the same merge. It is not an exception.
 
 ---
 
