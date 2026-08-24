@@ -4,7 +4,7 @@ import {
   cleanLines,
   deriveTitle,
   estimateSegmentCount,
-  firstSentence,
+  firstLine,
   joinLines,
   lengthBandFor,
   wordCount,
@@ -86,25 +86,45 @@ describe('joinLines', () => {
   })
 })
 
-describe('firstSentence', () => {
-  it('stops at the first sentence, not the first authored line break, "He is God." prayers', () => {
+describe('firstLine', () => {
+  it('reaches past a bare invocation into the next sentences, "He is God." prayers', () => {
+    // A short opening sentence alone is not distinctive enough for a title (Safa, 25 Aug 2026):
+    // dozens of prayers open "He is God." with nothing to tell them apart in a list.
     const text =
       'He is God.\nO Thou kind Lord! Illumine the hearts with the light of Thy most great guidance.'
-    expect(firstSentence(text)).toBe('He is God.')
+    expect(firstLine(text)).toBe(
+      'He is God. O Thou kind Lord! Illumine the hearts with the light of Thy most great guidance.',
+    )
   })
 
-  it('reads a whole one-sentence prayer as its first sentence, "Blessed is the spot"', () => {
+  it('reads a whole one-sentence prayer as its opening, "Blessed is the spot"', () => {
     const text =
       'Blessed is the spot, and the house,\nand the place, and the city,\n' +
       'and the meadow where mention\nof God hath been made,\nand His praise glorified.'
-    expect(firstSentence(text)).toBe(
+    expect(firstLine(text)).toBe(
       'Blessed is the spot, and the house, and the place, and the city, and the meadow where ' +
         'mention of God hath been made, and His praise glorified.',
     )
   })
 
-  it('reads a short address as the whole first sentence, Hidden Word Arabic 1', () => {
-    expect(firstSentence('O SON OF SPIRIT!\nMy first counsel is this.')).toBe('O SON OF SPIRIT!')
+  it('reaches into the body for a short address, Hidden Word Arabic 1', () => {
+    const text =
+      'O SON OF SPIRIT!\nMy first counsel is this: Possess a pure, kindly and radiant heart, ' +
+      'that thine may be a sovereignty ancient, imperishable and everlasting.'
+    expect(firstLine(text)).toBe(
+      'O SON OF SPIRIT! My first counsel is this: Possess a pure, kindly and radiant heart, ' +
+        'that thine may be a sovereignty ancient, imperishable and everlasting.',
+    )
+  })
+
+  it('stops as soon as the word budget is reached, even mid-accumulation', () => {
+    expect(firstLine('Is there any Remover of difficulties save God? Say: Praised be God!')).toBe(
+      'Is there any Remover of difficulties save God?',
+    )
+  })
+
+  it('returns an empty string for empty text', () => {
+    expect(firstLine('')).toBe('')
   })
 })
 

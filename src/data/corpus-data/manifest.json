@@ -1,31 +1,31 @@
 {
-  "fetchedAt": "2026-08-24T11:53:16.024Z",
+  "fetchedAt": "2026-08-24T22:48:46.235Z",
   "source": "https://bahaiprayers.net",
   "languageId": 1,
   "files": {
     "prayers.json": {
       "records": 473,
-      "sha256": "b61e3136b503f2b1b4df158f10c170ece23d6e5fe9bca5d750a74df6ab6402ff"
+      "sha256": "fd75188f7a2127edc4f8da7b5b6f1338d199a015bd267154f85b6e88dbaaf85d"
     },
     "hidden-words.json": {
       "records": 153,
-      "sha256": "3c88930ecaf753648ec202576e6251ed2e4aa2bd36c06bec5be71b95502d2552"
+      "sha256": "2b7f44e969450c4d8e19e4f477d7de587b48ab9fdeddf3241b90f85e179f2f5c"
     },
     "gleanings.json": {
       "records": 166,
-      "sha256": "44414d4053e68c2508c121352789cd22887b07743a03b174472fb28c4700fade"
+      "sha256": "72d767ea20ec148c39bfece19aec9fcb1fb4fd2ac05ae881095ebc80a6496ab7"
     },
     "prayers-and-meditations.json": {
       "records": 184,
-      "sha256": "9ee50455a63cf9f912b828b5dc99c2992e0fa48cdc3684ec00b9d289d70cc2a9"
+      "sha256": "21197a9f3f0a05e4c5fc8ab25af363daf623b15cf784ad5c86ced62d74f9391e"
     },
     "tags.json": {
-      "records": 61,
-      "sha256": "f79fd1ec8458b329a326df05cc06d47733f184db62ed632ac4e72fe485762a70"
+      "records": 62,
+      "sha256": "c926628a3e1251c28e0ac3c374244cc199bb240366adf491f3efe9fa65c7e5c9"
     },
     "passage-tags.json": {
-      "records": 478,
-      "sha256": "10bcb53e361ccaf1272e181dcfe24e31e8e8a229606f79e02e9f597e446db96b"
+      "records": 499,
+      "sha256": "21bb2cc659e7ec6cfc51b788be9c63d09bcd14844c6378ef7e5e67becbbe164e"
     }
   }
 }

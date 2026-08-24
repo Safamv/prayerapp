@@ -7,6 +7,7 @@ import {
   normalisePrayerAndMeditation,
   normaliseTag,
   passageTagLinksForPrayer,
+  SPECIAL_TABLETS_TAG,
 } from './normalise'
 import type {
   RawGleaning,
@@ -113,8 +114,23 @@ const TAG_HEALING: RawTag = {
   PrayerCount: 7,
 }
 
+// The Tablet of Aḥmad, with its editorial preamble (a bold title and an attributed
+// quotation) ahead of the real text. The API's own Tags array already names it too.
+const PRAYER_TABLET_OF_AHMAD: RawPrayer = {
+  Id: 386,
+  AuthorId: 2,
+  LanguageId: 1,
+  Text:
+    '**Tablet of Aḥmad\n\n*“These daily obligatory prayers, together with a few other specific ' +
+    'ones, such as the Healing Prayer, the Tablet of Aḥmad, have been invested by Bahá’u’lláh ' +
+    'with a special potency and significance.”\n\n*—From a letter written on behalf of Shoghi ' +
+    'Effendi\n\nHe is the King, the All-Knowing, the Wise!\n\nLo, the Nightingale of Paradise ' +
+    'singeth upon the twigs of the Tree of Eternity.',
+  Tags: [{ Id: 97, Name: 'Tablet of Ahmad', Kind: 'GENERAL' }],
+}
+
 describe('normalisePrayer', () => {
-  it("maps AuthorId 3 to 'Abdu'l-Bahá and derives a short title verbatim", () => {
+  it("maps AuthorId 3 to 'Abdu'l-Bahá and reaches past a short opening sentence for the title", () => {
     const row = normalisePrayer(PRAYER_15692)
     expect(row.id).toBe(deterministicUuid(CORPUS_NAMESPACE, 'prayers:15692'))
     expect(row.source_id).toBe('15692')
@@ -124,9 +140,13 @@ describe('normalisePrayer', () => {
     expect(row.source_work).toBeNull()
     expect(row.author).toBe("'Abdu'l-Bahá")
     expect(row.translator).toBeNull()
-    expect(row.first_line).toBe('O Lord!')
-    expect(row.title).toBe('O Lord!')
-    expect(row.display_title).toBe('O Lord!')
+    // "O Lord!" alone (2 words) is not distinctive; first_line reaches into the
+    // next sentence until it has gathered at least eight words (decision D3.9).
+    expect(row.first_line).toBe(
+      'O Lord! Bless this family and grant it happiness in both this world and the world to come.',
+    )
+    expect(row.title).toBe('O Lord! Bless this family and grant it…')
+    expect(row.display_title).toBe(row.title)
     expect(row.word_count).toBe(63)
     expect(row.length_band).toBe('short')
     expect(row.segment_count).toBe(0)
@@ -177,6 +197,16 @@ describe('normalisePrayer', () => {
     expect(row.search_vector).toContain("'abdu'l-bahá")
     expect(row.search_vector).toBe(row.search_vector.toLowerCase())
   })
+
+  it('names a known tablet by its own name, not its opening line (decision D3.8)', () => {
+    const row = normalisePrayer(PRAYER_TABLET_OF_AHMAD)
+    expect(row.title).toBe('Tablet of Aḥmad')
+    expect(row.display_title).toBe('Tablet of Aḥmad')
+    expect(row.source_work).toBe('Tablet of Aḥmad')
+    // first_line still opens on the real text, the preamble already stripped.
+    expect(row.first_line.startsWith('He is the King')).toBe(true)
+    expect(row.text.startsWith('**')).toBe(false)
+  })
 })
 
 describe('normaliseHiddenWord', () => {
@@ -188,8 +218,13 @@ describe('normaliseHiddenWord', () => {
     expect(row.text_type).toBe('hidden-word')
     expect(row.source_work).toBe('The Hidden Words')
     expect(row.author).toBe("Bahá'u'lláh")
-    expect(row.first_line).toBe('O SON OF SPIRIT!')
-    expect(row.title).toBe('O SON OF SPIRIT!')
+    // "O SON OF SPIRIT!" alone (4 words) is not distinctive across the many
+    // Hidden Words that share an address; first_line reaches into the body.
+    expect(row.first_line).toBe(
+      'O SON OF SPIRIT! My first counsel is this: Possess a pure, kindly and radiant heart, that ' +
+        'thine may be a sovereignty ancient, imperishable and everlasting.',
+    )
+    expect(row.title).toBe('O SON OF SPIRIT! My first counsel is…')
     expect(row.word_count).toBe(26)
     expect(row.length_band).toBe('short')
     // The address and the body were two <p> paragraphs: joined on a blank line.
@@ -248,5 +283,19 @@ describe('passageTagLinksForPrayer', () => {
 
   it('returns no links for a prayer that carries no tags', () => {
     expect(passageTagLinksForPrayer({ ...PRAYER_341, Tags: [] })).toEqual([])
+  })
+
+  it('also links a named tablet to Special Tablets, alongside its ordinary tags', () => {
+    const links = passageTagLinksForPrayer(PRAYER_TABLET_OF_AHMAD)
+    expect(links).toEqual([
+      {
+        passage_id: deterministicUuid(CORPUS_NAMESPACE, 'prayers:386'),
+        tag_id: deterministicUuid(CORPUS_NAMESPACE, 'tag:97'),
+      },
+      {
+        passage_id: deterministicUuid(CORPUS_NAMESPACE, 'prayers:386'),
+        tag_id: SPECIAL_TABLETS_TAG.id,
+      },
+    ])
   })
 })

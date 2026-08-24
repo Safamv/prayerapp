@@ -63,16 +63,35 @@ export function joinLines(lines: readonly string[], format: 'html' | 'plain'): s
 }
 
 /**
- * The passage's first sentence, found by scanning the whole cleaned text
- * (every line break collapsed to a space) for the first `.`, `!` or `?`. A
- * one-sentence passage with line breaks purely for rhythm, like "Blessed is
- * the spot", has none until its very end, so this correctly returns the whole
- * thing rather than stopping at the first authored line break.
+ * Words needed before `firstLine` stops accumulating whole sentences, and the
+ * word budget `deriveTitle` truncates to. Kept equal on purpose (decision
+ * D3.9): a short opening sentence on its own is not distinctive enough to
+ * tell one passage's title from another's — a bare invocation like
+ * "He is God." opens dozens of prayers — so `firstLine` reaches past it into
+ * the substance of the passage until it has gathered as much as a title can
+ * actually show, rather than stopping at the first full stop.
  */
-export function firstSentence(text: string): string {
+const TITLE_WORDS = 8
+
+/**
+ * The passage's opening, built by accumulating whole sentences — never cut
+ * mid-sentence — until at least `TITLE_WORDS` words have been gathered, or
+ * the text runs out. Sentences are found by scanning the whole cleaned text
+ * (every line break collapsed to a space) for `.`, `!` or `?`. A one-sentence
+ * passage with line breaks purely for rhythm, like "Blessed is the spot", has
+ * none until its very end, so this correctly returns the whole thing rather
+ * than stopping at the first authored line break.
+ */
+export function firstLine(text: string, minWords = TITLE_WORDS): string {
   const collapsed = text.replace(/\s+/g, ' ').trim()
-  const match = /^.*?[.!?]/.exec(collapsed)
-  return match !== null ? match[0] : collapsed
+  if (collapsed.length === 0) return ''
+  const sentences = collapsed.split(/(?<=[.!?])\s+/).filter((sentence) => sentence.length > 0)
+  let accumulated = ''
+  for (const sentence of sentences) {
+    accumulated = accumulated.length === 0 ? sentence : `${accumulated} ${sentence}`
+    if (wordCount(accumulated) >= minWords) break
+  }
+  return accumulated
 }
 
 /** Words in `text`, split on whitespace. Used for the row's `word_count` and for `length_band`. */
@@ -82,20 +101,13 @@ export function wordCount(text: string): number {
 }
 
 /**
- * A short label for a browse list, truncated from `firstLine` at a word
- * boundary. Verbatim if it already fits; an ellipsis marks a truncation, the
- * same convention printed prayer-book indexes use for a long opening line.
- *
- * Known limitation, recorded rather than silently fixed (see the session
- * handoff): about an eighth of the prayers feed opens with a bare invocation
- * such as "He is God." before the prayer proper, and this makes that
- * invocation the title verbatim, so several dozen titles read "He is God."
- * with nothing to tell them apart in a list. Fixing it means deciding what a
- * title should do instead, which is a product call for Safa, not a default.
+ * A short label for a browse list, truncated from `firstLine`'s output at a
+ * word boundary. Verbatim if it already fits; an ellipsis marks a truncation,
+ * the same convention printed prayer-book indexes use for a long opening.
  */
-export function deriveTitle(firstLine: string, maxWords = 8): string {
-  const words = firstLine.split(/\s+/).filter((word) => word.length > 0)
-  if (words.length <= maxWords) return firstLine
+export function deriveTitle(line: string, maxWords = TITLE_WORDS): string {
+  const words = line.split(/\s+/).filter((word) => word.length > 0)
+  if (words.length <= maxWords) return line
   return `${words.slice(0, maxWords).join(' ')}…`
 }
 
