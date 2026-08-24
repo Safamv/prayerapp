@@ -414,6 +414,14 @@ was left out and why. This is good data.
    carry at all, such as The Advent of Divine Justice, Paris Talks and messages of the Universal
    House of Justice.
 
+4. **Twenty of the 314 quotations appear in more than one book, and the category can differ between
+   the two appearances.** "Nothing whatever can, in this Day, inflict a greater harm upon this
+   Cause" is To Memorise in Book 1 and Reflection in Book 2, because Book 1's section tells the
+   reader to memorise it and Book 2's does not. So the category belongs to the quotation's
+   appearance in a particular section, not to the text itself. This settles where the category is
+   stored, and it confirms that the two-table shape scope section 10 already describes, a passage
+   record plus a `ruhi_quotations` row pointing at it, is the right one.
+
 **What this means for you.** The Ruhi part of the app is months closer than the scope thought. Three
 questions need your answer before it can be built, and they are in the session summary rather than
 here, because they are yours to decide and not mine.
