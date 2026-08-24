@@ -772,3 +772,188 @@ that reading, so D1.3 stands as built and the open question is closed.
 weakest line needed rather than as rarely as its strongest line allowed. So a passage you have just
 finished comes round fairly soon at first and then stretches out. Nothing in the code changes; this
 entry exists so that no later session reopens the question.
+
+---
+
+## D3 — Session 3, corpus fetch script and normalisation
+
+---
+
+### D3.1 — A `text` column was added to `passages`
+
+**Decision, taken by Safa, 24 August 2026.** `passages` gains one column: `text`, the whole passage
+as plain prose. Session 3 found that nothing in the schema held it.
+
+**Why it came up.** Building the normalisation that turns a fetched prayer into a `passages` row, it
+became clear the row had nowhere to put the prayer itself. `first_line` is only the opening, kept for
+search and titles. `passage_segments` holds the full text in pieces, but scope 8.4 deliberately leaves
+it empty until a user adds the passage to their list, which will not happen for most of the library
+for a long time. The reading view planned for next session (scope 6.6, "any passage in full") would
+have had a title and nothing to read underneath it.
+
+**Options considered.**
+1. **Add `text` to `passages`** (chosen). One column, filled at ingestion, ready for the reading view.
+2. **Fill `passage_segments` at ingestion too**, against this session's own instructions, and read the
+   full text back by joining segments in order. Rejected: it reuses a table built for a different job
+   (memorising, not reading) and blurs a separation scope 8.4 draws on purpose.
+
+**Reversible.** Cheap now: no tester has any data yet, so there is nothing to migrate. `db.ts` needed
+no change at all, because Dexie only indexes columns it is told to query, and `text` is not one of
+them (see the comment at the top of `db.ts`).
+
+**What this means for you.** Nothing you can see yet; there is no reading screen until next session.
+It means that screen can actually show a prayer in full the day it is built, instead of session 4
+hitting the same wall and asking the same question.
+
+---
+
+### D3.2 — Two build-time tools were added for the font script
+
+**Decision.** Two packages, both used only by `scripts/fetch-fonts.ts` and never shipped to the app.
+
+**`subset-font`**, which cuts a font down to only the characters it needs. It runs a real font-shaping
+engine (the same one browsers use) compiled to run on a laptop, rather than a hand-rolled
+approximation, which matters because a subsetting bug looks like a missing letter on a phone.
+
+**`@types/subset-font`**, its type descriptions, so the script is checked by `tsc` like everything
+else rather than trusted blindly.
+
+**Reversible.** Yes, easily. Neither reaches the app; both could be swapped for another subsetting
+tool without touching anything outside `scripts/fetch-fonts.ts`.
+
+**What this means for you.** Nothing you can see. The two font files in the repository are what came
+out of this tool; nothing about how the app looks depends on the tool itself.
+
+---
+
+### D3.3 — Corpus record ids are repeatable, not random
+
+**Decision.** A passage's `id` is derived from its source feed and its id on that feed (a
+"version 5 UUID", a standard way of turning a name into an id that always comes out the same for the
+same name). Re-running the fetch script produces the exact same id for the exact same prayer every
+time.
+
+**Why it came up.** Scope 4.2 says re-fetching must be idempotent (a word meaning "running it twice
+has the same effect as running it once") so a corrected translation replaces the old text rather than
+sitting beside it. `src/data/ids.ts` already generates ids, but randomly, which is right for something
+a person creates on their phone (two people cannot collide) and wrong for the corpus (there is one
+source of truth, and it should always produce the same id).
+
+**What this means for you.** If bahaiprayers.net corrects a translation and the fetch script is
+re-run, the corrected prayer overwrites the same row everywhere: in the committed file, which shows a
+small, readable change instead of the whole file's ids shifting, and on a returning tester's phone,
+which gets the correction rather than a duplicate.
+
+---
+
+### D3.4 — The prayers feed embeds non-devotional lines inside the prayer text, and they are stripped
+
+**Decision.** About 130 of the 473 prayers carry a line the source has written directly into the
+prayer text rather than as a separate field: a work's name ("Fire Tablet"), who it is for ("For
+Women"), when to recite it, or, on the Tablet of Ahmad alone, a title and a quoted note about the
+prayer's significance. Normalisation recognises these (they always start with `#` or `*`) and removes
+them before anything else runs, so they never appear in the stored text, the first line, the title, or
+the word count.
+
+**Why it matters.** Left in, "##For Women" would have opened a prayer's text on a tester's phone, and
+"##Tablet of Visitation" would have become that prayer's title. Both read as a bug rather than as
+part of the prayer, because neither is.
+
+**What was not kept.** A few of these lines genuinely name the work a prayer is drawn from (the Fire
+Tablet, the Tablet of Aḥmad), which is exactly what `source_work` is for. Session 3 did not attempt to
+tell those apart from the audience notes and recitation instructions automatically, because guessing
+wrong would put an instruction where a work's name should be. `source_work` is `null` for every prayer
+in the prayers feed for now (see D3.7). This is named again in the session's open questions.
+
+**Reversible.** Yes. It is a rule in `scripts/lib/textCleaning.ts`, tested against the real records
+that carry it (`normalise.test.ts`). Changing which lines are kept or discarded is changing the rule
+and re-running the fetch script.
+
+**What this means for you.** Every prayer reads as a prayer, with no stray editorial line breaking the
+flow. What it does not yet do is tell you which tablet a prayer came from, beyond "Bahá'í Prayers".
+
+---
+
+### D3.5 — The prayers feed's author is a number with no name attached, decoded from what the data itself proves
+
+**Decision.** Every prayer in the prayers feed carries an `AuthorId` — 1, 2 or 3 — and the feed never
+says whose number is whose. Session 3 worked it out from the data itself rather than guessing:
+`AuthorId 1` carries "Is there any Remover of difficulties", a well-known prayer of the Báb;
+`AuthorId 2` carries "Blessed is the spot", a well-known prayer of Bahá'u'lláh, and every prayer the
+feed itself tags "Additional Prayers Revealed by Bahá'u'lláh" also carries `AuthorId 2`; every prayer
+tagged "Additional Prayers Revealed by 'Abdu'l-Bahá" carries `AuthorId 3`. The three numbers map onto
+the three Central Figures of the Faith, which is also the only set of authors a devotional prayer
+compilation like this one would draw from.
+
+**Why this matters more than an ordinary default.** Principle 7.10 requires correct attribution
+always. A wrong guess here would not be a cosmetic bug; it would put someone's name on words that are
+not theirs, on every one of the hundreds of prayers that number carries. Because of that, the code
+throws rather than silently attributing a fourth number, should one ever appear (`normalise.ts`,
+tested).
+
+**Reversible.** Yes, if wrong: it is one lookup table, and every prayer would need to be re-fetched
+and re-checked. It is written down here so the reasoning survives even though the API gives no way to
+verify it from itself alone.
+
+**What this means for you.** Every prayer already carries the right one of the three names. The
+Hidden Words, Gleanings, and Prayers and Meditations feeds needed no such decoding: they are
+single-author works of Bahá'u'lláh by definition, and carry no `AuthorId` field at all.
+
+---
+
+### D3.6 — The self-hosted fonts cover more characters than design-tokens 8.1 lists, because the document's list was incomplete
+
+**Decision.** Design-tokens 8.1 names a specific set of diacritics to subset the fonts to: á, í, ú,
+ḥ, Ḥ, ṭ, Ṭ, ṣ, ẓ, and an apostrophe. Checked against the real, fetched corpus text, that list turns
+out to be missing four things the corpus actually contains: capital Á and Í, capital Ṣ, and ḍ (none
+of which the document lists — it lists the lower-case form of some of these and not others), plus
+ordinary typographic punctuation an en dash, an em dash, curly quotation marks, and an ellipsis that
+"Latin" implies without spelling out. `scripts/fetch-fonts.ts` subsets to the union of the document's
+list and whatever characters the committed corpus is found to contain when the script runs, rather
+than the document's list alone.
+
+**Why it matters.** A font subset to exactly the document's list would have no glyph for a capital Á
+or a curly apostrophe. Since "Bahá'u'lláh" is written with a curly apostrophe throughout the real
+corpus text, not a straight one, that single gap would have sent a large fraction of the corpus's
+words to the fallback system serif, one character at a time — the precise failure design-tokens 8.4's
+own test (`fonts.test.ts`) exists to catch for a whole missing file, just quieter, because only a
+character disappears rather than a whole word.
+
+**Reversible.** Yes, and self-correcting: because the subset is computed from the committed corpus
+rather than copied from the document, a future re-fetch that introduces a new character re-subsets to
+cover it automatically, without anyone having to notice and update a list by hand.
+
+**What this means for you.** Nothing you can see: this is exactly the failure that does not happen.
+Every apostrophe, dash and accented capital in the real corpus renders in Italiana or Cormorant rather
+than falling back to the phone's system font for that one letter.
+
+---
+
+### D3.7 — Contained decisions
+
+- **`LengthBand` gained a fourth value, `'extended'`.** Scope 6.2 defines four length bands (Short,
+  Medium, Long, Extended); the type only had three, from session 2. Widened to match the scope, since
+  nothing indexes on its exact value set. Changes nothing about how the app behaves yet — length bands
+  "no longer lead anywhere" per scope 6.2 until a future filter uses them.
+- **A passage's `length_band` is estimated from its sentence count, not its word count.** Scope 6.2
+  defines the bands in segments, and segmentation itself does not run until a user adds a passage
+  (scope 8.4), so ingestion estimates how many segments a passage would likely become by counting its
+  sentences. This is why "Blessed is the spot" (51 words, ten poetic lines, one sentence) bands as
+  Short: it is genuinely one unbroken sentence, however long.
+- **`collection` is the same value as `source_feed`** for every passage from the four content feeds:
+  `prayers`, `hidden-words`, `gleanings`, `prayers-and-meditations`. The simplest mapping, and the one
+  `src/data/fixtures.ts` already assumed.
+- **`translator` is `null` for every V0 passage.** The API supplies no translator field anywhere.
+  Gleanings, the Hidden Words and Prayers and Meditations are well known to be Shoghi Effendi's
+  translations, but the prayers feed is a compiled anthology with no single translator, and session 3
+  did not want to name one work correctly and leave the others silently wrong. Open question below.
+- **`source_work` is `null` for the prayers feed**, and is the book's name for the other three
+  (`"The Hidden Words"`, `"Gleanings from the Writings of Bahá'u'lláh"`, `"Prayers and Meditations"`).
+  See D3.4: the prayers feed sometimes names its source tablet inline, but not reliably enough to
+  parse automatically.
+- **A title longer than eight words is cut at the eighth with an ellipsis**, the same convention a
+  printed prayer-book index uses for a long opening line. `display_title` is the title unchanged. No
+  authored line break exists in the source data to give it one (design-tokens 8.2); see open questions.
+- **`search_vector` is the title, the full text and the author, lowercased and joined.** Search itself
+  is `[v1.0]` (scope 6.3); this is a placeholder good enough to search against later without
+  re-ingesting the corpus, not a real search index.
