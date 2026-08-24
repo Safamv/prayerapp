@@ -104,3 +104,34 @@ which ships Italiana only, but it needs your eye when the typeface picker is bui
 12.2. `/docs/design-tokens.md` sections 2.1, 8.1 and 8.2. Decisions D0.7, D0.9, D1.8 and D2.7. In
 the repo, `src/data/types.ts` for the exact shape a passage must arrive in, `src/data/corpus.ts` for
 the functions that load it, and `scripts/`, which is empty and is where the two new scripts go.
+
+---
+
+## Session 3 — Corpus fetch script, committed dataset, and the fonts
+
+**Version:** v0.3.0   **Branch:** session-03-corpus   **Date:** 24 Aug 2026
+
+**Shipped.** Real prayers, for the first time. A script fetches all four English feeds from
+bahaiprayers.net plus their topic tags, turns each record into a passage the way the schema expects,
+and commits the result: 473 prayers, 153 Hidden Words, 166 Gleanings, 184 Prayers and Meditations, 61
+tags, one JSON file per feed. The app loads all of it into its local database the first time it opens,
+in the background, without holding up the first screen, and opening it a second time does not add a
+second copy. Italiana and Cormorant, the two fonts the app needs for now, are fetched and cut down to
+size and sit in the repository as two small files, nothing bought or downloaded by hand. One schema
+change: passages gained a `text` column, because nothing held a prayer's full wording yet (D3.1, your
+call). 68 new tests, several against real prayers with real oddities in them.
+
+**Deferred.** Nothing from this session's list.
+
+**Surprises.** Four, all in `decisions.md`: the missing `text` column (D3.1); about a quarter of the
+prayers feed has notes typed directly into the prayer text, which are now stripped out (D3.4); the
+feed names each prayer's author only by an undocumented number, worked out from the prayers
+themselves rather than guessed (D3.5); and the font document's list of accented letters to keep turned
+out to be short a few, found by checking the real text rather than trusting the list (D3.6).
+
+**Next session should read first.** `/CLAUDE.md` in full. Scope sections 6.1, 6.5, 6.6, 7, 8.4, and 10
+(the `passages`, `bookmarks` and `user_prayers` entries). `/docs/design-tokens.md` sections 5.3, 5.4,
+5.5 and 7. Decisions D3.1 (the new `text` column) and D3.4 (why some prayers open with an editorial
+note stripped out). In the repo, `src/data/passages.ts` and `src/data/tags.ts` for what Discover is
+already allowed to read, and `src/data/bookmarks.ts` and `src/data/userPrayers.ts` for what "bookmark"
+and "add to my list" already do.
