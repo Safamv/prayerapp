@@ -523,3 +523,170 @@ above, and it is one `git revert` away if unwanted.
 section 5 or section 6 builds the right thing without needing this conversation. The one rule you
 should know I bent, and bent only because you told me to, is that I edited the scope at all. It goes
 back to being yours alone from here.
+
+---
+
+## D2 — Session 2, data layer, strings, theme registry and the shell
+
+---
+
+### D2.1 — Four new tools were added, and what each one is for
+
+**Decision.** Four packages were added, since CLAUDE.md rule 6 requires a logged decision for each.
+
+**Dexie**, the database library. Scope 12.1 already names it. It is the thing that talks to the
+browser's own storage, and it is used only inside `src/data/`.
+
+**React Router**, which decides which of the three tabs is on screen. The alternative was writing
+about sixty lines of our own. Router was chosen because sessions 4 and 10 both need screens inside
+screens (a category, then a passage, then the reading view, with a back arrow that goes back one
+step rather than all the way out), and getting that right by hand is a week of small bugs.
+
+**fake-indexeddb**, used only when tests run. It is a complete working copy of the browser's storage
+that runs on a laptop, so a test genuinely saves and reads back rather than pretending to.
+
+**jsdom and React Testing Library**, also test-only. They let a test open a screen and look at it.
+
+**Reversible.** Dexie, expensively, and only because everything is stored through it. The other
+three, yes, easily.
+
+**What this means for you.** Nothing you can see. Two of the four never reach your phone at all;
+they exist so that the tests are testing the real thing.
+
+---
+
+### D2.2 — The anonymous user id lives beside the database, not inside it
+
+**Decision.** The id that scope 13.1 gives every device is stored in the browser's simple key-value
+storage rather than as a row in the database.
+
+**Why it came up.** Every user-owned row carries a `user_id`. Two tables, `user_stats` and
+`user_settings`, are keyed *by* that id, so the id cannot be stored in a table that is keyed by
+itself. Scope section 10 has no other table to put it in, and inventing one would be inventing
+schema the scope does not have.
+
+**What each option would have meant.** A new table means a column the scope never described, which
+is the beginning of the local database and the future Supabase one drifting apart. The simple
+storage is cleared by exactly the same action that clears the database, so the id survives precisely
+as long as the data it identifies, which is the correct behaviour.
+
+**Reversible.** Yes, easily.
+
+**What this means for you.** Nothing changes about how the app behaves. Clearing the app's data in
+your browser settings still clears everything, together, as you would expect.
+
+---
+
+### D2.3 — Every data function is handed the user id rather than fetching one
+
+**Decision.** No function in `src/data/` looks up who the user is. The app works it out once when it
+starts and passes it in.
+
+**Reversible.** Yes, but it gets more expensive with every screen built on top.
+
+**What this means for you.** When accounts arrive at v1.0, signing in changes about five lines. If
+each function fetched the id itself, it would change every one of them.
+
+---
+
+### D2.4 — Settings is reached from Log, by default rather than by decision
+
+**Decision.** The Settings screen is opened from a row at the bottom of the Log tab.
+
+**Why it came up.** Scope 3.1 names three tabs and does not say which of them owns Settings, but the
+version number has to be visible somewhere from this session onward because it is what a tester
+reads off their screen when reporting a problem.
+
+**What each option would feel like.** From Log: settings sit on the personal side of the app,
+alongside what you know and your streak. From Discover: they sit on the devotional side, which
+principle 7.6 exists to keep uncluttered. From a small control in the header of every screen:
+always one tap away, but it adds a permanent piece of furniture to the top of the reading view.
+
+**Reversible.** Yes, easily and at any time. It is one link.
+
+**What this means for you.** Today the Log tab is empty apart from a single row reading "Settings".
+Tell me if you would rather it lived somewhere else, and it moves in a minute.
+
+---
+
+### D2.5 — The tab bar ships without icons, because the tokens document defines none
+
+**Decision.** The tab bar is three tracked capital labels. No icons.
+
+**Why it came up.** Design-tokens 5.6 calls for a 15px icon above each label. Design-tokens 8.3 then
+says the whole app has exactly three drawings in it: the nine-pointed star, the magnifying glass and
+the back arrow. None of those is a tab icon, and the app has no image files at all.
+
+**What each option would have meant.** Inventing three marks would put a permanent piece of the
+app's furniture in the hands of a build session rather than yours, and the tab bar is on screen
+almost all the time. Three well-set capital labels is a legitimate and rather sober design in its
+own right, which suits a vintage printed book.
+
+**Reversible.** Yes. Adding icons later is one component.
+
+**What this means for you.** This is on the open questions list. The bar works and looks
+deliberate, but if you want icons, tell me what the three should be.
+
+---
+
+### D2.6 — The text size control clamps how much the user can grow, not how large a typeface is
+
+**Decision.** The user's text size setting is limited per role. The typeface's own size correction
+is always applied in full.
+
+**Why it came up.** Design-tokens 2.1 gives each of the seven typefaces three numbers whose job is
+to make all seven look the same size on screen despite being very different sizes in the file.
+Tangerine's is 1.5, because Tangerine is a small, fine script. Design-tokens 2.4 then says to clamp
+each role so that large text does not blow the layout apart.
+
+Read the obvious way, those two rules fight: clamping the final size would cancel out Tangerine's
+correction and make its headings smaller than everyone else's, which is the opposite of what the
+correction is for. So the limit is applied to the part the user controls.
+
+**Reversible.** Yes.
+
+**What this means for you.** Turning text size up makes prayer text and list text genuinely large,
+up to about 175% of normal, which is what scope 7.9 asks for. Headings grow too but stop sooner, at
+about 125%, so a title cannot swallow the screen. This is the right trade because the reason the
+control exists is to make the writings readable.
+
+---
+
+### D2.7 — Contained decisions
+
+- **Record ids are UUIDs, not counters.** Two devices offline would both write a row 41 and v1.0
+  sync would have to untangle them. Changes nothing about how the app behaves.
+- **Dates are recorded in your own timezone, not UTC.** Reviewing at nine in the morning in
+  Melbourne would otherwise be recorded as yesterday, and you would appear to have broken a streak
+  you had not broken.
+- **Removing a passage from your list also removes its progress and its review history.** Leaving
+  them behind would resurrect a half-learnt state if you ever added the passage again, which is not
+  what "remove" means to the person tapping it.
+- **A saved palette or typeface that no longer exists falls back to the default** rather than
+  failing. A setting can outlive the option it names, and a blank screen is the wrong answer to a
+  stale preference.
+- **`is_focus` and `high_contrast` are stored as true or false and not indexed.** Browser storage
+  cannot index a true or false at all, and the alternative of storing 1 and 0 would break the column
+  shape that makes v1.0 sync additive. Nothing to see.
+- **The version line shows the commit before the one that contains it.** That is normal for a build
+  stamp and it is what makes it useful: it names the code, not the release note.
+
+---
+
+### D2.8 — The largest drop cap any typeface can produce is 120px, and it needs your eye at v0.1
+
+**Decision.** Recorded rather than fixed, because it cannot happen in V0.
+
+**What was found.** The large decorative first letter of a prayer is 64px normally. In Tangerine,
+whose size correction is 1.5, that is already 96px, and at the largest text size it reaches 120px,
+which is about a third of the width of a phone screen. Design-tokens 2.4 rule 4 asks for every
+typeface to be checked at both ends of the text size range before it ships.
+
+**Why it does not matter yet.** V0 ships Italiana only, where the same letter tops out at 80px,
+which is comfortable. Tangerine arrives with the typeface picker at v0.1.
+
+**Reversible.** Yes. It is one number.
+
+**What this means for you.** Nothing in V0. When the typeface picker is built, turn the text size to
+maximum in Tangerine and tell me whether the big first letter looks right. A test records the
+number so it is in front of whoever builds that screen.
