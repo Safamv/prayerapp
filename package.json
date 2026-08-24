@@ -1,7 +1,7 @@
 {
   "name": "by-heart",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "description": "A Bahá'í prayer book with a spaced repetition memorisation engine built into it.",
   "scripts": {
