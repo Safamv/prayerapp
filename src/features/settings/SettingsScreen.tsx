@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { BackChevron } from '../../components/BackChevron'
+import { Screen } from '../../components/Screen'
 import { buildStamp } from '../../config/build'
 import { strings } from '../../strings'
 import { typeStyle } from '../../theme'
@@ -23,24 +24,26 @@ import { typeStyle } from '../../theme'
  */
 export function SettingsScreen() {
   return (
-    <section className="p-6">
-      <div className="flex items-center gap-3">
-        <Link to="/log" aria-label={strings.accessibility.back} className="-ml-1">
-          <BackChevron />
-        </Link>
-        <h1 className="text-deep" style={typeStyle('settingsTitle')}>
-          {strings.screenTitles.settings}
-        </h1>
-      </div>
+    <Screen>
+      <section className="p-6">
+        <div className="flex items-center gap-3">
+          <Link to="/log" aria-label={strings.accessibility.back} className="-ml-1">
+            <BackChevron />
+          </Link>
+          <h1 className="text-deep" style={typeStyle('settingsTitle')}>
+            {strings.screenTitles.settings}
+          </h1>
+        </div>
 
-      <div className="mt-10 border-t border-rule pt-4">
-        <p className="text-label" style={typeStyle('sectionHeader')}>
-          {strings.settings.versionEyebrow}
-        </p>
-        <p className="mt-2 text-on-paper-60" style={typeStyle('settingsRowCaption')}>
-          {buildStamp()}
-        </p>
-      </div>
-    </section>
+        <div className="mt-10 border-t border-rule pt-4">
+          <p className="text-label" style={typeStyle('sectionHeader')}>
+            {strings.settings.versionEyebrow}
+          </p>
+          <p className="mt-2 text-on-paper-60" style={typeStyle('settingsRowCaption')}>
+            {buildStamp()}
+          </p>
+        </div>
+      </section>
+    </Screen>
   )
 }

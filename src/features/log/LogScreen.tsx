@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { Screen } from '../../components/Screen'
 import { ScreenTitle } from '../../components/ScreenTitle'
 import { strings } from '../../strings'
 import { typeStyle } from '../../theme'
@@ -19,15 +20,17 @@ import { typeStyle } from '../../theme'
  */
 export function LogScreen() {
   return (
-    <section className="p-6">
-      <ScreenTitle>{strings.screenTitles.log}</ScreenTitle>
-      <Link
-        to="/settings"
-        className="mt-8 flex border-t border-rule pt-4 text-on-paper-72"
-        style={typeStyle('settingsRowLabel')}
-      >
-        {strings.settings.open}
-      </Link>
-    </section>
+    <Screen>
+      <section className="p-6">
+        <ScreenTitle>{strings.screenTitles.log}</ScreenTitle>
+        <Link
+          to="/settings"
+          className="mt-8 flex border-t border-rule pt-4 text-on-paper-72"
+          style={typeStyle('settingsRowLabel')}
+        >
+          {strings.settings.open}
+        </Link>
+      </section>
+    </Screen>
   )
 }
