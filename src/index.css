@@ -1,1 +1,87 @@
 @import 'tailwindcss';
+
+/*
+ * Tailwind's colour utilities, aliased onto the theme registry's variables.
+ *
+ * There is no colour value in this file. `--field` and the rest are written onto
+ * `document.documentElement` at runtime by the ThemeProvider (decision D0.8), so
+ * `bg-field` follows the active palette and switching palettes needs no rebuild.
+ * The names are exactly design-tokens 1.1's token names.
+ */
+@theme {
+  --color-field: var(--field);
+  --color-deep: var(--deep);
+  --color-accent: var(--accent);
+  --color-paper: var(--paper);
+  --color-accent-dk: var(--accent-dk);
+  --color-accent-md: var(--accent-md);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-label: var(--label);
+  --color-faint: var(--faint);
+  --color-field-tint: var(--field-tint);
+  --color-accent-90: var(--accent-90);
+  --color-accent-80: var(--accent-80);
+  --color-accent-34: var(--accent-34);
+  --color-on-field-66: var(--on-field-66);
+  --color-on-field-55: var(--on-field-55);
+  --color-on-field-45: var(--on-field-45);
+  --color-rule: var(--rule);
+  --color-rule-md: var(--rule-md);
+  --color-rule-str: var(--rule-str);
+  --color-on-paper-72: var(--on-paper-72);
+  --color-on-paper-60: var(--on-paper-60);
+  --color-on-paper-50: var(--on-paper-50);
+  --color-on-paper-44: var(--on-paper-44);
+  --color-on-paper-42: var(--on-paper-42);
+  --color-on-paper-40: var(--on-paper-40);
+  --color-on-paper-36: var(--on-paper-36);
+  --color-hair: var(--hair);
+  --color-hair-lt: var(--hair-lt);
+
+  /* Design-tokens 3: border radius is 0 everywhere. This is printed-object
+     logic and it is the single most load-bearing rule in the visual language. */
+  --radius-none: 0;
+}
+
+/*
+ * Paper grain. Design-tokens 3, two stacked dot layers. A background, not an
+ * image file: design-tokens 8.3 permits no image assets at all.
+ */
+.paper-grain {
+  background-image:
+    radial-gradient(var(--grain-a) 0.5px, transparent 0.5px),
+    radial-gradient(var(--grain-b) 0.5px, transparent 0.5px);
+  background-size:
+    4px 4px,
+    9px 9px;
+  background-position:
+    0 0,
+    3px 2px;
+}
+
+/* Navy cloth grain. Design-tokens 3, for the `field` and `deep` chrome. */
+.cloth-grain {
+  background-image:
+    radial-gradient(var(--sheen) 0.5px, transparent 0.5px),
+    radial-gradient(var(--sheen-d) 0.5px, transparent 0.5px);
+  background-size:
+    4px 4px,
+    7px 7px;
+  background-position:
+    0 0,
+    2px 3px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+  /* Design-tokens 2.3: passage body uses pretty wrapping. Harmless elsewhere. */
+  text-wrap: pretty;
+}
