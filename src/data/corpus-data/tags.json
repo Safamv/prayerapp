@@ -1,0 +1,307 @@
+[
+  {
+    "id": "2c885bf1-6a5b-5255-b670-235162f790d0",
+    "name": "Healing",
+    "source_tag_id": "1"
+  },
+  {
+    "id": "1b281dd2-767b-5ac2-84b0-6348602c7b21",
+    "name": "Aid and Assistance",
+    "source_tag_id": "53"
+  },
+  {
+    "id": "7f8d7567-1b36-5ffc-ad38-94c57c8c09de",
+    "name": "America",
+    "source_tag_id": "54"
+  },
+  {
+    "id": "28d60246-ef9c-529d-9725-6dee37e80f50",
+    "name": "Children",
+    "source_tag_id": "55"
+  },
+  {
+    "id": "3e015b22-d78b-53ed-8d78-47fbc3feec30",
+    "name": "Departed",
+    "source_tag_id": "56"
+  },
+  {
+    "id": "39376784-927f-5b42-8d0f-4f75b688dc76",
+    "name": "Detachment",
+    "source_tag_id": "57"
+  },
+  {
+    "id": "6049c1d4-c042-593e-820e-3c127c06f505",
+    "name": "Evening",
+    "source_tag_id": "59"
+  },
+  {
+    "id": "8adf3193-f814-531d-a6c6-c75a0a24e917",
+    "name": "Families",
+    "source_tag_id": "60"
+  },
+  {
+    "id": "6a3ea8c9-f684-59d5-8e90-c055bc9f6896",
+    "name": "Firmness in the Covenant",
+    "source_tag_id": "62"
+  },
+  {
+    "id": "70475137-597c-535c-8638-d24a79392ecc",
+    "name": "Forgiveness",
+    "source_tag_id": "63"
+  },
+  {
+    "id": "ffe422b8-a29c-542b-9c52-124576bd40fb",
+    "name": "Fund",
+    "source_tag_id": "64"
+  },
+  {
+    "id": "e26d5ab3-70ed-5f4f-a1be-17ba25e24401",
+    "name": "Gatherings",
+    "source_tag_id": "66"
+  },
+  {
+    "id": "069a9632-9544-5653-a157-1d315eb6edf6",
+    "name": "Humanity",
+    "source_tag_id": "69"
+  },
+  {
+    "id": "59563c55-986e-554b-9d47-af596b533a5a",
+    "name": "Marriage",
+    "source_tag_id": "70"
+  },
+  {
+    "id": "1320ee91-9751-5c0b-82c0-5e9de0f0322e",
+    "name": "Morning",
+    "source_tag_id": "71"
+  },
+  {
+    "id": "4229aa1a-3050-57a7-a362-813e950fcd3b",
+    "name": "Nearness to God",
+    "source_tag_id": "73"
+  },
+  {
+    "id": "601c17b2-a42d-53fc-ae3e-835b020b77e2",
+    "name": "Praise and Gratitude",
+    "source_tag_id": "74"
+  },
+  {
+    "id": "e2026f25-f547-51f5-9807-09f24022c289",
+    "name": "Protection",
+    "source_tag_id": "76"
+  },
+  {
+    "id": "33066951-2ef0-57e1-9488-6ff8404ebc1a",
+    "name": "Service",
+    "source_tag_id": "77"
+  },
+  {
+    "id": "7d1d2709-c3b2-5bc6-8e74-41166fc03c5c",
+    "name": "Spiritual Growth",
+    "source_tag_id": "79"
+  },
+  {
+    "id": "2d2cfb1d-cf4d-5ff8-83f8-60fe20187476",
+    "name": "Steadfastness",
+    "source_tag_id": "80"
+  },
+  {
+    "id": "ffb4dca6-de8d-518e-9784-c8c4626ea617",
+    "name": "Teaching",
+    "source_tag_id": "81"
+  },
+  {
+    "id": "e55f6235-ae80-50c6-9a73-357f18e80ebd",
+    "name": "Tablets of the Divine Plan",
+    "source_tag_id": "83"
+  },
+  {
+    "id": "52a9fd78-18c4-579f-8d78-2b0aab29a847",
+    "name": "Tests and Difficulties",
+    "source_tag_id": "84"
+  },
+  {
+    "id": "b7fa2e67-7a3b-5972-ada2-7ca9c045c012",
+    "name": "Triumph of the Cause",
+    "source_tag_id": "85"
+  },
+  {
+    "id": "d4a18fe5-01e6-5ac1-9162-6db7fb4b610e",
+    "name": "Unity",
+    "source_tag_id": "87"
+  },
+  {
+    "id": "815d285b-97e2-55d3-8728-266ad3939e05",
+    "name": "Women",
+    "source_tag_id": "88"
+  },
+  {
+    "id": "554c026a-b07c-50d2-a068-6f7173dd13f1",
+    "name": "Youth",
+    "source_tag_id": "90"
+  },
+  {
+    "id": "4799a727-54a3-51dc-b492-6367b7b55a82",
+    "name": "The Fast",
+    "source_tag_id": "91"
+  },
+  {
+    "id": "2f2bb517-74fb-5eee-b1da-406f0fbe9690",
+    "name": "Huqúqu'lláh",
+    "source_tag_id": "92"
+  },
+  {
+    "id": "384f87dd-eb41-5882-830f-79ab80ed6d7e",
+    "name": "Intercalary Days",
+    "source_tag_id": "93"
+  },
+  {
+    "id": "ffb80f91-cda1-5d66-8c43-6d62c57f3ccd",
+    "name": "Martyrs and their families",
+    "source_tag_id": "94"
+  },
+  {
+    "id": "11e067b9-24e0-5023-a911-42914fb82a7c",
+    "name": "Naw-Rúz",
+    "source_tag_id": "95"
+  },
+  {
+    "id": "a4eda26a-8ece-5b4e-b7aa-a81443baa597",
+    "name": "Spiritual Assembly",
+    "source_tag_id": "96"
+  },
+  {
+    "id": "e260bbad-52eb-5401-801c-8ab61d40033b",
+    "name": "Tablet of Ahmad",
+    "source_tag_id": "97"
+  },
+  {
+    "id": "863daf35-f795-5770-8d4c-2fdd41bedebd",
+    "name": "Fire Tablet",
+    "source_tag_id": "98"
+  },
+  {
+    "id": "28d03c48-22c5-5e4b-8d24-c370edfa1ec5",
+    "name": "Tablet of the Holy Mariner",
+    "source_tag_id": "99"
+  },
+  {
+    "id": "8830c717-c119-54b6-8633-a6761e7fa8b5",
+    "name": "Tablets of Visitation",
+    "source_tag_id": "100"
+  },
+  {
+    "id": "28ceb904-2ff1-5f06-911b-1afec2a5d1f3",
+    "name": "Short Obligatory Prayer",
+    "source_tag_id": "101"
+  },
+  {
+    "id": "0956dcc5-2435-5dc5-a2df-e3bdefd9195c",
+    "name": "Medium Obligatory Prayer",
+    "source_tag_id": "102"
+  },
+  {
+    "id": "9e5a72df-c9fd-5056-b11c-2bd62b194fe8",
+    "name": "Long Obligatory Prayer",
+    "source_tag_id": "104"
+  },
+  {
+    "id": "bcc4524d-1cac-56a2-9827-1773330092eb",
+    "name": "Canada",
+    "source_tag_id": "105"
+  },
+  {
+    "id": "426a28ef-9d06-5763-9593-4634e14e3d20",
+    "name": "Birth of Bahá’u’lláh",
+    "source_tag_id": "2340"
+  },
+  {
+    "id": "8df201ae-4587-50dd-aa2c-5b1758def681",
+    "name": "Birth of The Báb",
+    "source_tag_id": "2341"
+  },
+  {
+    "id": "ab8a1494-0a3d-5cdd-b307-331e30b105df",
+    "name": "Justice",
+    "source_tag_id": "2365"
+  },
+  {
+    "id": "ea069dbe-aad5-5dc8-bec1-0f5f872c3ffa",
+    "name": "Hands of the Cause",
+    "source_tag_id": "2383"
+  },
+  {
+    "id": "e2e40c99-6711-56e0-abb4-181d3c1ee150",
+    "name": "Journey",
+    "source_tag_id": "2452"
+  },
+  {
+    "id": "0f74591b-b482-5751-9d4f-cc3036796747",
+    "name": "Enlightenment",
+    "source_tag_id": "2513"
+  },
+  {
+    "id": "f9c82fa9-6a59-53a4-b57c-42d0c96b08f4",
+    "name": "Guidance",
+    "source_tag_id": "2568"
+  },
+  {
+    "id": "8517c11e-e4bc-5af1-a465-3d13af25dcef",
+    "name": "Trust in God",
+    "source_tag_id": "2569"
+  },
+  {
+    "id": "e4f971a5-6873-53cf-945d-ce7242513fae",
+    "name": "Sacrifice",
+    "source_tag_id": "2584"
+  },
+  {
+    "id": "2b5cfc22-7607-5117-8f1c-c6b8485334c5",
+    "name": "Ridván",
+    "source_tag_id": "3166"
+  },
+  {
+    "id": "1e07702e-b7ba-55b2-bb2b-585304e6d3f4",
+    "name": "Declaration of the Báb",
+    "source_tag_id": "3168"
+  },
+  {
+    "id": "41ccc554-0d78-535a-82f1-ba127f03524d",
+    "name": "Ascension of Bahá’u’lláh",
+    "source_tag_id": "3169"
+  },
+  {
+    "id": "db5f3b29-2eaf-5085-9938-d877f8a7ecae",
+    "name": "Martyrdom of the Báb",
+    "source_tag_id": "3170"
+  },
+  {
+    "id": "9131c345-ec83-55b7-b8ef-59e7b759d757",
+    "name": "Bahá’í Reference Library",
+    "source_tag_id": "3740"
+  },
+  {
+    "id": "8a1b479d-f659-5b6a-a827-8cd4b75ea6b2",
+    "name": "Epistle to the Son of the Wolf",
+    "source_tag_id": "4908"
+  },
+  {
+    "id": "d4ff62e9-2e36-5a27-a4ba-0c1fc8e37589",
+    "name": "Additional Prayers Revealed by Bahá’u’lláh",
+    "source_tag_id": "4975"
+  },
+  {
+    "id": "ee81d86e-065c-56e2-8a8d-62d8000b7cb4",
+    "name": "Additional Tablets and Extracts from Tablets Revealed by Bahá’u’lláh",
+    "source_tag_id": "4976"
+  },
+  {
+    "id": "bf48f16e-e776-53d2-bcd7-d0c67598e714",
+    "name": "Marriage Compilation August 2023",
+    "source_tag_id": "5056"
+  },
+  {
+    "id": "f58d926d-6dcc-5922-9bf3-d1963c7ee0f2",
+    "name": "Additional Prayers Revealed by ‘Abdu’l‑Bahá",
+    "source_tag_id": "5376"
+  }
+]

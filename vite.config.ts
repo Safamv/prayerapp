@@ -64,7 +64,7 @@ export default defineConfig({
     // the shell are not, so those files opt into jsdom with a
     // `@vitest-environment` docblock rather than making every test pay for a DOM.
     environment: 'node',
-    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'scripts/**/*.test.ts'],
     // Real IndexedDB for every test that touches `src/data/`. See the setup file.
     setupFiles: ['./src/test/setup.ts'],
     // The scheduler simulation prints interval tables. They are the point of
