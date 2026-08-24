@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './theme/fonts.css';
 
 /*
  * Tailwind's colour utilities, aliased onto the theme registry's variables.
