@@ -71,3 +71,45 @@ describe('bookmarks', () => {
     ])
   })
 })
+
+/**
+ * `sort_order` (scope 6.7, 18.30). Written from the first bookmark, read by
+ * nothing until session 7 builds the screen that lets a user drag them.
+ */
+describe('the hand-arranged order', () => {
+  it('puts each new bookmark at the end, so keeping a place moves nothing', async () => {
+    const first = await addBookmark('user-1', 'passage-1')
+    const second = await addBookmark('user-1', 'passage-2')
+    const third = await addBookmark('user-1', 'passage-3')
+
+    expect([first.sort_order, second.sort_order, third.sort_order]).toEqual([0, 1, 2])
+  })
+
+  it('counts each device separately, as every user table does', async () => {
+    await addBookmark('user-1', 'passage-1')
+    await addBookmark('user-1', 'passage-2')
+    const other = await addBookmark('user-2', 'passage-1')
+
+    expect(other.sort_order).toBe(0)
+  })
+
+  it('does not renumber when a bookmark in the middle is removed', async () => {
+    await addBookmark('user-1', 'passage-1')
+    await addBookmark('user-1', 'passage-2')
+    await removeBookmark('user-1', 'passage-1')
+
+    // The gap is harmless: the order is read by sorting, not by counting. What
+    // would not be harmless is a renumber racing a drag on the same screen.
+    const remaining = await getBookmark('user-1', 'passage-2')
+    expect(remaining?.sort_order).toBe(1)
+  })
+
+  it('never reuses an order already taken, even after a removal', async () => {
+    await addBookmark('user-1', 'passage-1')
+    await addBookmark('user-1', 'passage-2')
+    await removeBookmark('user-1', 'passage-1')
+    const next = await addBookmark('user-1', 'passage-3')
+
+    expect(next.sort_order).toBe(2)
+  })
+})

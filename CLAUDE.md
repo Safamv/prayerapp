@@ -24,7 +24,7 @@ in the current release. Read those passages for context. Do not build what they 
 
 | File | What it owns |
 |---|---|
-| `/docs/scope.md` | Behaviour, information architecture, data model, vocabulary, release scope. Currently v4.2. |
+| `/docs/scope.md` | Behaviour, information architecture, data model, vocabulary, release scope. Currently v4.3. |
 | `/docs/design-tokens.md` | Colour, typography, spacing, iconography, motion, construction patterns |
 | `/docs/decisions.md` | Append-only. Decisions taken during the build, and contradictions found in the scope |
 | `/docs/sessions.md` | Append-only. One entry per build session |
