@@ -152,6 +152,17 @@ export interface BookmarkRow {
   readonly user_id: string
   readonly passage_id: string
   readonly created_at: Instant
+  /**
+   * Scope 6.7 and 18.30. The order the user arranged their bookmarks in by
+   * hand, which is one of the sort options on that screen and is remembered
+   * when they switch to another and back.
+   *
+   * Written from the first bookmark, though nothing reads it until session 7
+   * builds the screen: scope 10 declares columns from the first migration, and
+   * a column added after a tester has a fortnight of data is a migration
+   * running on their phone rather than a line in a schema.
+   */
+  readonly sort_order: number
 }
 
 export interface UserPrayerRow {

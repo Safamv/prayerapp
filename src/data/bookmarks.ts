@@ -11,6 +11,10 @@ import type { BookmarkRow } from './types'
  *
  * Every function takes the user id rather than reaching for one, so v1.0 can
  * swap a real account in without touching a single call site (scope 13.1).
+ *
+ * `sort_order` is written from the first bookmark and read by nothing yet:
+ * scope 6.7 makes the bookmarks screen reorderable by hand and session 7 builds
+ * it. See the note on `nextSortOrder`.
  */
 
 export async function addBookmark(
@@ -26,9 +30,23 @@ export async function addBookmark(
     user_id: userId,
     passage_id: passageId,
     created_at: createdAt,
+    sort_order: await nextSortOrder(userId),
   }
   await db.bookmarks.put(row)
   return row
+}
+
+/**
+ * Where a new bookmark lands in the hand-arranged order of scope 6.7: at the
+ * end, so keeping a place never moves anything the user arranged.
+ *
+ * Nothing reads `sort_order` until session 7 builds the screen. It is written
+ * from the first bookmark all the same, because a column that starts being
+ * written later has a gap in it exactly where the earliest data is.
+ */
+async function nextSortOrder(userId: string): Promise<number> {
+  const rows = await db.bookmarks.where('user_id').equals(userId).toArray()
+  return rows.reduce((highest, row) => Math.max(highest, row.sort_order + 1), 0)
 }
 
 export async function removeBookmark(userId: string, passageId: string): Promise<void> {

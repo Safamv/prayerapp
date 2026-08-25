@@ -1389,3 +1389,66 @@ goes away by itself.
   `user_id` on every row from the first migration (scope 13.1) is what made the fix a one-line filter.
 
 ---
+
+### D4.12 — Scope revised to v4.3 by Claude, on Safa's instruction
+
+**Decision.** CLAUDE.md section 2 says "Never edit `/docs/scope.md`" and "Safa issues scope
+revisions." This is the second time that has been lifted, and like the first (D1.11) it is **a
+one-off, not a standing change.** The rule is unchanged and still binds every future session: a
+session that finds a contradiction logs it here and stops.
+
+**Why the scope had to change rather than only this file.** Two of the things Safa decided on
+25 August 2026 are things the scope owns and future sessions read it for. Section 6.1 still tagged
+browse by collection `[v1.0]`, which would have told a later session not to build something already
+built. And CLAUDE.md section 5 tells every session to take the next session's goal "from the build
+sequence table in scope section 16", so a table that did not contain the new session would have
+un-decided it at the next handoff.
+
+**What was changed.** Only what Safa decided, plus the consistency edits those forced. Browse by
+collection moved from `[v1.0]` into V0 and above category rather than beside it (6.1, 14, 18.28).
+Bookmarks given a described behaviour, with the ordering rule applied to the list as well (new 6.7,
+6.5, 14, 18.29). `sort_order` added to `bookmarks` (10, 18.30). One build session added, making
+sessions 7 to 9 into 8 to 10 and Ruhi session 11 (16, 18.31). The paragraph "V0 ships category
+browse only" deleted, being no longer true. CLAUDE.md's pointer updated from v4.2 to v4.3.
+
+**Nothing left V0.** Two things entered it.
+
+**Reversible.** Yes. It is one commit.
+
+**What this means for you.** The scope now says what you decided, so session 7 builds the bookmarks
+screen from the scope rather than from this conversation, which it will not have. The rule you
+should know I bent, and bent only because you asked for these to be documented, is that I edited
+the scope at all. It goes back to being yours alone from here.
+
+---
+
+### D4.13 — `sort_order` is written from the first bookmark, and read by nothing yet
+
+**Decision.** The column Safa approved exists now, in `types.ts`, in the Dexie schema, and filled by
+`addBookmark`, although the screen that lets anyone drag a bookmark is session 7.
+
+**Why now rather than then.** Scope 10's own rule: "Tables and columns are used exactly as named
+here, **from the first migration**, including in the V0 Dexie schema." Session 2 followed it to the
+letter, declaring four empty Ruhi tables and half a dozen unused columns for the same reason. A
+column that starts being written in session 7 has a gap in it exactly where the earliest bookmarks
+are, and the person with the earliest bookmarks is Safa.
+
+**A new bookmark goes to the end of the order**, so keeping a place never moves anything already
+arranged. Removing one leaves a gap in the numbering, deliberately: the order is read by sorting,
+not by counting, and a renumber racing a drag on the same screen is a real bug where a gap is not.
+
+**There is now a schema version 2, and that is the interesting part.** Amending version 1 in place
+would have been simpler and quietly wrong. A browser holding a version 1 database never re-reads the
+schema for a version it already has, so the new index would have silently not existed there while
+existing perfectly on a fresh install - a bug that reproduces on nobody's machine but the one that
+matters. Version 2 is correct for both, and its upgrade gives every bookmark already saved a place
+in the order, oldest first.
+
+**Reversible.** The column, yes. The version bump, not usefully: version 2 is now the shape any
+existing database is in.
+
+**What this means for you.** Nothing you can see. Bookmarks you make from today already know what
+order you made them in, so when session 7 gives you the screen, the bookmarks you already have will
+be in it and in a sensible order rather than arriving unordered.
+
+---

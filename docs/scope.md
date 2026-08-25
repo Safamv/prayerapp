@@ -1,13 +1,44 @@
 # By Heart
 ## Bahá'í Prayer and Memorisation App
-### Scope Document v4.2
+### Scope Document v4.3
 
 **Status:** Agreed, ready to build
-**Date:** 24 August 2026
+**Date:** 25 August 2026
 **Owner:** Safa
-**Supersedes:** v4.1 (23 August 2026)
+**Supersedes:** v4.2 (24 August 2026)
 **Repo path:** `/docs/scope.md`
 **Spelling:** Australian English throughout
+
+---
+
+## Why 4.3
+
+v4.3 makes the library reachable, and adds one build session. It was issued by Claude Code on
+Safa's instruction during build session 4, the second departure from the rule in CLAUDE.md section 2
+that only Safa revises this document. Recorded in `/docs/decisions.md` D4.12.
+
+What prompted it: session 4 built category browse exactly as 6.1 specified, and found that it
+reaches 473 of the library's 976 passages. The bahaiprayers.net tag feed tags the prayers feed and
+nothing else, so every Hidden Word, every Gleaning and every Prayer and Meditation had no category
+to be found under. 6.1's own rationale for shipping category browse alone - that it is "the single
+axis that makes the library usable for the devotional case" - was true of prayers and not of the
+library.
+
+**What changed:**
+
+1. **Browse by collection moves from v1.0 into V0**, and above category rather than beside it.
+   Section 6.1. Decision 18.28. The paragraph "V0 ships category browse only" is deleted with it.
+2. **Bookmarks gains a described behaviour**: filter, sort, and drag to reorder, with the manual
+   order remembered as one of the sort options. New section 6.7, and the same rule applied to the
+   list in 6.5. Decision 18.29.
+3. **`sort_order` added to `bookmarks`** (section 10), which is what a manual order is stored in.
+   Decision 18.30.
+4. **One build session added** (section 16): the two ordered lists, Bookmarks and My list, which
+   are the same interaction on different material. Sessions 7 to 9 become 8 to 10, and Ruhi becomes
+   session 11. Decision 18.31.
+5. **Section 14's V0 list updated** to match 1 and 2.
+
+No requirement has left V0. Two have entered it.
 
 ---
 
@@ -330,22 +361,28 @@ missing.
 
 ### 6.1 Navigation
 
-Three browse axes, all reachable from the Discover tab. Category is the default.
+**Collection is the entry point. Category sits inside a collection, not beside it.**
 
 | Axis | Behaviour | Release |
 |---|---|---|
-| **By category** | Alphabetical list of topic tags from the API tag feed, each with a passage count. Drill in to a passage list. | **V0** |
-| **By collection** | Prayers, Hidden Words, Gleanings, Prayers and Meditations, My own. **Ruhi is deliberately absent:** it is not a Discover surface. See 5.4 and 18.25. | **[v1.0]** |
+| **By collection** | Prayers, The Hidden Words, Gleanings, Prayers and Meditations. **[v1.0]** My own. **Ruhi is deliberately absent:** it is not a Discover surface. See 5.4 and 18.25. | **V0** |
+| **By category** | Within a collection: an alphabetical list of that collection's topic tags from the API tag feed, each with a passage count. Drill in to a passage list. | **V0** |
 | **By author** | Bahá'u'lláh, the Báb, 'Abdu'l-Bahá. | **[v1.0]** |
 
-Plus **Bookmarks** (V0), and **[v1.0]** **Recents** and **Search** as saved surfaces.
+**A collection shows its categories where it has any, and its passages where it has none**, decided
+by the data rather than by a rule naming a collection. Only the prayers feed carries topic tags
+today, so Prayers drills through 63 categories and the other three go straight to a passage list. If
+a later feed is tagged, that collection gains a category level and nothing is rebuilt. See 18.28.
+
+Every one of the 63 categories belongs to a prayer, which is why category is a level inside a
+collection rather than an alternative to one: "Healing" is a way of finding a prayer and is not a
+way of finding a Hidden Word.
+
+Plus **Bookmarks** (V0, described in 6.7), and **[v1.0]** **Recents** and **Search** as saved
+surfaces.
 
 **Passage rows show:** title or opening phrase, author, and **word count**. Word count is precise,
 honest, and free at ingestion. It is not a band and not a judgement.
-
-**V0 ships category browse only.** Rationale: V0 exists to validate the scheduler, and category
-browse is the single axis that makes the library usable for the devotional case. Decision logged
-23 August 2026, owner Claude, per standing instruction to default and log rather than block.
 
 ### 6.2 Length
 
@@ -396,7 +433,8 @@ The ordered list of what the user intends to memorise. Feeds the queue when curr
 finished.
 
 - Addable from anywhere: reading view, search results, category lists, Ruhi sections.
-- Reorderable.
+- **Reorderable by hand, under the ordering rule in 6.7**, which governs this list and Bookmarks
+  identically. They are the same interaction on different material.
 - **[v1.0]** Bulk add from a Ruhi section or book.
 - Removable at any time, permanently, with no penalty or friction.
 - **Internal term: `list`. V0 UI label: "My list".** Final vocabulary deferred; see 11.3.
@@ -417,6 +455,27 @@ Two distinct actions in the toolbar:
 
 Different icons, both one tap, neither nested in a menu. They are different intents and conflating
 them makes both worse.
+
+### 6.7 Bookmarks
+
+The passages a user has kept a place in. Deliberately separate from the list, and for a different
+reason: a bookmark is "find this again on Sunday", the list is "I intend to learn this" (6.6). They
+share no state.
+
+- **Filterable** and **sortable**.
+- **Reorderable by hand**, by dragging.
+
+**The manual order is itself one of the sort options, and it is remembered.** Choosing another sort
+is a view over the same bookmarks, never a rewrite of the arrangement underneath; returning to the
+manual sort restores it exactly as it was. Any other behaviour makes dragging feel unsafe, because
+one tap on a sort control would silently destroy an arrangement the user built by hand.
+
+The manual order lives in `bookmarks.sort_order` (10). The same rule governs the list (6.5), and
+both screens ship in one build session (16).
+
+**The filter and sort axes are not fixed here.** Collection, author, word count and when it was
+bookmarked are the obvious candidates, and the session that builds it should propose a set and ask.
+Nothing in this section depends on which are chosen.
 
 ---
 
@@ -657,7 +716,7 @@ ruhi_sections          id, unit_id, number, title                      [v0.1]
 ruhi_quotations        id, section_id, passage_id, order_index,        [v0.1]
                        designation (memorise | reflection)
 
-bookmarks              id, user_id, passage_id, created_at
+bookmarks              id, user_id, passage_id, created_at, sort_order
 
 reading_history        id, user_id, passage_id, read_at                [v1.0]
 
@@ -697,6 +756,12 @@ ingestion_runs         id, feed, started_at, completed_at,             [v1.0]
 - Whole-passage scheduling fields added to `user_prayers` (8.7).
 - `auto_score` removed from `review_log` (9.7).
 - `user_prayers.status` value `playlist` renamed to `list`.
+
+**Changes from v4.2:**
+
+- `sort_order` added to `bookmarks`, holding the hand-arranged order of 6.7. Named `sort_order`
+  rather than `list_order` so that "list" keeps meaning the memorisation list of 6.5 and nothing
+  else.
 
 **Changes from v4.0:**
 
@@ -898,10 +963,12 @@ and whether the app is pleasant to hold.
 - [ ] Theme registry: two palettes, Italiana, adjustable text size
 - [ ] Three-tab shell
 - [ ] Corpus fetch script, committed JSON dataset split by feed, load to IndexedDB
-- [ ] Discover: alphabetical category browse with counts
+- [ ] Discover: collection browse, with alphabetical category browse inside a collection, both
+      with counts
 - [ ] Passage list with word count and author
 - [ ] Reading view with attribution and copyright notice, adjustable text size
 - [ ] Bookmark, and separately Add to my list
+- [ ] Bookmarks screen: filter, sort, and drag to reorder, with the manual order remembered
 - [ ] Suggested-then-confirmed segmentation at add time
 - [ ] My list, ordered, removable
 - [ ] SM-2 scheduler, isolated and unit-tested
@@ -916,9 +983,8 @@ and whether the app is pleasant to hold.
 - [ ] Version number visible in Settings
 - [ ] Principle 7.6 enforced, by test
 
-**Not in V0:** auth, sync, search, recents, author and collection browse, Ruhi, personal library,
-ingestion automation, PWA install, full accessibility pass, credits screen, privacy policy, typeface
-picker.
+**Not in V0:** auth, sync, search, recents, author browse, Ruhi, personal library, ingestion
+automation, PWA install, full accessibility pass, credits screen, privacy policy, typeface picker.
 
 ### v0.1 — immediately after the V0 exit review
 
@@ -1017,9 +1083,17 @@ the scope sections to read. See `/docs/session-prompt-template.md`.
 | 4 | Discover: category browse, passage list with word count, reading view, bookmark, add to list | Opus | Max | 0.4.0 |
 | 5 | Segmentation flow, suggested then confirmed, at add time | Opus | Max | 0.5.0 |
 | 6 | Daily queue, caps, silent overflow, upkeep states, focus mode with expiry | Opus | Max | 0.6.0 |
-| 7 | Chip quiz components: levels 2, 3 and 4 | Opus | Max | 0.7.0 |
-| 8 | Recite-and-reveal levels 5 and 6, milestone screen, whole-passage promotion | Opus | Max | 0.8.0 |
-| 9 | Log, freshness states, streak, passage detail view, version display | Sonnet | High | 0.9.0 |
+| 7 | **The two ordered lists**: Bookmarks and My list. Filter, sort, and drag to reorder, with the manual order remembered (6.5, 6.7) | Opus | Max | 0.7.0 |
+| 8 | Chip quiz components: levels 2, 3 and 4 | Opus | Max | 0.8.0 |
+| 9 | Recite-and-reveal levels 5 and 6, milestone screen, whole-passage promotion | Opus | Max | 0.9.0 |
+| 10 | Log, freshness states, streak, passage detail view, version display | Sonnet | High | 0.10.0 |
+
+**Why the two ordered lists are one session, and why session 7.** Bookmarks and My list are the
+same interaction on different material: a list of passages you can filter, sort and drag. Built
+apart they are built twice and drift; built together they are one component. Session 7 rather than
+earlier because session 6 is where My list first has to exist, and because `bookmarks.sort_order`
+lands before any tester has data on a device (10, 18.30). The cost is that V0's fortnight of real
+use begins one session later, which was weighed and accepted.
 
 **Why the scheduler is session 1.** It carries all the risk, it has no dependencies, and it can be
 fully unit-tested against synthetic data before a single screen exists. v3.0 placed it at session 7
@@ -1030,16 +1104,16 @@ that can invalidate the project at the front, where it costs least to be wrong.
 
 | # | Session | Model | Effort | Version |
 |---|---|---|---|---|
-| 10 | **Ruhi**: normalise the three extracted quotation files to committed JSON, load to IndexedDB, the book to unit to section route on the memorisation side, the To Memorise and Reflection filter, bulk add, search within the route | Opus | Max | 0.10.0 |
+| 11 | **Ruhi**: normalise the three extracted quotation files to committed JSON, load to IndexedDB, the book to unit to section route on the memorisation side, the To Memorise and Reflection filter, bulk add, search within the route | Opus | Max | 0.11.0 |
 
 The rest of v0.1, the typeface picker and the Playwright suite of section 14, is not sequenced yet.
 
-**Why Ruhi is session 10 and not session 3 or 4.** The extracted dataset arrived earlier than the
+**Why Ruhi is last and not session 3 or 4.** The extracted dataset arrived earlier than the
 scope assumed, which made it tempting to fold the parsing into session 3 and the browsing into
 session 4. Both sessions would have grown past the six-item limit, and both sit in front of the
 fortnight of real use that V0 exists to produce. Ruhi is purely additive and invalidates nothing, so
 it costs least at the front of v0.1 and nothing at all in V0. Session 2 still declares the four
-`ruhi_*` tables and leaves them empty, so session 10 needs no schema migration on a device that
+`ruhi_*` tables and leaves them empty, so session 11 needs no schema migration on a device that
 already holds a tester's data.
 
 ### v1.0
@@ -1051,7 +1125,7 @@ until V0 has been used for a real fortnight.
 
 **Ruhi mapping dataset for Books 1 to 3.** Largely done, ahead of the build. See 5.1 for its status
 and the two pieces still missing, both of which are Book 3: categorising its 136 quotations, and
-extracting its twenty four per-lesson memorisation quotations. Neither blocks session 10 starting;
+extracting its twenty four per-lesson memorisation quotations. Neither blocks session 11 starting;
 the first blocks the filter being honest in Book 3. Version the dataset against a stated Ruhi
 edition (5.2).
 
@@ -1127,3 +1201,7 @@ Structured conversations with the soft-launch group. Two questions carry the mos
 | 18.25 | **Ruhi is reached from the memorisation side and never appears in Discover**, in browse or in search | Meeting a study curriculum while opening the app to pray is the wrong experience. Same reasoning as principle 7.6, which 5.4 and 6.1 contradicted as written | Safa | 24 Aug 2026 |
 | 18.26 | **`designation` added to `ruhi_quotations`**, holding To Memorise or Reflection | The category belongs to a quotation's appearance in a section, not to the text: 20 of the 314 extracted quotations appear in two books and the category can differ between the two appearances | Safa | 24 Aug 2026 |
 | 18.27 | **A Ruhi quotation is stored as a `passages` record** in a `ruhi` collection, kept out of Discover by the data layer rather than by a filter | The only arrangement in which "memorised identically to a prayer" is one code path rather than two that must be kept in step across segmentation, the queue, the quiz ladder, the scheduler, the log and freshness | Safa | 24 Aug 2026 |
+| 18.28 | **Browse by collection moved from v1.0 into V0, and above category rather than beside it** | Category browse reaches 473 of 976 passages, because the bahaiprayers.net tag feed tags the prayers feed and nothing else. Every category belongs to a prayer, so the two axes are a hierarchy and not alternatives; side by side, one of them would have looked like a way to reach the whole library while reaching under half of it | Safa | 25 Aug 2026 |
+| 18.29 | **The hand-arranged order is one of the sort options, and it is remembered** | Applies to Bookmarks (6.7) and My list (6.5). If choosing another sort destroyed the arrangement, one tap on a sort control would silently undo work the user did by hand, and dragging would stop feeling safe | Safa | 25 Aug 2026 |
+| 18.30 | **`sort_order` added to `bookmarks`** | A hand-arranged order needs somewhere to live. Added before any tester has data on a device, so it costs nothing now and would cost a migration later | Safa | 25 Aug 2026 |
+| 18.31 | **One build session added: the two ordered lists, at session 7** | Bookmarks and My list are the same interaction on different material and are built once rather than twice. Sessions 7 to 9 become 8 to 10 and Ruhi becomes 11; V0's fortnight of real use begins one session later, weighed and accepted | Safa | 25 Aug 2026 |

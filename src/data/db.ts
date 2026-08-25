@@ -50,6 +50,16 @@ import type {
  * data, and declaring it now costs nothing.
  *
  * `users`, `reading_history` and `ingestion_runs` stay `[v1.0]` and are not here.
+ *
+ * ## Why there is a version 2
+ *
+ * `bookmarks.sort_order` (scope 6.7, 18.30) arrived after version 1 shipped to
+ * nobody but two browsers. Amending version 1 in place would have been simpler
+ * and wrong: a browser that already holds a version 1 database never re-reads
+ * the schema for a version it has, so the new index would silently not exist
+ * there while existing perfectly on a fresh install. That is the worst shape a
+ * schema bug can take. A version 2 is correct for both, and the upgrade gives
+ * every bookmark already saved a place in the order.
  */
 export class ByHeartDatabase extends Dexie {
   declare passages: EntityTable<PassageRow, 'id'>
@@ -95,6 +105,32 @@ export class ByHeartDatabase extends Dexie {
       user_stats: 'user_id',
       user_settings: 'user_id',
     })
+
+    // Scope 6.7: bookmarks are reorderable by hand, and `[user_id+sort_order]`
+    // is the index that read comes back through.
+    this.version(2)
+      .stores({
+        bookmarks:
+          'id, user_id, passage_id, [user_id+passage_id], created_at, [user_id+sort_order]',
+      })
+      .upgrade(async (transaction) => {
+        // Bookmarks saved before the column existed get the order they were
+        // made in, which is the only order anything knew about them.
+        const table = transaction.table<BookmarkRow>('bookmarks')
+        const rows = await table.toArray()
+        const byUser = new Map<string, BookmarkRow[]>()
+        for (const row of rows) {
+          const forUser = byUser.get(row.user_id) ?? []
+          forUser.push(row)
+          byUser.set(row.user_id, forUser)
+        }
+        for (const forUser of byUser.values()) {
+          forUser.sort((a, b) => a.created_at.localeCompare(b.created_at))
+          for (const [index, row] of forUser.entries()) {
+            await table.update(row.id, { sort_order: index })
+          }
+        }
+      })
   }
 }
 
