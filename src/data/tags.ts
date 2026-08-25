@@ -45,6 +45,41 @@ export async function listDevotionalTagsWithCounts(): Promise<TagWithCount[]> {
   return tags.map((tag) => ({ tag, count: counts.get(tag.id) ?? 0 }))
 }
 
+/**
+ * The categories within one collection, with how many of that collection's
+ * passages carry each. Categories with none are left out entirely.
+ *
+ * This is what makes the browse a hierarchy rather than two flat lists. Today
+ * every tag belongs to a prayer, so `prayers` returns all 63 and the other three
+ * collections return none - which is exactly how the collection screen knows to
+ * show passages instead of categories, without anything being hard-coded about
+ * which collection is which.
+ */
+export async function listDevotionalTagsWithCountsForCollection(
+  collection: string,
+): Promise<TagWithCount[]> {
+  const [tags, links, passages] = await Promise.all([
+    listTags(),
+    db.passage_tags.toArray(),
+    db.passages.toArray(),
+  ])
+
+  const inCollection = new Set(
+    passages
+      .filter((passage) => isDevotional(passage) && passage.collection === collection)
+      .map((passage) => passage.id),
+  )
+  const counts = new Map<string, number>()
+  for (const link of links) {
+    if (!inCollection.has(link.passage_id)) continue
+    counts.set(link.tag_id, (counts.get(link.tag_id) ?? 0) + 1)
+  }
+
+  return tags
+    .filter((tag) => counts.has(tag.id))
+    .map((tag) => ({ tag, count: counts.get(tag.id) ?? 0 }))
+}
+
 export async function listTagIdsForPassage(passageId: string): Promise<string[]> {
   const links = await db.passage_tags.where('passage_id').equals(passageId).toArray()
   return links.map((link) => link.tag_id)

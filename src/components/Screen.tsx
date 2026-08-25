@@ -17,12 +17,26 @@ import type { ReactNode } from 'react'
  *
  * The paper grain lives on the scrolling body rather than on the shell, so the
  * grain is the paper and moves with it (design-tokens 5.3, 5.4).
+ *
+ * The optional footer is a band below the scrolling body and above the tab bar.
+ * It holds the toast, and from session 5 the pinned buttons of design-tokens
+ * 5.5. It is a sibling of the body rather than a layer over it, so nothing it
+ * shows ever covers the last line of a prayer.
  */
-export function Screen({ header, children }: { header?: ReactNode; children: ReactNode }) {
+export function Screen({
+  header,
+  footer,
+  children,
+}: {
+  header?: ReactNode
+  footer?: ReactNode
+  children: ReactNode
+}) {
   return (
     <div className="flex h-full flex-col">
       {header}
       <div className="paper-grain min-h-0 flex-1 overflow-y-auto bg-paper">{children}</div>
+      {footer}
     </div>
   )
 }

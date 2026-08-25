@@ -79,6 +79,8 @@ export const strings = {
   discover: {
     /** Tall header eyebrow on the library's first screen: the app's own name. */
     eyebrow: 'BY HEART',
+    /** Section header above the four collections, which is the library's first screen. */
+    collectionsSection: 'COLLECTIONS',
     /** Section header above the alphabetical list of categories (scope 6.1). */
     categoriesSection: 'CATEGORIES',
     /** The count on a category row. Scope 6.1: "each with a passage count". */
@@ -109,6 +111,17 @@ export const strings = {
      */
     listAlreadyAdded: 'On my list',
     /**
+     * The moment of adding, and the moment of keeping a place, each confirmed
+     * where it happened. Adding carries an undo because it is the one action in
+     * Discover with no other way back (decision D4.9); bookmarking does not,
+     * because the mark that set it is right there and toggles.
+     */
+    addedToList: 'Added to your list',
+    addUndone: 'Taken off your list',
+    bookmarked: 'Bookmarked',
+    bookmarkUndone: 'Bookmark removed',
+    undo: 'Undo',
+    /**
      * Design-tokens 7.2 and scope 4.3. The Bahá'í International Community, not
      * the publishing trust: the source handoff had the wrong body and
      * design-tokens section 9 corrects it.
@@ -133,6 +146,19 @@ export const strings = {
     'prayers-and-meditations': 'PRAYERS AND MEDITATIONS',
   },
 
+  /**
+   * The same four, in the display slot, for the title of a collection's own
+   * screen. Separate entries rather than one set put through a case change,
+   * because "THE HIDDEN WORDS" and "The Hidden Words" are both written the way
+   * their slot needs them (design-tokens 2.3).
+   */
+  collectionTitles: {
+    prayers: 'Prayers',
+    'hidden-words': 'The Hidden Words',
+    gleanings: 'Gleanings',
+    'prayers-and-meditations': 'Prayers and Meditations',
+  },
+
   /** What kind of text a passage is, for the reading-surface eyebrow. */
   textTypes: {
     prayer: 'PRAYER',
@@ -147,7 +173,8 @@ export const strings = {
   accessibility: {
     back: 'Back',
     primaryNavigation: 'Main',
-    /** The library's category list, and a chosen category's passage list. */
+    /** The library's collection list, its category list, and a passage list. */
+    collectionList: 'Collections',
     categoryList: 'Categories',
     passageList: 'Passages',
   },

@@ -2,12 +2,12 @@ import { useParams } from 'react-router'
 import { ListRow, ListSurface, ScrollTail } from '../../components/ListSurface'
 import { CompactTitleHeader } from '../../components/NavyHeader'
 import { Screen } from '../../components/Screen'
-import { listDevotionalPassagesByTag } from '../../data/passages'
+import { listDevotionalPassagesByCollectionAndTag } from '../../data/passages'
 import { getTag } from '../../data/tags'
 import type { PassageRow, TagRow } from '../../data/types'
 import { strings } from '../../strings'
 import { passageRowAttribution } from '../../strings/attribution'
-import { DISCOVER_PATH, passagePath } from './routes'
+import { collectionPath, passagePath } from './routes'
 import { useAsyncValue } from './useAsyncValue'
 import { useBack } from './useBack'
 
@@ -22,8 +22,10 @@ import { useBack } from './useBack'
  * beneath it, composed by `passageRowAttribution` so that principle 7.10 is met
  * the same way on every surface in the app.
  *
- * Alphabetical by title, which is the order `listDevotionalPassagesByTag`
- * returns and the order scope 6.5 wants.
+ * Alphabetical by title, which is the order the read returns and the order
+ * scope 6.5 wants. Scoped to the collection the category was reached through, so
+ * "Prayers, then Healing" keeps meaning prayers even if the Gleanings are tagged
+ * one day.
  *
  * ## Not here
  *
@@ -39,13 +41,18 @@ interface Category {
 }
 
 export function CategoryScreen() {
-  const { tagId = '' } = useParams()
-  const back = useBack(DISCOVER_PATH)
+  const { collection = '', tagId = '' } = useParams()
+  // Up one level is the collection this category was reached through, which the
+  // path carries. Only used on a cold start; see `useBack`.
+  const back = useBack(collectionPath(collection))
 
   const category = useAsyncValue<Category>(async () => {
-    const [tag, passages] = await Promise.all([getTag(tagId), listDevotionalPassagesByTag(tagId)])
+    const [tag, passages] = await Promise.all([
+      getTag(tagId),
+      listDevotionalPassagesByCollectionAndTag(collection, tagId),
+    ])
     return { tag, passages }
-  }, tagId)
+  }, `${collection}/${tagId}`)
 
   return (
     <Screen header={<CompactTitleHeader title={category?.tag?.name ?? ''} onBack={back} />}>

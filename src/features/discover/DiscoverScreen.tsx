@@ -2,18 +2,27 @@ import { ListRow, ListSurface, ScrollTail, SectionHeader } from '../../component
 import { TallHeader } from '../../components/NavyHeader'
 import { Screen } from '../../components/Screen'
 import { corpusReady } from '../../data/loadCorpus'
-import { listDevotionalTagsWithCounts } from '../../data/tags'
+import { countDevotionalPassagesByCollection, DEVOTIONAL_COLLECTIONS } from '../../data/passages'
 import { strings } from '../../strings'
-import { categoryPath } from './routes'
+import { collectionTitle } from '../../strings/attribution'
+import { collectionPath } from './routes'
 import { useAsyncValue } from './useAsyncValue'
 
 /**
- * Discover: the library, browsed by category. Scope 6.1.
+ * Discover: the library. Scope 6.1.
  *
- * > **By category.** Alphabetical list of topic tags from the API tag feed, each
- * > with a passage count. Drill in to a passage list. **V0.**
+ * The four collections, in the order scope 6.1 lists them: Prayers, The Hidden
+ * Words, Gleanings, Prayers and Meditations. Tapping one goes to its categories
+ * if it has any and to its passages if it does not.
  *
- * A tall navy header (design-tokens 5.1) over a scrolling list surface (5.3).
+ * ## Why this screen exists at all
+ *
+ * It did not, until decision D4.1. Category browse was built first, exactly as
+ * scope 6.1 specified, and it turned out to reach 473 of the library's 976
+ * passages: the tag feed tags prayers and nothing else, so every Hidden Word,
+ * every Gleaning and every Prayer and Meditation had no category to be found
+ * under. Collections are the axis that reaches them, and they are the axis a
+ * printed prayer book has - a contents page before an index.
  *
  * ## What is deliberately not here
  *
@@ -21,8 +30,8 @@ import { useAsyncValue } from './useAsyncValue'
  * library screen is the most natural place in the app for it, which is exactly
  * why this is written down: search is scope 6.3 and is `[v1.0]`.
  *
- * **No length filter chip** (scope 6.2, `[v1.0]`), **no Recents** (6.4,
- * `[v1.0]`), **no by-collection or by-author axis** (6.1, both `[v1.0]`).
+ * **No Recents** (6.4, `[v1.0]`), **no by-author axis** (6.1, `[v1.0]`), **no
+ * length filter chip** (6.2, `[v1.0]`).
  *
  * ## Two rules bind everything built in this folder
  *
@@ -36,18 +45,27 @@ import { useAsyncValue } from './useAsyncValue'
  * exclude the Ruhi collection at the query, so this is structural rather than a
  * filter to remember.
  */
+interface Collection {
+  readonly id: string
+  readonly count: number
+}
+
 export function DiscoverScreen() {
-  const categories = useAsyncValue(async () => {
+  const collections = useAsyncValue<Collection[]>(async () => {
     // The library is written into IndexedDB beside the first render, so on a
     // first run this waits for it rather than settling on an empty list.
     await corpusReady()
-    return listDevotionalTagsWithCounts()
-  }, 'categories')
+    return Promise.all(
+      DEVOTIONAL_COLLECTIONS.map(async (id) => ({
+        id,
+        count: await countDevotionalPassagesByCollection(id),
+      })),
+    )
+  }, 'collections')
 
-  // A category carrying no devotional passage would open onto an empty list, so
-  // it is not offered. Nothing in the committed corpus is in that state; a tag
-  // could reach it if a later feed tagged only Ruhi material.
-  const shown = (categories ?? []).filter((entry) => entry.count > 0)
+  // A collection with nothing in it is not offered. Every one of the four is
+  // populated; this would take a feed that fetched empty.
+  const shown = (collections ?? []).filter((collection) => collection.count > 0)
 
   return (
     <Screen
@@ -57,16 +75,16 @@ export function DiscoverScreen() {
     >
       <ListSurface>
         <SectionHeader
-          label={strings.discover.categoriesSection}
-          count={categories === undefined ? undefined : String(shown.length)}
+          label={strings.discover.collectionsSection}
+          count={collections === undefined ? undefined : String(shown.length)}
         />
-        <nav aria-label={strings.accessibility.categoryList}>
-          {shown.map((entry) => (
+        <nav aria-label={strings.accessibility.collectionList}>
+          {shown.map((collection) => (
             <ListRow
-              key={entry.tag.id}
-              to={categoryPath(entry.tag.id)}
-              title={entry.tag.name}
-              secondary={strings.discover.passageCount(entry.count)}
+              key={collection.id}
+              to={collectionPath(collection.id)}
+              title={collectionTitle(collection.id)}
+              secondary={strings.discover.passageCount(collection.count)}
             />
           ))}
         </nav>

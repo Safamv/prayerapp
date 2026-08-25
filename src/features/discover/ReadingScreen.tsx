@@ -2,10 +2,16 @@ import { Fragment, useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import { CompactActionHeader } from '../../components/NavyHeader'
 import { Screen } from '../../components/Screen'
+import { Toast, useToast } from '../../components/Toast'
 import { AddToListIcon, BookmarkIcon, OnListIcon } from '../../components/ToolbarIcons'
 import { useUserId } from '../../app/userContext'
 import { addBookmark, isBookmarked, removeBookmark } from '../../data/bookmarks'
-import { addPassageToList, getDevotionalPassage, isOnList } from '../../data/passages'
+import {
+  addPassageToList,
+  getDevotionalPassage,
+  isOnList,
+  removePassageFromList,
+} from '../../data/passages'
 import type { PassageRow } from '../../data/types'
 import { strings } from '../../strings'
 import { collectionLabel, passageAttribution, textTypeLabel } from '../../strings/attribution'
@@ -45,10 +51,14 @@ import { useBack } from './useBack'
  *
  * Scope 6.6 makes them different intents, so they are different marks and
  * neither is in a menu. **Bookmark** is a toggle: keeping a place and letting it
- * go are both devotional and both cost nothing. **Add to my list** is one way
- * from here, because taking a passage off the list also throws away everything
- * you have learnt of it, and that is a decision to make on the list itself
- * rather than a mis-tap on a reading screen.
+ * go are both devotional and both cost nothing.
+ *
+ * **Add to my list** stays one way from the mark itself, because taking a
+ * passage off the list also throws away everything you have learnt of it. What
+ * it gains is an undo in the moment (decision D4.9): a band at the foot of the
+ * screen saying what happened, with a way back for as long as it is there. A
+ * passage added seconds ago has nothing learnt of it to lose, so undoing inside
+ * that window is safe in a way that a permanently live remove control is not.
  *
  * ## What it does not do yet
  *
@@ -86,6 +96,7 @@ export function ReadingScreen() {
   // one-tap action has to feel like.
   const [bookmarked, setBookmarked] = useState(false)
   const [onList, setOnList] = useState(false)
+  const { toast, show, dismiss } = useToast()
 
   useEffect(() => {
     if (loaded === undefined) return
@@ -103,13 +114,32 @@ export function ReadingScreen() {
     void Promise.resolve(write).catch((error: unknown) => {
       console.error('Failed to write the bookmark', error)
     })
+    // No undo offered: the mark that set it is 44px away and toggles.
+    show({
+      text: next ? strings.reading.bookmarked : strings.reading.bookmarkUndone,
+      undo: null,
+    })
   }
 
   const addToMyList = () => {
     if (passage === undefined || onList) return
+    const passageId = passage.id
     setOnList(true)
-    void addPassageToList(userId, passage.id).catch((error: unknown) => {
+    void addPassageToList(userId, passageId).catch((error: unknown) => {
       console.error('Failed to add the passage to the list', error)
+    })
+    show({
+      text: strings.reading.addedToList,
+      undo: {
+        label: strings.reading.undo,
+        onUndo: () => {
+          setOnList(false)
+          void removePassageFromList(userId, passageId).catch((error: unknown) => {
+            console.error('Failed to undo the add', error)
+          })
+          show({ text: strings.reading.addUndone, undo: null })
+        },
+      },
     })
   }
 
@@ -144,6 +174,7 @@ export function ReadingScreen() {
           )}
         </CompactActionHeader>
       }
+      footer={<Toast toast={toast} onDismiss={dismiss} />}
     >
       {passage !== undefined && <ReadingSurface passage={passage} />}
     </Screen>

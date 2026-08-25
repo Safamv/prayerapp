@@ -58,6 +58,12 @@ export function collectionLabel(collection: string): string {
   return known[collection] ?? capsCase(collection)
 }
 
+/** `Prayers`, `The Hidden Words`. The display-slot title of a collection's own screen. */
+export function collectionTitle(collection: string): string {
+  const known: Record<string, string> = strings.collectionTitles
+  return known[collection] ?? collection
+}
+
 /** `PRAYER`, `HIDDEN WORD`. The reading-surface eyebrow of design-tokens 5.4. */
 export function textTypeLabel(textType: string): string {
   const known: Record<string, string> = strings.textTypes
