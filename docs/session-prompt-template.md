@@ -62,10 +62,17 @@ Populate it from three places:
 
 **Run `/compact` between sessions**, and again inside a session that passes roughly ten exchanges.
 
-**Model and effort** follow the standing rules: Opus for new screens, architecture, and complex
-interaction; Sonnet for feature additions, bug fixes, CSS, and scripts. Max effort for new screens,
-architecture, and multi-file refactors. When the two rules disagree, effort wins. When in doubt,
-Opus Max.
+**Model and effort are the first line of the prompt, always**, written exactly
+`Recommended: <Sonnet|Opus> / <Normal|High|Max> effort`. Take the pair from that session's row in
+the build sequence table in scope section 16, which carries a Model and an Effort column for exactly
+this. It is the first thing Safa acts on and the one part of the prompt he cannot supply himself,
+because the table is not in front of him. Dropped once, in session 4's handoff, which is why this
+paragraph now says it twice and CLAUDE.md section 5 says it a third time.
+
+Where the table is silent, the standing rules decide: Opus for new screens, architecture, and
+complex interaction; Sonnet for feature additions, bug fixes, CSS, and scripts. Max effort for new
+screens, architecture, and multi-file refactors. When the two rules disagree, effort wins. When in
+doubt, Opus Max.
 
 ---
 

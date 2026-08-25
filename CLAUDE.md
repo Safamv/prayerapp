@@ -140,6 +140,11 @@ Preconditions, all five, every time:
 **3. Write the next session's prompt**, using `/docs/session-prompt-template.md`, in a fenced code
 block ready to copy.
 
+- **The first line of the prompt is the model and the effort**, written exactly
+  `Recommended: <Sonnet|Opus> / <Normal|High|Max> effort`, taken from that session's row in the
+  build sequence table in scope section 16. It is the first thing Safa acts on, before he has read
+  a word of the prompt, and he cannot supply it himself because the table is not in front of him.
+  A prompt without it is incomplete and is to be reissued, not explained.
 - **The goal and the item list come from the build sequence table in scope section 16.** Do not
   invent a session and do not resequence.
 - If the build has taught you the sequence is wrong, **say so as a proposal with reasons, outside
