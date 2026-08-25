@@ -3,8 +3,13 @@ import { useEffect, useState } from 'react'
 /**
  * Reads something from the database and re-renders when it arrives.
  *
- * Every Discover screen does the same thing: run one asynchronous read, hold
- * `undefined` until it lands, and drop the result if the screen has moved on.
+ * Every screen that reads the database does the same thing: run one
+ * asynchronous read, hold `undefined` until it lands, and drop the result if the
+ * screen has moved on.
+ *
+ * It lives here rather than in a feature folder because two of them use it now:
+ * Discover's four screens, and the confirm screen of session 5, which is on the
+ * memorisation side. `userContext.ts` is beside it for the same reason.
  *
  * ## Why the dependency is a key rather than the function
  *
@@ -31,7 +36,7 @@ export function useAsyncValue<T>(read: () => Promise<T>, key: string): T | undef
         // A failed read leaves the screen in its reading state rather than
         // rendering a half-built one. The console is where a tester's report
         // starts; there is no error surface in the app until the V0 exit review.
-        console.error('A Discover read failed', error)
+        console.error('A screen read failed', error)
       },
     )
 

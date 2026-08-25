@@ -1,3 +1,4 @@
+import { useAsyncValue } from '../../app/useAsyncValue'
 import { ListRow, ListSurface, ScrollTail, SectionHeader } from '../../components/ListSurface'
 import { TallHeader } from '../../components/NavyHeader'
 import { Screen } from '../../components/Screen'
@@ -5,8 +6,7 @@ import { corpusReady } from '../../data/loadCorpus'
 import { countDevotionalPassagesByCollection, DEVOTIONAL_COLLECTIONS } from '../../data/passages'
 import { strings } from '../../strings'
 import { collectionTitle } from '../../strings/attribution'
-import { collectionPath } from './routes'
-import { useAsyncValue } from './useAsyncValue'
+import { collectionPath } from '../../app/routes'
 
 /**
  * Discover: the library. Scope 6.1.

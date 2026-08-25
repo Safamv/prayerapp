@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router'
-import type { BackAction } from '../../components/NavyHeader'
-import { strings } from '../../strings'
+import type { BackAction } from '../components/NavyHeader'
+import { strings } from '../strings'
 
 /**
  * The back chevron on a pushed screen: one step back, whatever that step was.

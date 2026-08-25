@@ -1,6 +1,6 @@
 import { db } from './db'
 import { RUHI_COLLECTION, type PassageRow, type PassageSegmentRow } from './types'
-import { addToList, removeFromList } from './userPrayers'
+import { removeFromList } from './userPrayers'
 
 /**
  * **The devotional surface.** Everything Discover reads, it reads from here.
@@ -27,15 +27,18 @@ import { addToList, removeFromList } from './userPrayers'
  * further: no due date, no freshness, no progress. Returning the row would hand
  * a component every one of those. Returning a boolean cannot.
  *
- * `addPassageToList` is the same idea pointed the other way, and it is the one
- * write in this module. Scope 6.6 puts "add to my list" in the reading view's
- * toolbar, so Discover has to be able to commit a passage — but `addToList` in
- * `userPrayers.ts` returns the row it wrote, and that row carries
- * `passage_due_date`, `upkeep_state` and `is_focus`. Both the ESLint Discover
- * wall and `discover-isolation.test.ts` refuse that module and that name, and
- * they are right to: a component holding the row could render every piece of
- * chrome principle 7.6 forbids. So the commitment crosses the boundary and the
- * progress does not, because this returns nothing at all.
+ * `removePassageFromList` is the same idea pointed the other way, and it is the
+ * one write left in this module. `removeFromList` in `userPrayers.ts` is a
+ * module the ESLint Discover wall and `discover-isolation.test.ts` both refuse,
+ * and they are right to: a component that could reach it could reach the row
+ * beside it, and that row carries `passage_due_date`, `upkeep_state` and
+ * `is_focus`. So the undo crosses the boundary and nothing comes back with it.
+ *
+ * **Adding no longer has a function here at all.** Session 4 had one,
+ * `addPassageToList`, because the reading view wrote the row itself. Since
+ * session 5 it opens the confirm screen of scope 8.4 instead, which is on the
+ * memorisation side and does its own writing (decision D5.1). Discover's part in
+ * adding a passage is now a path, and a path carries nothing.
  */
 
 /**
@@ -156,29 +159,16 @@ export async function isOnList(userId: string, passageId: string): Promise<boole
 }
 
 /**
- * Adds the passage to the user's list, and reports nothing back.
- *
- * Deliberately `void`: see the note on principle 7.6 at the top of this file.
- * Idempotent, because `addToList` is - a second tap writes nothing and changes
- * no `list_order`.
- *
- * **This does not segment the passage.** Scope 8.4 runs segmentation at the
- * moment of adding, suggested then confirmed by the user, and confirmation is a
- * screen Discover does not own. Session 5 builds it and calls it from here.
- */
-export async function addPassageToList(userId: string, passageId: string): Promise<void> {
-  await addToList(userId, passageId)
-}
-
-/**
  * Undoes an add, and reports nothing back.
  *
- * `void` for the same reason `addPassageToList` is. This exists for the undo
- * offered in the moment of adding (decision D4.9) and for nothing else: the
- * function beneath it also throws away a passage's segment progress and review
- * history, which is right when undoing an add seconds old and is destructive
- * anywhere else. Removing a passage the user has actually worked on belongs on
- * the list screen, where they can see what they are giving up.
+ * `void` for the same reason `isOnList` returns a boolean: nothing that carries
+ * progress crosses into Discover, in either direction. This exists for the undo
+ * offered in the moment of adding (decision D4.10) and for nothing else. The
+ * function beneath it also throws away the lines the passage was split into, the
+ * progress against them and the review history, which is right when undoing an
+ * add seconds old and is destructive anywhere else. Removing a passage the user
+ * has actually worked on belongs on the list screen, where they can see what
+ * they are giving up.
  */
 export async function removePassageFromList(userId: string, passageId: string): Promise<void> {
   await removeFromList(userId, passageId)

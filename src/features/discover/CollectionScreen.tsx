@@ -1,4 +1,5 @@
 import { useParams } from 'react-router'
+import { useAsyncValue } from '../../app/useAsyncValue'
 import { ListRow, ListSurface, ScrollTail, SectionHeader } from '../../components/ListSurface'
 import { CompactTitleHeader } from '../../components/NavyHeader'
 import { Screen } from '../../components/Screen'
@@ -7,9 +8,8 @@ import { listDevotionalTagsWithCountsForCollection, type TagWithCount } from '..
 import type { PassageRow } from '../../data/types'
 import { strings } from '../../strings'
 import { collectionTitle, passageRowAttribution } from '../../strings/attribution'
-import { categoryPath, DISCOVER_PATH, passagePath } from './routes'
-import { useAsyncValue } from './useAsyncValue'
-import { useBack } from './useBack'
+import { categoryPath, DISCOVER_PATH, passagePath } from '../../app/routes'
+import { useBack } from '../../app/useBack'
 
 /**
  * One collection: its categories where it has any, its passages where it does

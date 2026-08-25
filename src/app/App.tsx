@@ -6,6 +6,7 @@ import { CollectionScreen } from '../features/discover/CollectionScreen'
 import { DiscoverScreen } from '../features/discover/DiscoverScreen'
 import { ReadingScreen } from '../features/discover/ReadingScreen'
 import { LogScreen } from '../features/log/LogScreen'
+import { ConfirmLinesScreen } from '../features/memorise/ConfirmLinesScreen'
 import { MemoriseScreen } from '../features/memorise/MemoriseScreen'
 import { SettingsScreen } from '../features/settings/SettingsScreen'
 import { ThemeProvider, type ThemeSelection } from '../theme'
@@ -60,6 +61,9 @@ export function App() {
               />
               <Route path="/discover/passage/:passageId" element={<ReadingScreen />} />
               <Route path="/memorise" element={<MemoriseScreen />} />
+              {/* Scope 8.4's add moment. On the memorisation side of the app,
+                  reached from the reading view's list mark. Decision D5.1. */}
+              <Route path="/memorise/add/:passageId" element={<ConfirmLinesScreen />} />
               <Route path="/log" element={<LogScreen />} />
               <Route path="/settings" element={<SettingsScreen />} />
               <Route path="*" element={<Navigate to="/discover" replace />} />
