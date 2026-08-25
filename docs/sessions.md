@@ -176,3 +176,37 @@ phone's default face on every screen (D4.7).
 D4.3 (why adding is one way). In the repo, `src/features/discover/ReadingScreen.tsx` for where the
 add happens now, `src/data/passages.ts` for `addPassageToList`, and `src/data/corpus.ts` for
 `putPassageSegments`, which nothing has written to yet.
+
+## Session 5 — Segmentation: suggested then confirmed, at add time
+
+**Version:** v0.5.0   **Branch:** session-05-segmentation   **Date:** 25 Aug 2026
+
+**Shipped.** The moment of commitment. Tapping the list mark on a prayer no longer adds it on the
+spot: it opens a screen showing the prayer broken into the lines you would learn it in, with the
+number of lines and the number of words stated plainly above them and no guess at how long it will
+take. Join puts two lines together, Split cuts one in half, and ADD TO MY LIST at the foot writes the
+lines, the count and the row in one go. Come back to the prayer and the navy band says "Added to your
+list" with Undo, which now takes the lines away too. The splitter is a pure function tested against
+all 976 committed passages, including the one that proves nothing is lost: every passage taken apart
+and put back together must be itself again, character for character. 44 new tests.
+
+**Deferred.** Normalisation (scope 9.7). Nothing built this session compares two pieces of text, so
+there was nothing for it to be right or wrong for. It belongs to session 8, with the chips. See D5.5.
+
+**Surprises.** Three, all in `decisions.md`. Breaking only at sentences leaves the Gleanings with
+lines fifty words long and no way to cut them, so the app now also finds colons, semicolons and
+commas, offers them on Split, and never proposes them (D5.2). And the confirm screen had to be
+decided into the Memorise half of the app rather than Discover, because a screen of lines a quiz will
+ask for is memorisation, and principle 7.6 keeps that out of the prayer book (D5.1). And a test that
+had been failing about one run in five since session 4 was chased rather than re-run: it turned out to
+be two real races in the bookmark mark, one that could silently undo a tap and one that could leave a
+bookmark the screen said was gone. Both fixed (D5.6).
+
+**Next session should read first.** `/CLAUDE.md` in full. Scope sections 8.2, 8.3, 8.5, 8.6, 7.3,
+11.1 and 10 (the `user_prayers` and `segment_progress` entries). `/docs/design-tokens.md` sections
+5.3, 5.5 and 4. Decisions D1.1 and D1.2 (how upkeep multiplies an interval, and why a resting passage
+still has a due date), D5.4 (a passage on the list always has its lines under it) and D5.1 (what the
+Memorise tab holds today). In the repo, `src/scheduler/` for the SM-2 module that has been waiting
+since session 1, `src/data/segmentProgress.ts` and `src/data/progressMapping.ts` for the two shapes
+of the same numbers, `src/data/segmentation.ts` for what a confirmed passage looks like in the
+database, and `src/config/defaults.ts` for the caps the queue is meant to read.

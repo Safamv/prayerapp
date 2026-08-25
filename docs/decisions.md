@@ -1484,3 +1484,198 @@ away if unwanted.
 Session 5 is Opus at Max effort.
 
 ---
+
+## D5 — Session 5, segmentation: suggested then confirmed, at add time
+
+---
+
+### D5.1 — The screen that confirms the lines is a Memorise screen, and the list mark is a door to it
+
+**Decision.** Tapping "add to my list" in the reading view no longer adds anything. It opens a new
+screen, at `/memorise/add/<passage>`, which shows the lines the app proposes to break the passage
+into. Nothing is on the list until that screen is confirmed. While it is open, the Memorise tab is
+the lit one.
+
+**Why it came up.** Scope 8.4 runs segmentation "at the moment a user adds a passage to their list",
+and the session had to decide where that moment lives. Principle 7.6 forbids memorisation anywhere in
+Discover, and a screen full of the lines a quiz will ask for is memorisation by any reading of it.
+
+**Options considered.**
+
+1. **A screen on the Memorise side, reached from the reading view** (chosen). The reader crosses over
+   deliberately, and the tab bar says so. The reading view keeps its two marks and gains no furniture.
+2. **A screen inside Discover.** It would have needed the walls around that folder switched off, or a
+   second write path built around them, and it would have put the first screen of memorising
+   something inside the prayer book.
+3. **A panel sliding over the prayer.** Rejected: it covers the text being committed to, at the exact
+   moment a person is deciding whether to commit to it.
+
+**What happens to the undo.** The band of decision D4.10 still appears, but on the reading view when
+you come back from confirming, rather than at the tap. It says "Added to your list" with Undo beside
+it, for six seconds, and Undo now takes the lines away as well as the row (D5.4).
+
+**Reversible.** The screen could move without changing anything it does: the whole crossing is one
+path and one route. What would be expensive to reverse is the decision that nothing is written until
+the lines are confirmed, because session 6's queue is about to be written against that.
+
+**What this means for you.** Tapping the lines-and-plus mark on a prayer no longer adds it on the
+spot. It opens a screen showing the prayer broken into the lines you would learn it in, with the
+number of lines and the number of words above them, a way to join two lines together or split one in
+half, and one button at the foot: ADD TO MY LIST. Going back instead adds nothing.
+
+---
+
+### D5.2 — Where the app proposes a break, and where it only offers one
+
+**Decision.** The splitter finds five kinds of break and proposes three of them.
+
+| Kind | Where | Proposed |
+|---|---|---|
+| Paragraph | a blank line | yes |
+| Line | a single line ending, which is how the corpus sets verse | yes |
+| Sentence | a full stop, question mark, exclamation mark or ellipsis, then a capital letter | yes |
+| Clause | a colon or a semicolon | no, offered on Split |
+| Phrase | a comma | no, offered on Split |
+
+Scope 8.4 asks for "sentence and line boundaries", which is the top three. The bottom two are found
+but never proposed, and exist so that the Split control always has somewhere to cut.
+
+**Why the weaker two are there at all.** A single sentence of the Gleanings runs to fifty words and
+fills a phone screen; the longest in the corpus is 255 words. Without the comma, the first line of
+the very first Gleaning tried on screen had no way to be split at all, and it is far too long to
+learn as a line. The app still never proposes those cuts, because a comma is not where a sentence
+ends.
+
+**Why a capital letter decides whether a full stop is a full stop.** The corpus contains 35 places
+where a mark is followed by a lower-case word: "Alas! for the poor", "and lo! they have turned away".
+Breaking on every mark would cut all 35 sentences in half. Requiring a capital after the mark tells
+them apart, and needs no list of abbreviations, because the corpus was checked and contains none.
+
+**The invariant the tests are written against.** Every break remembers the exact whitespace that was
+there, so the lines rejoined are the passage again, character for character. All 976 committed
+passages are put through that check. Where a break falls is a matter of taste and you can fix it on
+the screen; a character lost between two lines would be sacred text altered by a regular expression,
+and nothing on screen would ever show it had happened.
+
+**Reversible.** Yes, and cheaply, for anything already added: the lines live in their own table and
+are rewritten whenever a passage is confirmed again.
+
+**What this means for you.** A prayer set as verse breaks a line per line. A prose passage breaks a
+line per sentence. Colons, semicolons and commas are never used as breaks unless you ask for one by
+tapping Split.
+
+---
+
+### D5.3 — Split cuts at the strongest break inside the line, rather than asking you where
+
+**Decision.** Each line carries a Split control only when there is still a break inside it. Tapping
+it cuts at the strongest one available - a paragraph before a sentence, a sentence before a
+semicolon, a semicolon before a comma - and at the first of them when several are equally strong.
+Tapping again cuts what is left, top to bottom.
+
+**Options considered.**
+
+1. **The app picks the cut** (chosen). One control per line, a 44px target, and the result is visible
+   immediately and undone by one tap on Join.
+2. **A small tappable mark at every possible cut, inside the text.** More direct, and it would show
+   you every place the app could break. It also means tap targets of about twenty pixels sitting
+   inside a line of scripture, which is the wrong place for a fiddly control, and 7.9's full touch
+   target audit is not until v1.0.
+3. **Tapping a line to open a chooser.** A dialogue on a screen of sacred text, which is exactly the
+   study-app furniture principle 7.6 exists to keep out.
+
+**Reversible.** Yes. It is one function, `splitPoint`, and the screen would not change shape if it
+picked differently.
+
+**What this means for you.** Split is a guess, but a good one and never a destructive one, and Join
+puts it straight back. If it feels wrong when you use it, say so: the alternative is option 2 and it
+is a day's work, not a rebuild.
+
+---
+
+### D5.4 — Nothing is written until you confirm, and undo takes the lines away with the row
+
+**Decision.** Confirming writes three things in one go: the lines, the number of them onto the
+passage, and the row that puts the passage on your list. Going back writes none of them. Undo removes
+all three, leaving the passage exactly as the library ships it, unsegmented.
+
+**Why the lines go too.** Scope 8.4 says the library ships unsegmented, and a passage taken off the
+list is a passage back in the library. Leaving the lines behind would mean the passage still claimed
+a number of lines it no longer had, and a passage re-added later would silently inherit breaks from a
+decision the user had already thrown away. `removeFromList` already threw away the progress and the
+review history for exactly that reason; this session added the lines to the same list, so the
+permanent remove session 7 puts on the list screen behaves the same way.
+
+**The three writes are one transaction**, so a passage cannot end up on the list with no lines under
+it. Session 6's queue is about to assume it never can.
+
+**Reversible.** The transaction, easily. The rule that undo takes the lines away is worth revisiting
+only if session 7's list screen ever gains a way to re-segment a passage already being learnt, which
+is not planned.
+
+**What this means for you.** Undo really does undo. Nothing is left behind on the passage, and the
+next time you add it you get a fresh proposal rather than yesterday's edits.
+
+---
+
+### D5.5 — Normalisation is genuinely not needed yet, and stays in session 8
+
+**Decision.** Scope 9.7 asks for normalisation - lowercasing text, stripping punctuation, collapsing
+spaces and folding accents, so that two ways of writing the same words can be compared as equal. It
+was in this session's list, conditionally. It is not needed by anything built here and is not built.
+
+**Why not.** Segmentation cuts text; it never compares two pieces of text. The splitter works on the
+punctuation and the capitals as the corpus wrote them, which is the opposite of what normalisation
+produces. The two places 9.7 names are chip matching, which is session 8, and search, which is
+`[v1.0]`.
+
+**Building it now would have been the worse choice**, not merely a neutral one: it would have been
+written with no caller to be right or wrong for, and CLAUDE.md section 11 requires it to be unit
+tested, which means a test written against guesses about what session 8 will ask of it.
+
+**What this means for you.** Nothing you can see. It is a note to whoever builds the quiz that this
+piece is still theirs to build.
+
+---
+
+### D5.6 — Contained decisions
+
+- **`addPassageToList` is deleted.** Decision D4.2 created it as the door Discover added a passage
+  through, returning nothing so that no memorisation state could come back through it. The door is a
+  path now (D5.1), and a path carries nothing at all, so the function has no caller and no reason to
+  exist. `removePassageFromList` stays, for the undo.
+- **A new folder, `src/text/`,** for pure functions over passage text. Segmentation is its first
+  tenant; normalisation (9.7) is meant to be its second. It is not a feature folder because the
+  splitter has no screen in it, and it is not `src/data/` because it never touches the database.
+- **`useAsyncValue`, `useBack` and the route paths moved to `src/app/`.** All three are now used by
+  both Discover and Memorise, and two feature folders importing each other to share a hook is how
+  folders stop meaning anything. `src/app/` already held `userContext` for the same reason.
+- **`letterpress` is now a palette token.** Design-tokens 3 allows exactly one shadow in the app, the
+  white line inside the top edge of a primary button, and gives it as a raw colour value. CLAUDE.md
+  rule 1 admits no raw colour outside the theme, so it is a token like every other colour, the same
+  in both palettes.
+- **The pinned buttons of design-tokens 5.5 are built, primary only.** The secondary variant is
+  described in the same section and no screen needs one yet, so it is not written: an unused
+  component is a component nobody has ever seen rendered.
+- **One new sentence of copy**, on the confirm screen: "These are the lines you will learn, one at a
+  time. Join or split them before you start." It is the only sentence in the app that explains a
+  mechanic, and it is in the strings module like everything else. Listed as an open question.
+- **The user-facing word is "line", never "segment".** The data model says segment, because scope
+  section 10 does; the scope's own prose says line ("cumulative line building", 8.1) and so does the
+  screen.
+- **The Epistle to the Son of the Wolf proposes 2,138 lines.** It is 46,232 words, it is a book that
+  arrived inside the prayers feed, and it is the only passage in the corpus over 400 lines. The
+  splitter handles it in eight milliseconds; drawing two thousand rows is what would be slow. Nothing
+  was built to handle it, on the grounds that one absurd passage is not worth a scrolling machine
+  that the other 975 would also have to run through. Listed as an open question.
+- **Two races were found in the reading view's marks, and both are fixed.** A test that failed about
+  one run in five was chased rather than re-run. The first: the mark's state was copied out of the
+  database by an effect that runs *after* the screen appears, so a tap landing in that gap was drawn
+  and then silently put back, while the write it started stood. The mark now works out what it shows
+  while drawing, and a tap wins from the moment it happens. The second, underneath it: each tap
+  starts a write without waiting for it, so bookmark-then-unbookmark could finish in the other order
+  and leave a bookmark the screen said was gone. Writes from the marks now queue, so the last tap is
+  the one that decides. Neither is reachable by a human hand at a normal speed, and both are the kind
+  of undefined behaviour that becomes somebody's bug report in a year.
+
+---
