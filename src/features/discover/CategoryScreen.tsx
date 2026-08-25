@@ -1,4 +1,5 @@
 import { useParams } from 'react-router'
+import { useAsyncValue } from '../../app/useAsyncValue'
 import { ListRow, ListSurface, ScrollTail } from '../../components/ListSurface'
 import { CompactTitleHeader } from '../../components/NavyHeader'
 import { Screen } from '../../components/Screen'
@@ -7,9 +8,8 @@ import { getTag } from '../../data/tags'
 import type { PassageRow, TagRow } from '../../data/types'
 import { strings } from '../../strings'
 import { passageRowAttribution } from '../../strings/attribution'
-import { collectionPath, passagePath } from './routes'
-import { useAsyncValue } from './useAsyncValue'
-import { useBack } from './useBack'
+import { collectionPath, passagePath } from '../../app/routes'
+import { useBack } from '../../app/useBack'
 
 /**
  * One category's passages. Scope 6.1 ("drill in to a passage list") and 6.2.

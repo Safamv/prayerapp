@@ -24,6 +24,20 @@ export async function putPassageSegments(rows: readonly PassageSegmentRow[]): Pr
   await db.passage_segments.bulkPut(rows)
 }
 
+/**
+ * Takes a passage's lines away and puts its count back to zero, which is how
+ * the library ships every passage (scope 8.4: "the library ships unsegmented").
+ *
+ * The two writes are one fact stated twice, so they are made in one place: a
+ * `segment_count` left behind after the lines were deleted would have every
+ * screen claiming a segmentation that no longer exists. Callers wrap this in
+ * their own transaction, because both of them are doing something larger.
+ */
+export async function clearPassageSegments(passageId: string): Promise<void> {
+  await db.passage_segments.where('passage_id').equals(passageId).delete()
+  await db.passages.update(passageId, { segment_count: 0 })
+}
+
 export async function putTags(rows: readonly TagRow[]): Promise<void> {
   await db.tags.bulkPut(rows)
 }
@@ -41,6 +55,19 @@ export async function findPassageBySource(
   sourceId: string,
 ): Promise<PassageRow | undefined> {
   return db.passages.where('[source_feed+source_id]').equals([sourceFeed, sourceId]).first()
+}
+
+/**
+ * One passage, whatever collection it belongs to.
+ *
+ * The devotional surface has its own read, `getDevotionalPassage` in
+ * `passages.ts`, which returns `undefined` for a Ruhi quotation so that a
+ * Discover screen cannot show one (decision D1.10). This is the plain read, for
+ * the memorisation side, where a Ruhi quotation is exactly what session 11 will
+ * be adding to a list.
+ */
+export async function getPassage(id: string): Promise<PassageRow | undefined> {
+  return db.passages.get(id)
 }
 
 /** How many passages are loaded at all, Ruhi included. Used to decide whether to seed. */

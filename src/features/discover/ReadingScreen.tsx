@@ -1,25 +1,20 @@
-import { Fragment, useEffect, useState } from 'react'
-import { useParams } from 'react-router'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router'
+import { addToListPath, DISCOVER_PATH } from '../../app/routes'
+import { useAsyncValue } from '../../app/useAsyncValue'
+import { useBack } from '../../app/useBack'
+import { useUserId } from '../../app/userContext'
 import { CompactActionHeader } from '../../components/NavyHeader'
 import { Screen } from '../../components/Screen'
 import { Toast, useToast } from '../../components/Toast'
 import { AddToListIcon, BookmarkIcon, OnListIcon } from '../../components/ToolbarIcons'
-import { useUserId } from '../../app/userContext'
 import { addBookmark, isBookmarked, removeBookmark } from '../../data/bookmarks'
-import {
-  addPassageToList,
-  getDevotionalPassage,
-  isOnList,
-  removePassageFromList,
-} from '../../data/passages'
+import { getDevotionalPassage, isOnList, removePassageFromList } from '../../data/passages'
 import type { PassageRow } from '../../data/types'
 import { strings } from '../../strings'
 import { collectionLabel, passageAttribution, textTypeLabel } from '../../strings/attribution'
 import { FLEURON, FLEURON_SIZE, typeStyle } from '../../theme'
 import { splitDropCap } from './dropCap'
-import { DISCOVER_PATH } from './routes'
-import { useAsyncValue } from './useAsyncValue'
-import { useBack } from './useBack'
 
 /**
  * The reading view. Scope 6.6, design-tokens 5.4.
@@ -55,16 +50,19 @@ import { useBack } from './useBack'
  *
  * **Add to my list** stays one way from the mark itself, because taking a
  * passage off the list also throws away everything you have learnt of it. What
- * it gains is an undo in the moment (decision D4.9): a band at the foot of the
+ * it gains is an undo in the moment (decision D4.10): a band at the foot of the
  * screen saying what happened, with a way back for as long as it is there. A
  * passage added seconds ago has nothing learnt of it to lose, so undoing inside
  * that window is safe in a way that a permanently live remove control is not.
  *
- * ## What it does not do yet
+ * ## The mark opens a screen rather than writing a row
  *
- * **Segmentation.** Scope 8.4 splits a passage into lines at the moment it is
- * added, suggested then confirmed by the user. This writes the `user_prayers`
- * row and stops; session 5 builds the confirming screen and puts it between.
+ * Scope 8.4 splits a passage into the lines it will be learnt in at the moment
+ * it is added, proposed by the app and confirmed by the user. That screen is
+ * memorisation and lives under `/memorise/add/` (decision D5.1), so this mark
+ * navigates to it and writes nothing itself. Nothing is on the list until the
+ * lines are confirmed there, and the band below arrives with the reader coming
+ * back.
  */
 
 /** Design-tokens 5.4: `34px 32px 0`, over paper. */
@@ -79,6 +77,8 @@ interface Reading {
 export function ReadingScreen() {
   const { passageId = '' } = useParams()
   const userId = useUserId()
+  const navigate = useNavigate()
+  const location = useLocation()
   const back = useBack(DISCOVER_PATH)
 
   const loaded = useAsyncValue<Reading>(async () => {
@@ -91,18 +91,10 @@ export function ReadingScreen() {
     return { passage, bookmarked, onList }
   }, passageId)
 
-  // Held locally so a tap redraws the mark immediately. The write is local
-  // IndexedDB and lands in a millisecond or two, but "immediately" is what a
-  // one-tap action has to feel like.
-  const [bookmarked, setBookmarked] = useState(false)
-  const [onList, setOnList] = useState(false)
+  const [bookmarked, setBookmarked] = useMark(passageId, loaded?.bookmarked)
+  const [onList, setOnList] = useMark(passageId, loaded?.onList)
+  const write = useTapOrderedWrites()
   const { toast, show, dismiss } = useToast()
-
-  useEffect(() => {
-    if (loaded === undefined) return
-    setBookmarked(loaded.bookmarked)
-    setOnList(loaded.onList)
-  }, [loaded])
 
   const passage = loaded?.passage
 
@@ -110,10 +102,10 @@ export function ReadingScreen() {
     if (passage === undefined) return
     const next = !bookmarked
     setBookmarked(next)
-    const write = next ? addBookmark(userId, passage.id) : removeBookmark(userId, passage.id)
-    void Promise.resolve(write).catch((error: unknown) => {
-      console.error('Failed to write the bookmark', error)
-    })
+    write(
+      () => (next ? addBookmark(userId, passage.id) : removeBookmark(userId, passage.id)),
+      'Failed to write the bookmark',
+    )
     // No undo offered: the mark that set it is 44px away and toggles.
     show({
       text: next ? strings.reading.bookmarked : strings.reading.bookmarkUndone,
@@ -123,25 +115,39 @@ export function ReadingScreen() {
 
   const addToMyList = () => {
     if (passage === undefined || onList) return
-    const passageId = passage.id
+    void navigate(addToListPath(passage.id))
+  }
+
+  /**
+   * The reader is back from confirming the lines, and the passage is on the list
+   * now. The band says so here rather than there, because there is where it
+   * happened but here is where the reader is (decision D4.10).
+   *
+   * The state is cleared as it is read, so a later step back onto this entry
+   * does not announce an add that happened ten minutes ago.
+   */
+  useEffect(() => {
+    const state: unknown = location.state
+    const added =
+      typeof state === 'object' && state !== null && 'addedPassageId' in state
+        ? (state as { addedPassageId?: unknown }).addedPassageId
+        : undefined
+    if (added !== passageId) return
+
     setOnList(true)
-    void addPassageToList(userId, passageId).catch((error: unknown) => {
-      console.error('Failed to add the passage to the list', error)
-    })
+    void navigate(location.pathname, { replace: true, state: null })
     show({
       text: strings.reading.addedToList,
       undo: {
         label: strings.reading.undo,
         onUndo: () => {
           setOnList(false)
-          void removePassageFromList(userId, passageId).catch((error: unknown) => {
-            console.error('Failed to undo the add', error)
-          })
+          write(() => removePassageFromList(userId, passageId), 'Failed to undo the add')
           show({ text: strings.reading.addUndone, undo: null })
         },
       },
     })
-  }
+  }, [location, navigate, passageId, userId, show, setOnList, write])
 
   return (
     <Screen
@@ -293,6 +299,66 @@ function PassageText({ text }: { text: string }) {
       ))}
     </div>
   )
+}
+
+/**
+ * Writes that land in the order they were tapped.
+ *
+ * A tap on a mark starts a write and does not wait for it, because the mark has
+ * to redraw immediately and a local write lands in a millisecond or two. Two
+ * taps in quick succession therefore start two writes that are free to overtake
+ * each other, and when they do the mark on screen and the row in the database
+ * disagree: bookmark, then remove the bookmark, and the remove can finish first,
+ * leaving a bookmark that the mark says is not there.
+ *
+ * This is a genuine race rather than a test artefact, and a test caught it. Each
+ * write waits for the one before it, so the last tap is the one that decides. A
+ * failed write is logged and does not stop the next: the queue is about order,
+ * not about atomicity.
+ */
+function useTapOrderedWrites(): (run: () => Promise<unknown>, message: string) => void {
+  const pending = useRef<Promise<unknown>>(Promise.resolve())
+
+  return useCallback((run: () => Promise<unknown>, message: string) => {
+    pending.current = pending.current.then(run).catch((error: unknown) => {
+      console.error(message, error)
+    })
+  }, [])
+}
+
+/**
+ * What a mark shows: whatever the database said, until the reader taps it, and
+ * whatever they tapped from then on.
+ *
+ * ## Why it is not simply state copied out of the read
+ *
+ * It was, and there was a race in it that a test caught about one run in five.
+ * Copying the read into state takes an effect, and an effect runs after the
+ * render that revealed the toolbar. A tap landing in that gap set the mark, and
+ * then the effect ran and set it straight back to what the database had said a
+ * moment earlier: the tap was drawn and then silently undone, and the write it
+ * started stayed. Rare on a phone, but "rare" on the two actions scope 6.6 makes
+ * one tap each is not good enough.
+ *
+ * So the value is worked out while rendering rather than copied by an effect,
+ * and the reader's own tap simply wins from the moment it happens. The passage
+ * id is held beside it so that opening a different prayer starts again from what
+ * that prayer's read said, rather than from the last one's tap.
+ */
+function useMark(
+  passageId: string,
+  loaded: boolean | undefined,
+): [boolean, (value: boolean) => void] {
+  const [tapped, setTapped] = useState<{ passageId: string; value: boolean } | null>(null)
+
+  const set = useCallback(
+    (value: boolean) => {
+      setTapped({ passageId, value })
+    },
+    [passageId],
+  )
+
+  return [tapped?.passageId === passageId ? tapped.value : (loaded ?? false), set]
 }
 
 /**

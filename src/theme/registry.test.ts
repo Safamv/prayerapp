@@ -33,7 +33,10 @@ describe('the palettes', () => {
     for (const palette of PALETTES) {
       expect(Object.keys(palette.tokens).sort()).toEqual(first)
     }
-    expect(first.length).toBe(34)
+    // The 33 colours of design-tokens 1.1, plus `ink-shadow` and the primary
+    // button's `letterpress` highlight, which design-tokens 3 defines outside
+    // the palette table and session 5 needed as a token like any other.
+    expect(first.length).toBe(35)
   })
 
   it('keeps the gold constant across both, per design-tokens 1.2', () => {

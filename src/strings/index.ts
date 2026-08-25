@@ -23,6 +23,14 @@
  * `as const` is what makes a missing key a compile error rather than an empty
  * span: `strings.tabs.discovr` does not type-check.
  */
+/**
+ * Scope 6.2: "Word count is precise, honest, and free at ingestion. It is not a
+ * band and not a judgement." Written once and read from both places that show
+ * one, so a passage row and the add moment can never come to disagree about how
+ * a count is worded.
+ */
+const wordCount = (count: number) => (count === 1 ? '1 WORD' : `${String(count)} WORDS`)
+
 export const strings = {
   /** Scope 3.3. Pencilled, and cheap to change until a domain is bought. */
   appName: 'By Heart',
@@ -85,11 +93,45 @@ export const strings = {
     categoriesSection: 'CATEGORIES',
     /** The count on a category row. Scope 6.1: "each with a passage count". */
     passageCount: (count: number) => (count === 1 ? '1 PASSAGE' : `${String(count)} PASSAGES`),
+    /** The count on a passage row. Scope 6.2. */
+    wordCount,
+  },
+
+  /**
+   * The add moment. Scope 8.4: the app proposes the lines, the user confirms
+   * them, and it happens as the passage is added to the list.
+   *
+   * **"Line" is the scope's own word** for what the data model calls a segment
+   * (scope 8.1, "cumulative line building"). The user never meets the word
+   * segment, here or anywhere else.
+   *
+   * The counts are scope 6.2's requirement at this exact moment: "At the add
+   * moment: segment count and word count, stated plainly." **No estimated time
+   * to learn**, which that section forbids by name: "pace-based estimates are
+   * invented precision, and the moment of commitment is the worst possible place
+   * to invent it."
+   */
+  segmentation: {
     /**
-     * The count on a passage row. Scope 6.2: "Word count is precise, honest, and
-     * free at ingestion. It is not a band and not a judgement."
+     * One sentence of guidance, and the only new copy on the screen. It says
+     * what the lines are for (scope 8.1: one at a time, then together) and what
+     * can be done to them before starting (scope 8.4).
      */
-    wordCount: (count: number) => (count === 1 ? '1 WORD' : `${String(count)} WORDS`),
+    note: 'These are the lines you will learn, one at a time. Join or split them before you start.',
+    lineCount: (count: number) => (count === 1 ? '1 LINE' : `${String(count)} LINES`),
+    wordCount,
+    /** The two controls, in the caps slot, so written in capitals. */
+    join: 'JOIN',
+    split: 'SPLIT',
+    /**
+     * What a screen reader announces, where "JOIN" on its own would not say
+     * which two lines it joins. The number is the line as it is counted on
+     * screen, from one.
+     */
+    joinLine: (position: number) => `Join line ${String(position)} with the line above it`,
+    splitLine: (position: number) => `Split line ${String(position)}`,
+    /** The pinned button that commits it. Design-tokens 5.5, caps in the accent. */
+    confirm: 'ADD TO MY LIST',
   },
 
   /**
@@ -177,6 +219,8 @@ export const strings = {
     collectionList: 'Collections',
     categoryList: 'Categories',
     passageList: 'Passages',
+    /** The proposed lines on the add moment's screen (scope 8.4). */
+    lineList: 'Lines',
   },
 } as const
 

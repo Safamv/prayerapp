@@ -68,6 +68,13 @@ export type PaletteTokens = {
   readonly 'hair-lt': string
   /** The 0.5px ink bleed on passage body, and nothing else. */
   readonly 'ink-shadow': string
+  /**
+   * Design-tokens 3: shadows are none everywhere, with one exception, the
+   * primary button's letterpress highlight. It is a token rather than a value
+   * written into the button because CLAUDE.md rule 1 admits no exception, and
+   * because a paler paper would want a paler highlight.
+   */
+  readonly letterpress: string
 }
 
 export interface Palette {
@@ -117,6 +124,7 @@ const PARIS_NAVY_TOKENS: PaletteTokens = {
   hair: 'rgba(42,36,25,.26)',
   'hair-lt': 'rgba(42,36,25,.16)',
   'ink-shadow': 'rgba(42,36,25,.35)',
+  letterpress: 'rgba(255,255,255,.5)',
 }
 
 /**

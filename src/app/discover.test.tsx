@@ -7,6 +7,7 @@ import { putPassages, putPassageTags, putTags } from '../data/corpus'
 import { db, resetDatabase } from '../data/db'
 import { makePassage, makeRuhiPassage, makeTag } from '../data/fixtures'
 import { forgetCorpusLoad } from '../data/loadCorpus'
+import { confirmSegmentation } from '../data/segmentation'
 import { forgetAnonymousUserId } from '../data/userId'
 import { strings } from '../strings'
 import { FLEURON } from '../theme'
@@ -324,93 +325,44 @@ describe('bookmark (scope 6.6)', () => {
 })
 
 describe('add to my list (scope 6.6, 6.5)', () => {
-  it('writes the row, and nothing more than the row', async () => {
+  /**
+   * The mark is a door now, not a write. Scope 8.4 puts the confirm screen of
+   * session 5 between the tap and the list, so nothing is on the list until the
+   * lines have been confirmed there. The flow through that screen is tested in
+   * `segmentation.test.tsx`; what belongs here is that Discover itself writes
+   * nothing and splits nothing.
+   */
+  it('opens the add moment, and writes nothing on the way', async () => {
     renderApp(`/discover/passage/${blessed.id}`)
 
     fireEvent.click(await screen.findByRole('button', { name: strings.reading.listAdd }))
 
-    const row = await waitFor(async () => {
-      const found = await listOwnPrayerRows(blessed.id)
-      expect(found).toHaveLength(1)
-      return found[0]
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: strings.segmentation.confirm })).toBeDefined()
     })
-    expect(row?.status).toBe('list')
-
-    // Scope 8.4: segmentation is suggested and confirmed at add time, and that
-    // is session 5's screen. Adding from here must not have split anything.
+    expect(await listOwnPrayerRows(blessed.id)).toHaveLength(0)
     expect(await db.passage_segments.count()).toBe(0)
     expect(await db.segment_progress.count()).toBe(0)
   })
 
-  it('reads as already added afterwards, and does not offer to add again', async () => {
+  it('reads as already added for a passage on the list, and does not offer to add again', async () => {
     renderApp(`/discover/passage/${blessed.id}`)
-
-    fireEvent.click(await screen.findByRole('button', { name: strings.reading.listAdd }))
-
-    const added = await screen.findByRole('button', { name: strings.reading.listAlreadyAdded })
-    expect(added.hasAttribute('disabled')).toBe(true)
-    expect(screen.queryByRole('button', { name: strings.reading.listAdd })).toBeNull()
-
-    // Settled before the test ends. A write still in flight when the next test
-    // resets the database lands in the new one, under the previous test's
-    // device id, and shows up there as a row nobody wrote.
-    await waitFor(async () => {
-      expect(await listOwnPrayerRows(blessed.id)).toHaveLength(1)
-    })
-  })
-
-  it('is still marked as added when the passage is opened again', async () => {
-    renderApp(`/discover/passage/${blessed.id}`)
-    fireEvent.click(await screen.findByRole('button', { name: strings.reading.listAdd }))
-    await waitFor(async () => {
-      expect(await listOwnPrayerRows(blessed.id)).toHaveLength(1)
-    })
+    // Rendered once first, so this device has an anonymous id to own the row
+    // (scope 13.1). Then on the list the way the app puts it there: the lines
+    // first, then the row.
+    await screen.findByRole('button', { name: strings.reading.listAdd })
+    await confirmSegmentation(thisDevice(), blessed.id, ['Blessed is the spot.'])
 
     cleanup()
     renderApp(`/discover/passage/${blessed.id}`)
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: strings.reading.listAlreadyAdded })).toBeDefined()
-    })
+    const added = await screen.findByRole('button', { name: strings.reading.listAlreadyAdded })
+    expect(added.hasAttribute('disabled')).toBe(true)
+    expect(screen.queryByRole('button', { name: strings.reading.listAdd })).toBeNull()
   })
 })
 
-describe('the confirmation band (decision D4.9)', () => {
-  it('says what happened when a passage is added, and offers a way back', async () => {
-    renderApp(`/discover/passage/${blessed.id}`)
-    fireEvent.click(await screen.findByRole('button', { name: strings.reading.listAdd }))
-
-    const band = await screen.findByRole('status')
-    expect(band.textContent).toContain(strings.reading.addedToList)
-    expect(within(band).getByRole('button', { name: strings.reading.undo })).toBeDefined()
-
-    await waitFor(async () => {
-      expect(await listOwnPrayerRows(blessed.id)).toHaveLength(1)
-    })
-  })
-
-  it('undoes the add, in the database and on the mark', async () => {
-    renderApp(`/discover/passage/${blessed.id}`)
-    fireEvent.click(await screen.findByRole('button', { name: strings.reading.listAdd }))
-    await waitFor(async () => {
-      expect(await listOwnPrayerRows(blessed.id)).toHaveLength(1)
-    })
-
-    fireEvent.click(
-      within(await screen.findByRole('status')).getByRole('button', {
-        name: strings.reading.undo,
-      }),
-    )
-
-    await waitFor(async () => {
-      expect(await listOwnPrayerRows(blessed.id)).toHaveLength(0)
-    })
-    // And the mark offers to add again, rather than staying ticked.
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: strings.reading.listAdd })).toBeDefined()
-    })
-  })
-
+describe('the confirmation band, on bookmarking (decision D4.10)', () => {
   it('confirms a bookmark without offering an undo, because the mark toggles', async () => {
     renderApp(`/discover/passage/${blessed.id}`)
     fireEvent.click(await screen.findByRole('button', { name: strings.reading.bookmarkAdd }))

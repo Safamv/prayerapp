@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { confirmSegmentation } from './segmentation'
 import { addToList } from './userPrayers'
 import { putPassageSegments, putPassages, putPassageTags, putTags } from './corpus'
 import { resetDatabase } from './db'
@@ -6,7 +7,6 @@ import { makePassage, makeRuhiPassage, makeSegment, makeTag } from './fixtures'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import {
-  addPassageToList,
   countDevotionalPassages,
   countDevotionalPassagesByCollection,
   DEVOTIONAL_COLLECTIONS,
@@ -264,32 +264,28 @@ describe('listDevotionalPassagesByCollectionAndTag', () => {
   })
 })
 
-describe('addPassageToList and removePassageFromList', () => {
-  it('adds, and reports nothing that could become chrome on a reading screen', async () => {
+describe('removePassageFromList', () => {
+  /**
+   * The undo of decision D4.10, and the only write left in this module: adding
+   * became a screen in session 5 (decision D5.1) and no longer passes through
+   * here at all.
+   */
+  it('undoes an add, and reports nothing that could become chrome on a reading screen', async () => {
     const passage = makePassage()
     await putPassages([passage])
+    await confirmSegmentation('user-1', passage.id, ['Blessed is the spot.'])
 
-    const result = await addPassageToList('user-1', passage.id)
+    const result = await removePassageFromList('user-1', passage.id)
 
     expect(result).toBeUndefined()
-    expect(await isOnList('user-1', passage.id)).toBe(true)
+    expect(await isOnList('user-1', passage.id)).toBe(false)
   })
 
-  it('adds once however many times it is called', async () => {
+  it("leaves another device's list alone", async () => {
     const passage = makePassage()
     await putPassages([passage])
-
-    await addPassageToList('user-1', passage.id)
-    await addPassageToList('user-1', passage.id)
-
-    expect(await isOnList('user-1', passage.id)).toBe(true)
-  })
-
-  it("undoes an add, and leaves another device's list alone", async () => {
-    const passage = makePassage()
-    await putPassages([passage])
-    await addPassageToList('user-1', passage.id)
-    await addPassageToList('user-2', passage.id)
+    await confirmSegmentation('user-1', passage.id, ['Blessed is the spot.'])
+    await confirmSegmentation('user-2', passage.id, ['Blessed is the spot.'])
 
     await removePassageFromList('user-1', passage.id)
 
