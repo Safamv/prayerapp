@@ -1290,3 +1290,102 @@ the phone's default, which on some Android phones would have been a blank box.
   app from outside is not part of the folder, so it sits beside the existing shell test.
 
 ---
+
+## D4 follow-up — after Safa's first read of session 4 (v0.4.1)
+
+---
+
+### D4.9 — Browse by collection moves into V0, as the library's first screen
+
+**Decision, taken by Safa, 25 August 2026, in answer to the open question in D4.1.** Scope 6.1 tags
+"By collection" `[v1.0]`. It ships in V0 instead, and it is not four extra rows at the foot of the
+category list: it is the level above.
+
+```
+Discover
+  Prayers                  →  63 categories  →  passages  →  the passage
+  The Hidden Words         →  passages       →  the passage
+  Gleanings                →  passages       →  the passage
+  Prayers and Meditations  →  passages       →  the passage
+```
+
+**Why a level above rather than a list beside.** Every one of the 63 categories belongs to a prayer.
+"Healing" is a way of finding a prayer; it is not a way of finding a Hidden Word and never was. Put
+beside the collections, the two axes would have looked like alternatives and one of them would have
+been quietly lying about its reach. Put above, the shape says what is true: a contents page, then an
+index within the part of the book that has one.
+
+**One screen, decided by the data.** The obvious build is "Prayers has categories, the other three do
+not". True today, and true by accident: it is a fact about what bahaiprayers.net has tagged, not
+about what a collection is. So a collection's screen asks what categories it has and shows passages
+when the answer is none. If the Gleanings are ever tagged, they gain a category level and no code
+changes. If the tag feed is withdrawn, Prayers falls back to a list of 473 and stays usable.
+
+**The category is carried in the path**, `/discover/collection/prayers/category/…`, and its passages
+are filtered to that collection. Today that filter changes nothing, because every tagged passage is a
+prayer. It is there so the hierarchy is true rather than accidentally true.
+
+**Reversible, and this is the question Safa asked.** Yes, easily, and it is a screen-shape change
+rather than a data one. The passage list and the reading view are untouched by it; what changes is
+what the first screen lists and that there is one more tap to a prayer. Rearranging it after looking
+at it - collections and categories side by side, categories promoted back to the top, a different
+order - is an hour, at any point, with nothing to migrate.
+
+**What this means for you.** Every one of the 976 passages can now be reached. The library opens on
+four names instead of 63, and the 63 sit one tap inside Prayers.
+
+---
+
+### D4.10 — Adding to the list is confirmed where it happened, with a way back
+
+**Decision, taken by Safa, 25 August 2026**, replacing the default recorded in D4.3.
+
+D4.3 made adding one way from the reading view, because removal also destroys everything learnt of a
+passage and that should not sit one mis-tap from a devotional screen. The objection to it was the
+right one: a mis-tap then had no remedy at all until a list screen exists.
+
+**Both actions now say what they did**, in a band across the foot of the screen. **Adding carries an
+undo** for as long as the band is there. **Bookmarking does not**, because the mark that set it is
+44px away and toggles, and an Undo doing exactly what the button above it does is clutter.
+
+**Why an undo window is safe where a permanent remove control is not.** A passage added seconds ago
+has nothing learnt of it to lose. The window closes; the destructive version of this - taking a
+passage off the list after three weeks of work - stays where it belongs, on the list screen, where a
+person can see what they are giving up. So the mark itself is still one way.
+
+**Six seconds for the undo, three for a plain confirmation.** Long enough to notice and reach, short
+enough not to sit on a prayer.
+
+**Drawn as a printed band**, not a floating card: `field` navy with the cloth grain, full width, no
+radius and no shadow, sitting on top of the tab bar rather than over the text, so it never covers the
+last line of a passage. Motion is opacity and position only, 160ms (design-tokens 3 and 6).
+
+**Reversible.** Yes. The durations are two constants and the band is one small component, which
+session 5's confirm screen and session 6's list will both reuse.
+
+**What this means for you.** Tap the list mark and a navy band says "Added to your list" with "Undo"
+beside it. Tap Undo and it is off again, with nothing left behind. Bookmarking says "Bookmarked" and
+goes away by itself.
+
+---
+
+### D4.11 — Contained decisions
+
+- **The byline stays the author's name alone**, confirmed by Safa: "Bahá'u'lláh", "The Báb",
+  "'Abdu'l-Bahá", with no "Revealed by" before it. The open question from D4.8 is closed.
+- **Two title collisions in the corpus are accepted.** Two prayers under Healing both open "Glory be
+  to Thee, O Lord my God!" and are told apart on the row only by their word counts. Confirmed by
+  Safa as good enough for now.
+- **`Screen` gained a footer.** A band below the scrolling body and above the tab bar, holding the
+  toast today and session 5's pinned buttons (design-tokens 5.5) next. A sibling of the body rather
+  than a layer over it, so nothing it shows can cover the last line of a prayer.
+- **`DEVOTIONAL_COLLECTIONS` is written out rather than read off the database**, because the order is
+  editorial and `SELECT DISTINCT` would return it alphabetically. A test checks it against the
+  committed corpus, so a fifth feed fails a test rather than quietly becoming unreachable.
+- **A test that triggers a write now waits for the write before it ends, and assertions about a
+  user's rows are scoped to that user.** An intermittent failure turned out to be a previous test's
+  fire-and-forget write landing in the next test's freshly reset database, under the previous test's
+  discarded device id: the app was correct and the assertion was counting rows across all devices.
+  `user_id` on every row from the first migration (scope 13.1) is what made the fix a one-line filter.
+
+---

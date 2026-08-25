@@ -1,6 +1,6 @@
 import { db } from './db'
 import { RUHI_COLLECTION, type PassageRow, type PassageSegmentRow } from './types'
-import { addToList } from './userPrayers'
+import { addToList, removeFromList } from './userPrayers'
 
 /**
  * **The devotional surface.** Everything Discover reads, it reads from here.
@@ -37,6 +37,25 @@ import { addToList } from './userPrayers'
  * chrome principle 7.6 forbids. So the commitment crosses the boundary and the
  * progress does not, because this returns nothing at all.
  */
+
+/**
+ * The collections of scope 6.1, in the order that section lists them, which is
+ * the order they are offered in.
+ *
+ * Written out rather than read off the database, because the order is editorial
+ * and a `SELECT DISTINCT` would return it alphabetically. `passages.test.ts`
+ * checks that every collection actually present in the corpus appears here, so a
+ * fifth feed fails a test rather than quietly becoming unreachable.
+ *
+ * Ruhi is deliberately absent, and structurally so: it is not a Discover surface
+ * (scope 5.4, decision D1.10).
+ */
+export const DEVOTIONAL_COLLECTIONS: readonly string[] = Object.freeze([
+  'prayers',
+  'hidden-words',
+  'gleanings',
+  'prayers-and-meditations',
+])
 
 /** True when a passage belongs to the devotional corpus rather than the Ruhi route. */
 export function isDevotional(row: Pick<PassageRow, 'collection'>): boolean {
@@ -80,6 +99,35 @@ export async function countDevotionalPassages(): Promise<number> {
 }
 
 /**
+ * How many passages a collection holds, without reading any of them. The
+ * collection browse shows four counts on its first screen and would otherwise
+ * load the whole library to add them up.
+ */
+export async function countDevotionalPassagesByCollection(collection: string): Promise<number> {
+  if (collection === RUHI_COLLECTION) return 0
+  return db.passages.where('collection').equals(collection).count()
+}
+
+/**
+ * A category's passages within one collection.
+ *
+ * Every tag in the corpus today belongs to a prayer, so this returns the same
+ * rows as `listDevotionalPassagesByTag` for every category that exists. It is
+ * scoped anyway, because the browse is now a hierarchy - a collection, then its
+ * categories - and a hierarchy that is only accidentally true is one feed away
+ * from being false. If the Gleanings are ever tagged, "Prayers, then Healing"
+ * keeps meaning prayers.
+ */
+export async function listDevotionalPassagesByCollectionAndTag(
+  collection: string,
+  tagId: string,
+): Promise<PassageRow[]> {
+  if (collection === RUHI_COLLECTION) return []
+  const rows = await listDevotionalPassagesByTag(tagId)
+  return rows.filter((row) => row.collection === collection)
+}
+
+/**
  * A passage's segments, in reading order. Guarded on the passage being
  * devotional so that a Ruhi passage id cannot be used to read its text through
  * the devotional door, even by accident.
@@ -120,6 +168,20 @@ export async function isOnList(userId: string, passageId: string): Promise<boole
  */
 export async function addPassageToList(userId: string, passageId: string): Promise<void> {
   await addToList(userId, passageId)
+}
+
+/**
+ * Undoes an add, and reports nothing back.
+ *
+ * `void` for the same reason `addPassageToList` is. This exists for the undo
+ * offered in the moment of adding (decision D4.9) and for nothing else: the
+ * function beneath it also throws away a passage's segment progress and review
+ * history, which is right when undoing an add seconds old and is destructive
+ * anywhere else. Removing a passage the user has actually worked on belongs on
+ * the list screen, where they can see what they are giving up.
+ */
+export async function removePassageFromList(userId: string, passageId: string): Promise<void> {
+  await removeFromList(userId, passageId)
 }
 
 /**

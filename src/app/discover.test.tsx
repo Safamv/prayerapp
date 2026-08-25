@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { App } from './App'
@@ -37,6 +37,17 @@ import { FLEURON } from '../theme'
 const HEALING = makeTag('Healing')
 const MORNING = makeTag('Morning')
 
+/** An untagged passage in another collection: unreachable by category, on purpose. */
+const hiddenWord = makePassage({
+  title: 'O SON OF SPIRIT! My first counsel',
+  author: "Bahá'u'lláh",
+  collection: 'hidden-words',
+  source_feed: 'hidden-words',
+  text_type: 'hidden-word',
+  source_work: 'The Hidden Words',
+  word_count: 26,
+})
+
 const blessed = makePassage({
   title: 'Blessed is the spot',
   display_title: 'Blessed Is\nthe Spot',
@@ -59,13 +70,33 @@ const ruhi = makeRuhiPassage({ title: 'A Ruhi quotation', author: "Bahá'u'lláh
 
 async function seed() {
   await putTags([HEALING, MORNING])
-  await putPassages([blessed, remover, ruhi])
+  await putPassages([blessed, remover, ruhi, hiddenWord])
   await putPassageTags([
     { passage_id: blessed.id, tag_id: HEALING.id },
     { passage_id: remover.id, tag_id: HEALING.id },
     { passage_id: ruhi.id, tag_id: HEALING.id },
     { passage_id: remover.id, tag_id: MORNING.id },
   ])
+}
+
+/**
+ * The anonymous id this test's render created (scope 13.1). Each test forgets
+ * the previous one's, so a row written by a test that had not finished writing
+ * when the database was reset belongs to a different device than this one.
+ */
+function thisDevice(): string {
+  return localStorage.getItem('by-heart.anonymous-user-id') ?? ''
+}
+
+/** Rows this device owns for one passage. */
+async function listOwnPrayerRows(passageId: string) {
+  const rows = await db.user_prayers.toArray()
+  return rows.filter((row) => row.user_id === thisDevice() && row.passage_id === passageId)
+}
+
+async function listOwnBookmarks(passageId: string) {
+  const rows = await db.bookmarks.toArray()
+  return rows.filter((row) => row.user_id === thisDevice() && row.passage_id === passageId)
 }
 
 function renderApp(at = '/discover') {
@@ -76,7 +107,14 @@ function renderApp(at = '/discover') {
   )
 }
 
+/** The browse is a hierarchy now: a collection, then one of its categories. */
 async function openCategory(name: string) {
+  renderApp()
+  fireEvent.click(await screen.findByRole('link', { name: /Prayers/ }))
+  fireEvent.click(await screen.findByRole('link', { name: new RegExp(name) }))
+}
+
+async function openCollection(name: string) {
   renderApp()
   fireEvent.click(await screen.findByRole('link', { name: new RegExp(name) }))
 }
@@ -90,22 +128,32 @@ beforeEach(async () => {
 
 afterEach(cleanup)
 
-describe('the category browse (scope 6.1)', () => {
-  it('lists the categories alphabetically, each with its passage count', async () => {
+describe('the collection browse (scope 6.1, decision D4.1)', () => {
+  it('offers every collection that holds something, in the order scope 6.1 lists them', async () => {
     renderApp()
 
-    await screen.findByRole('link', { name: /Morning/ })
-    const list = screen.getByRole('navigation', { name: strings.accessibility.categoryList })
+    await screen.findByRole('link', { name: /Prayers/ })
+    const list = screen.getByRole('navigation', { name: strings.accessibility.collectionList })
     const rows = [...list.querySelectorAll('a')].map((row) => row.textContent ?? '')
 
-    expect(rows).toEqual(['Healing2 PASSAGES', 'Morning1 PASSAGE'])
+    expect(rows).toEqual(['Prayers2 PASSAGES', 'The Hidden Words1 PASSAGE'])
+  })
+
+  it('reaches a collection the tag feed never tagged, which is why it exists', async () => {
+    await openCollection('The Hidden Words')
+
+    // No category level: nothing in this collection carries a tag. The passage
+    // list is shown directly, and the passage is reachable at last.
+    await waitFor(() => {
+      expect(screen.getByText(hiddenWord.title)).toBeDefined()
+    })
+    expect(screen.queryByText(strings.discover.categoriesSection)).toBeNull()
   })
 
   it('counts the devotional passages only, never a Ruhi quotation (D1.10)', async () => {
     renderApp()
 
-    // Healing carries three passages in the database and one of them is Ruhi.
-    // A count of 3 that became a list of 2 would be the exclusion leaking.
+    // Three prayers are in the database under `prayers` and one of them is Ruhi.
     await waitFor(() => {
       expect(screen.getByText(strings.discover.passageCount(2))).toBeDefined()
     })
@@ -128,6 +176,18 @@ describe('the category browse (scope 6.1)', () => {
     })
     expect(screen.queryByRole('textbox')).toBeNull()
     expect(screen.queryByRole('searchbox')).toBeNull()
+  })
+})
+
+describe('the category browse, inside a collection (scope 6.1)', () => {
+  it("lists a collection's categories alphabetically, each with its passage count", async () => {
+    await openCollection('Prayers')
+
+    await screen.findByRole('link', { name: /Morning/ })
+    const list = screen.getByRole('navigation', { name: strings.accessibility.categoryList })
+    const rows = [...list.querySelectorAll('a')].map((row) => row.textContent ?? '')
+
+    expect(rows).toEqual(['Healing2 PASSAGES', 'Morning1 PASSAGE'])
   })
 })
 
@@ -154,14 +214,19 @@ describe('the passage list (scope 6.2)', () => {
     expect(screen.queryByText(ruhi.title)).toBeNull()
   })
 
-  it('comes back to the category browse on the back chevron', async () => {
+  it('comes back one step at a time, category to collection to library', async () => {
     await openCategory('Healing')
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Healing' })).toBeDefined()
     })
-    fireEvent.click(screen.getByRole('button', { name: strings.accessibility.back }))
 
+    fireEvent.click(screen.getByRole('button', { name: strings.accessibility.back }))
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: strings.collectionTitles.prayers })).toBeDefined()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: strings.accessibility.back }))
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: strings.screenTitles.discover })).toBeDefined()
     })
@@ -231,14 +296,14 @@ describe('bookmark (scope 6.6)', () => {
     fireEvent.click(await screen.findByRole('button', { name: strings.reading.bookmarkAdd }))
 
     await waitFor(async () => {
-      expect(await db.bookmarks.count()).toBe(1)
+      expect(await listOwnBookmarks(blessed.id)).toHaveLength(1)
     })
     const set = screen.getByRole('button', { name: strings.reading.bookmarkRemove })
     expect(set.getAttribute('aria-pressed')).toBe('true')
 
     fireEvent.click(set)
     await waitFor(async () => {
-      expect(await db.bookmarks.count()).toBe(0)
+      expect(await listOwnBookmarks(blessed.id)).toHaveLength(0)
     })
   })
 
@@ -246,7 +311,7 @@ describe('bookmark (scope 6.6)', () => {
     renderApp(`/discover/passage/${blessed.id}`)
     fireEvent.click(await screen.findByRole('button', { name: strings.reading.bookmarkAdd }))
     await waitFor(async () => {
-      expect(await db.bookmarks.count()).toBe(1)
+      expect(await listOwnBookmarks(blessed.id)).toHaveLength(1)
     })
 
     cleanup()
@@ -265,11 +330,10 @@ describe('add to my list (scope 6.6, 6.5)', () => {
     fireEvent.click(await screen.findByRole('button', { name: strings.reading.listAdd }))
 
     const row = await waitFor(async () => {
-      const found = await db.user_prayers.toArray()
+      const found = await listOwnPrayerRows(blessed.id)
       expect(found).toHaveLength(1)
       return found[0]
     })
-    expect(row?.passage_id).toBe(blessed.id)
     expect(row?.status).toBe('list')
 
     // Scope 8.4: segmentation is suggested and confirmed at add time, and that
@@ -286,13 +350,20 @@ describe('add to my list (scope 6.6, 6.5)', () => {
     const added = await screen.findByRole('button', { name: strings.reading.listAlreadyAdded })
     expect(added.hasAttribute('disabled')).toBe(true)
     expect(screen.queryByRole('button', { name: strings.reading.listAdd })).toBeNull()
+
+    // Settled before the test ends. A write still in flight when the next test
+    // resets the database lands in the new one, under the previous test's
+    // device id, and shows up there as a row nobody wrote.
+    await waitFor(async () => {
+      expect(await listOwnPrayerRows(blessed.id)).toHaveLength(1)
+    })
   })
 
   it('is still marked as added when the passage is opened again', async () => {
     renderApp(`/discover/passage/${blessed.id}`)
     fireEvent.click(await screen.findByRole('button', { name: strings.reading.listAdd }))
     await waitFor(async () => {
-      expect(await db.user_prayers.count()).toBe(1)
+      expect(await listOwnPrayerRows(blessed.id)).toHaveLength(1)
     })
 
     cleanup()
@@ -300,6 +371,69 @@ describe('add to my list (scope 6.6, 6.5)', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: strings.reading.listAlreadyAdded })).toBeDefined()
+    })
+  })
+})
+
+describe('the confirmation band (decision D4.9)', () => {
+  it('says what happened when a passage is added, and offers a way back', async () => {
+    renderApp(`/discover/passage/${blessed.id}`)
+    fireEvent.click(await screen.findByRole('button', { name: strings.reading.listAdd }))
+
+    const band = await screen.findByRole('status')
+    expect(band.textContent).toContain(strings.reading.addedToList)
+    expect(within(band).getByRole('button', { name: strings.reading.undo })).toBeDefined()
+
+    await waitFor(async () => {
+      expect(await listOwnPrayerRows(blessed.id)).toHaveLength(1)
+    })
+  })
+
+  it('undoes the add, in the database and on the mark', async () => {
+    renderApp(`/discover/passage/${blessed.id}`)
+    fireEvent.click(await screen.findByRole('button', { name: strings.reading.listAdd }))
+    await waitFor(async () => {
+      expect(await listOwnPrayerRows(blessed.id)).toHaveLength(1)
+    })
+
+    fireEvent.click(
+      within(await screen.findByRole('status')).getByRole('button', {
+        name: strings.reading.undo,
+      }),
+    )
+
+    await waitFor(async () => {
+      expect(await listOwnPrayerRows(blessed.id)).toHaveLength(0)
+    })
+    // And the mark offers to add again, rather than staying ticked.
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: strings.reading.listAdd })).toBeDefined()
+    })
+  })
+
+  it('confirms a bookmark without offering an undo, because the mark toggles', async () => {
+    renderApp(`/discover/passage/${blessed.id}`)
+    fireEvent.click(await screen.findByRole('button', { name: strings.reading.bookmarkAdd }))
+
+    const band = await screen.findByRole('status')
+    expect(band.textContent).toContain(strings.reading.bookmarked)
+    expect(within(band).queryByRole('button', { name: strings.reading.undo })).toBeNull()
+
+    await waitFor(async () => {
+      expect(await listOwnBookmarks(blessed.id)).toHaveLength(1)
+    })
+  })
+
+  it('says so when a bookmark is taken off again', async () => {
+    renderApp(`/discover/passage/${blessed.id}`)
+    fireEvent.click(await screen.findByRole('button', { name: strings.reading.bookmarkAdd }))
+    fireEvent.click(await screen.findByRole('button', { name: strings.reading.bookmarkRemove }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('status').textContent).toContain(strings.reading.bookmarkUndone)
+    })
+    await waitFor(async () => {
+      expect(await listOwnBookmarks(blessed.id)).toHaveLength(0)
     })
   })
 })
@@ -327,7 +461,9 @@ describe('principle 7.6 - no memorisation chrome anywhere in Discover', () => {
 
     for (const path of [
       '/discover',
-      `/discover/category/${HEALING.id}`,
+      '/discover/collection/prayers',
+      '/discover/collection/hidden-words',
+      `/discover/collection/prayers/category/${HEALING.id}`,
       `/discover/passage/${blessed.id}`,
     ]) {
       cleanup()

@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 import { TabBar } from '../components/TabBar'
 import { CategoryScreen } from '../features/discover/CategoryScreen'
+import { CollectionScreen } from '../features/discover/CollectionScreen'
 import { DiscoverScreen } from '../features/discover/DiscoverScreen'
 import { ReadingScreen } from '../features/discover/ReadingScreen'
 import { LogScreen } from '../features/log/LogScreen'
@@ -52,7 +53,11 @@ export function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/discover" replace />} />
               <Route path="/discover" element={<DiscoverScreen />} />
-              <Route path="/discover/category/:tagId" element={<CategoryScreen />} />
+              <Route path="/discover/collection/:collection" element={<CollectionScreen />} />
+              <Route
+                path="/discover/collection/:collection/category/:tagId"
+                element={<CategoryScreen />}
+              />
               <Route path="/discover/passage/:passageId" element={<ReadingScreen />} />
               <Route path="/memorise" element={<MemoriseScreen />} />
               <Route path="/log" element={<LogScreen />} />

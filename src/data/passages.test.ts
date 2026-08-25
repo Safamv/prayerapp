@@ -3,15 +3,22 @@ import { addToList } from './userPrayers'
 import { putPassageSegments, putPassages, putPassageTags, putTags } from './corpus'
 import { resetDatabase } from './db'
 import { makePassage, makeRuhiPassage, makeSegment, makeTag } from './fixtures'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import {
+  addPassageToList,
   countDevotionalPassages,
+  countDevotionalPassagesByCollection,
+  DEVOTIONAL_COLLECTIONS,
   getDevotionalPassage,
   isDevotional,
   isOnList,
   listDevotionalPassages,
   listDevotionalPassagesByCollection,
+  listDevotionalPassagesByCollectionAndTag,
   listDevotionalPassagesByTag,
   listSegmentsForDevotionalPassage,
+  removePassageFromList,
 } from './passages'
 
 /**
@@ -178,5 +185,115 @@ describe('principle 7.6 - isOnList answers a yes or no and nothing more', () => 
     await addToList(USER, passage.id)
 
     expect(typeof (await isOnList(USER, passage.id))).toBe('boolean')
+  })
+})
+
+/**
+ * The collections, which decision D4.1 turned from a `[v1.0]` idea into the
+ * library's first screen.
+ */
+describe('the collections', () => {
+  it('lists them in the order scope 6.1 lists them, and excludes Ruhi', () => {
+    expect(DEVOTIONAL_COLLECTIONS).toEqual([
+      'prayers',
+      'hidden-words',
+      'gleanings',
+      'prayers-and-meditations',
+    ])
+    expect(DEVOTIONAL_COLLECTIONS).not.toContain('ruhi')
+  })
+
+  it('names every collection the committed corpus actually contains', () => {
+    // A fifth feed added to the corpus fails here rather than quietly becoming
+    // unreachable, which is the failure this constant exists to prevent.
+    const dir = join(import.meta.dirname, 'corpus-data')
+    const found = new Set<string>()
+    for (const file of [
+      'prayers.json',
+      'hidden-words.json',
+      'gleanings.json',
+      'prayers-and-meditations.json',
+    ]) {
+      for (const row of JSON.parse(readFileSync(join(dir, file), 'utf8')) as {
+        collection: string
+      }[]) {
+        found.add(row.collection)
+      }
+    }
+    expect([...found].sort()).toEqual([...DEVOTIONAL_COLLECTIONS].sort())
+  })
+
+  it('counts a collection without reading it', async () => {
+    await putPassages([
+      makePassage({ collection: 'prayers' }),
+      makePassage({ collection: 'prayers' }),
+      makePassage({ collection: 'gleanings' }),
+      makeRuhiPassage(),
+    ])
+
+    expect(await countDevotionalPassagesByCollection('prayers')).toBe(2)
+    expect(await countDevotionalPassagesByCollection('gleanings')).toBe(1)
+    expect(await countDevotionalPassagesByCollection('ruhi')).toBe(0)
+  })
+})
+
+describe('listDevotionalPassagesByCollectionAndTag', () => {
+  it('returns only the passages of that collection carrying that tag', async () => {
+    const tag = makeTag('Healing')
+    const prayer = makePassage({ title: 'A prayer', collection: 'prayers' })
+    const gleaning = makePassage({ title: 'A gleaning', collection: 'gleanings' })
+    await putTags([tag])
+    await putPassages([prayer, gleaning])
+    await putPassageTags([
+      { passage_id: prayer.id, tag_id: tag.id },
+      { passage_id: gleaning.id, tag_id: tag.id },
+    ])
+
+    const found = await listDevotionalPassagesByCollectionAndTag('prayers', tag.id)
+    expect(found.map((row) => row.title)).toEqual(['A prayer'])
+  })
+
+  it('returns nothing for the Ruhi collection, however it is asked', async () => {
+    const tag = makeTag('Healing')
+    const quotation = makeRuhiPassage()
+    await putTags([tag])
+    await putPassages([quotation])
+    await putPassageTags([{ passage_id: quotation.id, tag_id: tag.id }])
+
+    expect(await listDevotionalPassagesByCollectionAndTag('ruhi', tag.id)).toEqual([])
+  })
+})
+
+describe('addPassageToList and removePassageFromList', () => {
+  it('adds, and reports nothing that could become chrome on a reading screen', async () => {
+    const passage = makePassage()
+    await putPassages([passage])
+
+    const result = await addPassageToList('user-1', passage.id)
+
+    expect(result).toBeUndefined()
+    expect(await isOnList('user-1', passage.id)).toBe(true)
+  })
+
+  it('adds once however many times it is called', async () => {
+    const passage = makePassage()
+    await putPassages([passage])
+
+    await addPassageToList('user-1', passage.id)
+    await addPassageToList('user-1', passage.id)
+
+    expect(await isOnList('user-1', passage.id)).toBe(true)
+  })
+
+  it("undoes an add, and leaves another device's list alone", async () => {
+    const passage = makePassage()
+    await putPassages([passage])
+    await addPassageToList('user-1', passage.id)
+    await addPassageToList('user-2', passage.id)
+
+    await removePassageFromList('user-1', passage.id)
+
+    expect(await isOnList('user-1', passage.id)).toBe(false)
+    expect(await isOnList('user-2', passage.id)).toBe(true)
   })
 })
