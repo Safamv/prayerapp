@@ -1,4 +1,5 @@
 import { nowInstant } from './clock'
+import { clearPassageSegments } from './corpus'
 import { db } from './db'
 import { newId } from './ids'
 import type { UserPrayerRow, UserPrayerStatus } from './types'
@@ -50,13 +51,21 @@ export async function addToList(
 
 /**
  * Removes the passage from the list and, with it, every trace of having worked
- * on it: the segment progress and the review history go too. Leaving orphaned
- * progress behind would resurrect a half-learnt state if the passage were ever
- * re-added, which is not what "remove" means to the person tapping it.
+ * on it: the lines it was split into, the progress against them, and the review
+ * history all go too. Leaving orphaned progress behind would resurrect a
+ * half-learnt state if the passage were ever re-added, which is not what
+ * "remove" means to the person tapping it.
+ *
+ * **The lines go with it** because segmentation happens at the moment of adding
+ * (scope 8.4) and belongs to the add: the library ships unsegmented, and a
+ * passage taken off the list is back to being a passage in the library. Session
+ * 5 added that, when the undo of decision D4.10 became a way of undoing a
+ * segmentation the user had just confirmed.
  */
 export async function removeFromList(userId: string, passageId: string): Promise<void> {
   await db.transaction(
     'rw',
+    db.passages,
     db.user_prayers,
     db.passage_segments,
     db.segment_progress,
@@ -76,6 +85,7 @@ export async function removeFromList(userId: string, passageId: string): Promise
         .equals(userId)
         .filter((row) => segmentIds.has(row.segment_id))
         .delete()
+      await clearPassageSegments(passageId)
     },
   )
 }
