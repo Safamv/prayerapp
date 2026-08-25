@@ -1452,3 +1452,35 @@ order you made them in, so when session 7 gives you the screen, the bookmarks yo
 be in it and in a sensible order rather than arriving unordered.
 
 ---
+
+### D4.14 — The model and effort line is a requirement of the handoff, not a habit of it
+
+**Raised by Safa, 25 August 2026**, after session 4's handoff gave him a prompt with no model or
+effort on it.
+
+**What went wrong.** `/docs/session-prompt-template.md` has carried
+`Recommended: <Sonnet|Opus> / <Normal|High|Max> effort` as the first line of the template since
+session 0, and scope section 16's build sequence table has carried a Model and an Effort column for
+every session. Both were read. The line was dropped anyway, because CLAUDE.md section 5, which is
+the file actually in front of an agent while it writes the handoff, listed seven requirements for
+the next session's prompt and this was not among them. The template is read once, when writing the
+prompt; CLAUDE.md is read at the start of every session.
+
+**Why it matters more than a missing line.** It is the first thing Safa acts on, before he has read
+a word of the prompt, and it is the one part of it he cannot supply himself: the build sequence
+table is in the repository, not in front of him. A prompt without it stops the session before it
+starts and costs a round trip.
+
+**The fix, in the file that is always loaded.** CLAUDE.md section 5, handoff item 3, now opens with
+it and says a prompt without it is to be reissued rather than explained. The template's own
+paragraph on model and effort now says the same thing and names the session it was dropped in, so
+the reason survives the next person who wonders why it is stated three times.
+
+**This is a change to the build contract rather than to the scope**, made on Safa's explicit
+instruction ("make sure each session gives me that information with the prompt"). One `git revert`
+away if unwanted.
+
+**What this means for you.** Every prompt from here opens with the model and effort to switch to.
+Session 5 is Opus at Max effort.
+
+---
