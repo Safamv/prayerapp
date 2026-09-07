@@ -31,9 +31,31 @@
  */
 const wordCount = (count: number) => (count === 1 ? '1 WORD' : `${String(count)} WORDS`)
 
+/**
+ * The count of lines, in the caps slot. Written once and read from both places
+ * that show one: the add moment, where it says how many lines a passage will be
+ * learnt in, and today's queue, where it says how many of them today holds.
+ */
+const lineCount = (count: number) => (count === 1 ? '1 LINE' : `${String(count)} LINES`)
+
+/**
+ * Scope 11.5's word for the third upkeep state, written once so that the
+ * vocabulary table and the control that sets it can never disagree.
+ */
+const upkeepResting = 'Resting'
+
+/**
+ * The app's own name in the caps slot, which is the eyebrow above the title on
+ * every top-level tab screen (design-tokens 5.1, tall header). Written once so
+ * that Discover and Memorise cannot come to carry different words there.
+ */
+const appNameEyebrow = 'BY HEART'
+
 export const strings = {
   /** Scope 3.3. Pencilled, and cheap to change until a domain is bought. */
   appName: 'By Heart',
+  /** The same name in the caps slot, for the tall header's eyebrow. */
+  appNameEyebrow,
 
   /** Scope 3.1. Caps slot, so written in capitals (design-tokens 2.3). */
   tabs: {
@@ -63,9 +85,76 @@ export const strings = {
     freshnessFading: 'Fading',
     /** Scope 11.5 deleted "lapsed": it judges the user, which principle 7.1 forbids. */
     freshnessNeedsReview: 'Needs review',
-    upkeepResting: 'Resting',
+    upkeepResting,
     dailyQueue: 'Today',
     streak: 'Days in a row',
+  },
+
+  /**
+   * **Memorise: today's queue, upkeep and focus.** Scope 8.3, 8.5 and 8.6.
+   *
+   * Two rules govern every word here.
+   *
+   * **Nothing counts what was left out.** Principle 7.3: overdue material rolls
+   * forward silently and no discouraging count is ever displayed. There is a
+   * count of today's work, already capped, and there is no other number.
+   *
+   * **When the queue is done, it is done.** Scope 8.3 forbids a "study more"
+   * prompt by name, so the finished state is a statement and not an invitation.
+   */
+  memorise: {
+    /** Section header above today's queue. Scope 11.5's word, in the caps slot. */
+    todaySection: 'TODAY',
+    /** How many lines today holds. Already capped, so it can only ever be small. */
+    lineCount,
+    /**
+     * The finished day. A statement, with nothing offered after it: scope 8.3,
+     * "When the queue is done, it is done. No study more prompt."
+     */
+    done: 'You are up to date.',
+    /** A user who has not added anything yet, told where adding happens. */
+    emptyList: 'Nothing on your list yet. Add a passage from Discover when you want to learn it.',
+    /** Section header above the passages on the list, each a door to its upkeep. */
+    upkeepSection: 'UPKEEP',
+
+    /**
+     * Scope 8.6: "a persistent line on the Memorise tab states what is paused
+     * and when focus lifts." Named where there is one passage, counted where
+     * there are several, because five titles in a row is not a line.
+     */
+    focusLine: (what: string, until: string) =>
+      `Focused on ${what}. Everything else is paused until ${until}.`,
+    focusPassageCount: (count: number) => `${String(count)} passages`,
+    /** Scope 8.6: on expiry focus releases automatically and tells the user. */
+    focusEnded: 'Focus has ended. Your whole list is back.',
+  },
+
+  /**
+   * How a passage comes round, and what the user is driving at. Scope 8.5 and
+   * 8.6, on the one screen that sets them.
+   *
+   * The three upkeep captions are the scope's own table in plain words. Nothing
+   * here judges the choice: scope 8.5 is explicit that "the app does not guilt
+   * users for choices it offered them".
+   */
+  upkeep: {
+    section: 'HOW OFTEN IT COMES ROUND',
+    active: 'Active',
+    activeCaption: 'Comes round as often as it needs to.',
+    occasional: 'Occasional',
+    occasionalCaption: 'Comes round about three times less often.',
+    resting: upkeepResting,
+    restingCaption: 'Never comes round. It stays in your log.',
+
+    focusSection: 'FOCUS',
+    focusNote: 'While focus is on, everything else on your list is paused.',
+    focusStart: 'Focus on this passage',
+    focusEnd: 'End focus now',
+    focusDays: 'Days of focus',
+    focusUntil: (until: string) => `Focus lifts on ${until}.`,
+    /** A screen reader needs to know which control the two marks belong to. */
+    fewer: (label: string) => `Fewer: ${label}`,
+    more: (label: string) => `More: ${label}`,
   },
 
   settings: {
@@ -73,6 +162,23 @@ export const strings = {
     open: 'Settings',
     /** Caps slot. Labels the version line a tester reads off their screen. */
     versionEyebrow: 'VERSION',
+
+    /**
+     * Scope 8.3's two caps, which the section calls user-adjustable and which
+     * live here because Settings is the only screen in the app that configures
+     * anything. The captions say what each cap counts, in the app's own word
+     * for a piece of a passage.
+     */
+    queueSection: 'THE DAILY QUEUE',
+    dailyReviewLimit: 'Lines to review each day',
+    dailyReviewLimitCaption: 'Lines you have met before, come round again.',
+    dailyNewLimit: 'New lines each day',
+    dailyNewLimitCaption: 'Lines you have not met yet.',
+    /**
+     * The footer note of design-tokens 5.7. It is the one place the app explains
+     * the cap, and it says what principle 7.3 does rather than what it forbids.
+     */
+    queueNote: 'Anything above the cap waits for another day. Nothing is lost.',
   },
 
   /**
@@ -86,7 +192,7 @@ export const strings = {
    */
   discover: {
     /** Tall header eyebrow on the library's first screen: the app's own name. */
-    eyebrow: 'BY HEART',
+    eyebrow: appNameEyebrow,
     /** Section header above the four collections, which is the library's first screen. */
     collectionsSection: 'COLLECTIONS',
     /** Section header above the alphabetical list of categories (scope 6.1). */
@@ -118,7 +224,7 @@ export const strings = {
      * can be done to them before starting (scope 8.4).
      */
     note: 'These are the lines you will learn, one at a time. Join or split them before you start.',
-    lineCount: (count: number) => (count === 1 ? '1 LINE' : `${String(count)} LINES`),
+    lineCount,
     wordCount,
     /** The one control that carries a word, in the caps slot, so in capitals. */
     join: 'JOIN',
@@ -226,6 +332,11 @@ export const strings = {
     passageList: 'Passages',
     /** The proposed lines on the add moment's screen (scope 8.4). */
     lineList: 'Lines',
+    /** Today's queue, and the list of passages beneath it (scope 8.3, 8.5). */
+    queueList: 'Today',
+    upkeepList: 'Upkeep',
+    /** The three upkeep states, which are one choice rather than three switches. */
+    upkeepOptions: 'How often this passage comes round',
   },
 } as const
 

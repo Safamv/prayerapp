@@ -1798,3 +1798,174 @@ and it corrects itself, once, and says nothing about it.
   build is read back.
 
 ---
+## D6 — Session 6, the daily queue: caps, silent overflow, upkeep and focus
+
+---
+
+### D6.1 — The overflow is not hidden, it is never counted
+
+**Decision.** The function that builds today's queue returns an array of the lines to do and
+nothing else. There is no field in it for how many lines the cap left out, and nothing anywhere in
+the app works the number out.
+
+**Why it came up.** Principle 7.3 is the one the scope calls the single most important requirement
+in the document: "overdue items roll forward silently and no discouraging count is ever displayed."
+Every other spaced repetition app in existence displays exactly that count, so the pull towards it
+is constant, and a later session that has forgotten why would add it in good faith.
+
+**Options considered.**
+
+1. **Compute the count and forbid rendering it** (rejected). The usual arrangement, and it survives
+   exactly as long as the comment above it is read. A queue that knows it dropped 40 lines will
+   eventually show a badge.
+2. **Never compute it** (chosen). The cap is a selection: the lines above it are simply not
+   selected, and nothing counts what was not selected. A number that does not exist cannot be
+   rendered by accident.
+
+There is a test that asserts the shape of what comes back, so adding the field is a failing build
+rather than a code review someone has to notice.
+
+**Reversible.** Trivially, and that is the risk rather than the comfort. It would take one line.
+
+**What this means for you.** If you put the app down for a fortnight and come back, the app shows
+you fifteen lines, exactly as it does on a day you have missed nothing. It will never tell you that
+there were ninety, because you cannot do ninety and being told so helps nobody.
+
+---
+
+### D6.2 — Which lines is decided by urgency, what order they come in is decided by your list
+
+**Decision.** The cap is filled with the most overdue lines from anywhere on the list. Those lines
+are then arranged by where their passage sits on the list, and within a passage by the order the
+lines are learnt in. New lines are taken from the top of the list downward, and a line is never
+offered before the lines above it in its own passage.
+
+**Why it came up.** Scope 8.3 gives a cap and says new and due are mixed rather than separated, and
+says nothing about which fifteen or in what order. Both answers matter and they are different
+questions.
+
+**Options considered.**
+
+- *Fill the cap in list order.* Simple, and it starves the list. A long passage at the top would
+  take every review every day and everything below it would decay untouched for months.
+- *Fill the cap by urgency, arrange the day by list.* Chosen. Selection is fair across the whole
+  list; presentation arrives as prayers rather than as a shuffle of lines from four texts.
+- *Take one new line from each passage in turn.* Rejected. Scope 6.5 says the list "feeds the queue
+  when current material is finished", which is depth first, and scope 8.1's cumulative building
+  learns a passage line by line rather than four passages a line at a time.
+
+**Reversible.** Yes, cheaply. It is two comparison functions and their tests, and no stored data
+depends on either.
+
+**What this means for you.** The prayers you have neglected longest come back first, wherever they
+sit on your list. Within a day, the work arrives one prayer at a time and in the order the lines
+run, rather than jumping between texts. And a new prayer only starts once the one above it on your
+list has no unstarted lines left, so adding six things at once does not mean starting six things at
+once.
+
+---
+
+### D6.3 — Upkeep and focus are set from a roll call on the Memorise tab, not from the queue
+
+**Decision.** The Memorise tab carries two sections: TODAY, which is the queue, and UPKEEP, which
+lists every passage on your list with the state it is in. A row in UPKEEP opens a screen for that
+passage holding the three upkeep states and the focus switch. A row in TODAY does nothing at all
+this session, because the quiz ladder is sessions 8 and 9.
+
+**Why it came up.** This session had to build focus and upkeep so they work, and the two screens
+where they would naturally live are both later: the list screen is session 7 and the passage detail
+view is session 10. So the session had to decide where the door goes, which is item 6 of its own
+brief.
+
+**Options considered.**
+
+1. **A mark on the queue row** (rejected, and this is the one that looks right until you try it). A
+   resting passage is never in the queue and a passage not due today is not either, so the door
+   would shut behind the first passage you put to rest. You would have no way to wake it.
+2. **A control in the reading view** (rejected). Principle 7.6 keeps memorisation chrome out of the
+   prayer book entirely, and "how often does this come round" is memorisation chrome by any reading.
+3. **A roll call on Memorise** (chosen). Everything on your list is reachable whatever state it is
+   in, it is on the memorisation side of the app where it belongs, and it is visible rather than
+   hidden behind a mark a tester would not find.
+
+**What it is not.** It is not the list screen of scope 6.5, and session 7 still builds that. This
+has no reordering, no removing, no statuses and no filtering. It is a way in to upkeep and nothing
+else, and session 7 should feel free to fold it into the list screen or leave it where it is.
+
+**Reversible.** Yes. It is one section of one screen and one route.
+
+**What this means for you.** Open Memorise and you see today's work at the top and, underneath,
+everything you have taken on with a word beside each saying ACTIVE, OCCASIONAL, RESTING or FOCUS.
+Tap one and you get a screen where you can change that, and turn focus on with a number of days.
+The rows under TODAY do not respond to a tap yet: there is nothing behind them until session 8.
+
+---
+
+### D6.4 — What the two caps can be set to, and why a review cap of nought is not allowed
+
+**Decision.** Reviews move between 5 and 50 in steps of 5. New lines move between 0 and 10 in steps
+of 1. A focus runs between 1 and 30 days.
+
+**Why it came up.** Scope 8.3 says the caps are user-adjustable and does not say between what.
+
+**Why these.** The new floor is nought because "no new lines today, just review" is a real thing to
+want and there is no other way to say it. The review floor is five rather than nought because a
+review cap of nought is an app that never shows you anything, which reads as broken rather than as
+restful, and scope 8.5's resting state is the honest way to stop a passage coming round. The focus
+ceiling is thirty days because scope 8.6 is explicit that the expiry exists to stop an open-ended
+focus, and a range stretching to a year would hand that failure straight back.
+
+**Reversible.** Yes, three numbers in `src/config/defaults.ts`.
+
+**What this means for you.** In Settings you can take the day between 5 and 50 lines, and new lines
+between none and ten. These are guesses at a sensible range rather than anything the scope decided,
+so if either end feels wrong when you use it, say so and it is a one line change.
+
+---
+
+### D6.5 — Focus stores the day it lifts, not the last day it holds
+
+**Decision.** `focus_until` is the first day focus is no longer in force. A focus started on the 7th
+with the seven day default stores the 14th and is in force on the 7th through the 13th.
+
+**Why it matters.** It makes "Everything else is paused until 14 September" a true sentence rather
+than a nearly true one, and seven days of focus is exactly seven days.
+
+**The queue checks the date rather than the column.** A passage whose focus has run out is released
+the next time you open the app, which is what tells you. But an app left closed for a month has a
+row still claiming focus, so the queue works out for itself whether focus is in force every time it
+is built. The release is what tells you; it is not what makes it true.
+
+**Reversible.** Yes now. Awkward once real tester data exists, because a stored date would mean two
+different things depending on when it was written.
+
+**What this means for you.** Focus lasts exactly as long as it says on the screen, and if you leave
+the app alone for a month it does not come back still suppressing your list.
+
+---
+
+### D6.6 — Contained decisions
+
+- **`src/queue/` is a new sealed folder**, pure, with no database and no clock, on the pattern
+  `src/text/` set in session 5. Nothing new went into `src/scheduler/`: the queue calls
+  `isSegmentDue`, `isQueueable` and `effectiveIntervalDays` and adds no arithmetic of its own.
+- **The Discover wall grew three entries.** `src/queue/`, `src/data/dailyQueue.ts` and
+  `src/data/upkeep.ts` are all now forbidden to Discover, in the lint rule and in the principle
+  test. A due count and a focus banner are the first two things principle 7.6 names.
+- **The queue row shows the attribution and no word count.** Scope 6.2 puts a word count on a
+  passage row in Discover, where the question is how long a thing is before you read it. On
+  Memorise that question has been answered, and the only number on the screen is how many lines
+  today holds.
+- **A queue row is a passage, not a line.** A line's own text is what the quiz is about to ask for,
+  so listing lines would give the answers away; and three rows carrying the same prayer name tell
+  the reader nothing.
+- **The selection mark is the nine-pointed star**, per design-tokens 5.7, hidden rather than removed
+  when unselected so the rows do not jump. It is the same glyph as the freshness star of
+  design-tokens 4, which session 10 will render and which nothing renders yet.
+- **`14 September` is how the app writes a date**, in a new `src/strings/dates.ts`, beside
+  `attribution.ts` and for the same reason: the day is data but the language is the app's. The build
+  stamp keeps its own format, because one is a sentence and the other is a serial number.
+- **Memorise took the tall navy header** that Discover already had, so the two tab screens are built
+  the same way. The app's name in the caps slot now has one definition rather than two.
+
+---
