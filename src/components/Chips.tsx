@@ -24,23 +24,35 @@ import { typeStyle } from '../theme'
  * size (scope 7.9) four chips do not fit a phone on one line however they are
  * drawn.
  *
- * **The padding is tighter than a button's for a reason.** These sit above a
- * screen of prayers, and three rows of them at button height cost a quarter of a
- * phone before the first bookmark. Design-tokens 5.3's 44px minimum is written
- * about list rows and is met by every row beneath these; scope 7.9 puts the full
- * touch-target audit at `[v1.0]`, and this is one of the things it should look
- * at with a real thumb.
+ * ## The chip you see is smaller than the chip you tap
+ *
+ * A chip drawn 44px tall would be a button, and three rows of buttons above a
+ * screen of prayers costs a quarter of a phone before the first bookmark. A chip
+ * *tapped* at less than 44px is a control a thumb misses, which is the failure
+ * that actually matters on a touch screen.
+ *
+ * So the two are separated. **The `<button>` is the target and measures 44px;
+ * the bordered box inside it is the drawing and measures about 26px.** The extra
+ * height is real and tappable and simply has no ink in it.
+ *
+ * The cost is paid for out of the row's own layout rather than out of the
+ * screen: the rows no longer carry padding between them, because each one now
+ * contains its own generous space, and the label sits in the same wrapping flow
+ * as the chips rather than in a fixed column, which is worth about 74px of width
+ * per row and takes a wrapped row off the screen. Measured in a browser at
+ * 390px, the three rows together are within a few pixels of what they were when
+ * the chips were 26px tall and the targets were too small.
+ *
+ * Note that the targets **must not overlap vertically**, which is why the height
+ * is taken honestly rather than clawed back with a negative margin: a tap in an
+ * overlap would land on whichever row happened to be drawn on top, and choosing
+ * an author while aiming at a collection is worse than a row of tall chips.
  *
  * See decision D7.4.
  */
 
-/**
- * Wide enough for COLLECTION, which is the longest of the three, so all the rows
- * align down one edge. Measured rather than guessed: at 8.5px caps with .16em
- * tracking the word draws 60px, and a column any wider than this is width taken
- * off the chips, which is what makes them wrap onto a second line.
- */
-const LABEL_WIDTH = 62
+/** Design-tokens 5.3's production minimum, which is what a thumb needs. */
+const TOUCH_TARGET = 44
 
 export interface ChipChoice<T> {
   readonly value: T
@@ -61,30 +73,32 @@ export function ChipRow<T>({
   onSelect: (value: T) => void
 }) {
   return (
-    <div className="flex items-baseline" style={{ gap: 12, paddingBottom: 10 }}>
+    <div
+      role="radiogroup"
+      aria-label={ariaLabel}
+      className="flex flex-wrap items-center"
+      style={{ gap: 6 }}
+    >
+      {/* The same word the group is labelled with, so a screen reader is told it
+          once rather than twice. It wraps with the chips rather than sitting in a
+          column beside them; see the note on width above. */}
       <span
+        aria-hidden="true"
         className="flex-none text-on-paper-40"
-        style={{ ...typeStyle('rowAttribution'), width: LABEL_WIDTH }}
+        style={{ ...typeStyle('rowAttribution'), marginRight: 6 }}
       >
         {label}
       </span>
-      <div
-        role="radiogroup"
-        aria-label={ariaLabel}
-        className="flex min-w-0 flex-1 flex-wrap"
-        style={{ gap: 6 }}
-      >
-        {choices.map((choice) => (
-          <Chip
-            key={String(choice.value)}
-            label={choice.label}
-            selected={choice.value === selected}
-            onSelect={() => {
-              onSelect(choice.value)
-            }}
-          />
-        ))}
-      </div>
+      {choices.map((choice) => (
+        <Chip
+          key={String(choice.value)}
+          label={choice.label}
+          selected={choice.value === selected}
+          onSelect={() => {
+            onSelect(choice.value)
+          }}
+        />
+      ))}
     </div>
   )
 }
@@ -109,18 +123,23 @@ function Chip({
       role="radio"
       aria-checked={selected}
       onClick={onSelect}
-      className={
-        selected
-          ? 'border border-deep bg-field text-accent'
-          : 'border border-rule-str text-on-paper-60'
-      }
-      style={{
-        ...typeStyle('rowAttribution'),
-        padding: '6px 8px',
-        boxShadow: selected ? 'inset 0 1px 0 var(--letterpress)' : undefined,
-      }}
+      className="flex items-center"
+      style={{ minHeight: TOUCH_TARGET }}
     >
-      {label}
+      <span
+        className={
+          selected
+            ? 'border border-deep bg-field text-accent'
+            : 'border border-rule-str text-on-paper-60'
+        }
+        style={{
+          ...typeStyle('rowAttribution'),
+          padding: '6px 8px',
+          boxShadow: selected ? 'inset 0 1px 0 var(--letterpress)' : undefined,
+        }}
+      >
+        {label}
+      </span>
     </button>
   )
 }

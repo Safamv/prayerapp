@@ -87,12 +87,25 @@ export interface BookmarkedPassage {
  * A bookmark whose passage has left the corpus is dropped rather than shown, the
  * way the list does it (decision D5.9), and a Ruhi quotation cannot appear
  * because the read goes through the devotional door (decision D1.10).
+ *
+ * **One row per passage, whatever the table holds.** `addBookmark` is idempotent
+ * and `[user_id+passage_id]` is an index rather than a unique constraint, so a
+ * second row for the same passage is something the schema permits and the app
+ * does not create. v1.0 sync merging two devices is the way one would arrive,
+ * and it is not worth finding out then: a screen drawing two rows for one prayer
+ * would also be drawing two rows with the same identity, and the one you dragged
+ * would not be the one that moved. The earliest place in the arrangement wins,
+ * because that is the one the user put there.
  */
 export async function listBookmarkedPassages(userId: string): Promise<BookmarkedPassage[]> {
   const rows = await db.bookmarks.where('user_id').equals(userId).toArray()
   rows.sort((a, b) => a.sort_order - b.sort_order)
+
+  const seen = new Set<string>()
   const found = await Promise.all(
     rows.map(async (bookmark) => {
+      if (seen.has(bookmark.passage_id)) return null
+      seen.add(bookmark.passage_id)
       const passage = await getDevotionalPassage(bookmark.passage_id)
       return passage === undefined ? null : { bookmark, passage }
     }),

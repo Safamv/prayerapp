@@ -9,7 +9,7 @@ import {
   reorderBookmarks,
 } from './bookmarks'
 import { putPassages } from './corpus'
-import { resetDatabase } from './db'
+import { db, resetDatabase } from './db'
 import { makePassage, makeRuhiPassage } from './fixtures'
 
 /**
@@ -171,6 +171,26 @@ describe('reading the screen of scope 6.7', () => {
 
     const shown = await listBookmarkedPassages(USER)
     expect(shown.map((entry) => entry.passage.title)).toEqual(['Apex'])
+  })
+
+  it('draws one row per passage even if the table somehow holds two', async () => {
+    // `addBookmark` cannot make a second row for the same passage, and nothing in
+    // the app can. v1.0 sync merging two devices could, and a screen with two
+    // rows for one prayer would have two rows with one identity: the one you
+    // dragged would not be the one that moved.
+    await addBookmark(USER, first.id)
+    await db.bookmarks.put({
+      id: 'a-second-row-for-the-same-passage',
+      user_id: USER,
+      passage_id: first.id,
+      created_at: '2026-01-01T00:00:00.000Z',
+      sort_order: 9,
+    })
+
+    const shown = await listBookmarkedPassages(USER)
+    expect(shown).toHaveLength(1)
+    // The earliest place in the arrangement wins: it is the one the user put there.
+    expect(shown[0]?.bookmark.sort_order).toBe(0)
   })
 
   it('reads only this user\u2019s bookmarks', async () => {

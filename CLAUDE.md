@@ -24,7 +24,7 @@ in the current release. Read those passages for context. Do not build what they 
 
 | File | What it owns |
 |---|---|
-| `/docs/scope.md` | Behaviour, information architecture, data model, vocabulary, release scope. Currently v4.3. |
+| `/docs/scope.md` | Behaviour, information architecture, data model, vocabulary, release scope. Currently v4.4. |
 | `/docs/design-tokens.md` | Colour, typography, spacing, iconography, motion, construction patterns |
 | `/docs/decisions.md` | Append-only. Decisions taken during the build, and contradictions found in the scope |
 | `/docs/sessions.md` | Append-only. One entry per build session |
@@ -46,8 +46,8 @@ session plan will remind you of them, and a breach looks like ordinary correct w
 
 **7.6 — Memorisation chrome never appears in Discover.** No due counts, no focus banner, no streak,
 no freshness state, no progress indicator anywhere in the library, the category lists, the search
-results, or the reading view. All of it lives in Memorise and Log only. This protects the devotional
-half of the product. Opening the app at a gathering and being met with "3 due today" turns worship
+results, or the reading view. All of it lives in Memorise only (scope 3.1: Log stopped being a tab
+in scope v4.4 and section 11 renders on Memorise). This protects the devotional half of the product. Opening the app at a gathering and being met with "3 due today" turns worship
 into a chore reminder.
 
 **7.8 — No social layer.** No leaderboards, friends, sharing, groups or comparison. This is

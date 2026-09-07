@@ -1,13 +1,44 @@
 # By Heart
 ## Bahá'í Prayer and Memorisation App
-### Scope Document v4.3
+### Scope Document v4.4
 
 **Status:** Agreed, ready to build
-**Date:** 25 August 2026
+**Date:** 8 September 2026
 **Owner:** Safa
-**Supersedes:** v4.2 (24 August 2026)
+**Supersedes:** v4.3 (25 August 2026)
 **Repo path:** `/docs/scope.md`
 **Spelling:** Australian English throughout
+
+---
+
+## Why 4.4
+
+v4.4 changes the navigation and nothing else. It was issued by Claude Code on Safa's instruction
+during build session 7, the third departure from the rule in CLAUDE.md section 2 that only Safa
+revises this document. Recorded in `/docs/decisions.md` D7.1.
+
+What prompted it: session 7 built Bookmarks and My list and asked where each should be reached from,
+since neither had a door. Safa answered with a shape for the whole tab bar rather than two doors:
+**the devotional half of the app on the left, the activity half on the right.** In his words, "i
+want the left half of the nav icons to be library buttons that when using the app to pray you use
+those and the right side is the memorising and activity side."
+
+**What changed:**
+
+1. **Section 3.1 is rewritten**, from three tabs to four, and the four are not the old three plus
+   one. Decision 18.32.
+2. **Log stops being a tab.** Everything it was to hold - what you know, freshness, the streak, the
+   passage detail of section 11 - moves onto the Memorise tab, which becomes the whole activity side
+   of the app. Nothing is descoped: section 11 is unchanged in substance. Decision 18.33.
+3. **Bookmarks becomes a tab** (6.7), and **Recents becomes a tab at v1.0** (6.4), in the left pair.
+   **They stay separate**, which was asked and answered: they are near neighbours and they are not
+   the same list. Decision 18.34.
+4. **Discover is called "Devotions"** on screen. The internal name stays `discover` everywhere,
+   because that is the name principle 7.6's enforcement is written against. Decision 18.35.
+5. **Sections 6.4, 6.7, 14 and 16 updated** to match.
+
+No requirement has left V0 and none has entered it. This is where things are reached from, not what
+the app does.
 
 ---
 
@@ -181,13 +212,39 @@ fails and the app becomes a memorisation tool with a bad reader attached.
 Both halves are first class. Reading is not a concession to memorisation and memorisation is not a
 bolt-on to reading.
 
-### 3.1 Three tabs
+### 3.1 Four tabs, in two halves
 
-| Tab | Purpose |
-|---|---|
-| **Discover** | The library. Browse, read, search, bookmark, recents. Devotional surface. |
-| **Memorise** | Today's queue, the learning flow, focus mode. |
-| **Log** | What you know, freshness, streak, passage detail. |
+**The bar is split down the middle. The left half is what you open to pray; the right half is
+everything you do about learning.** That division is the point of the arrangement and it is what any
+future tab has to answer to.
+
+| Tab | Half | Purpose | Ships |
+|---|---|---|---|
+| **Devotions** | Prayer book | The library. Browse, read, search, bookmark. Devotional surface. | V0 |
+| **Recents** | Prayer book | Every passage opened in the reading view, newest first (6.4). | **[v1.0]** |
+| **Bookmarks** | The work you keep | The passages you have kept a place in (6.7). | V0 |
+| **Memorise** | The work | Today's queue, the learning flow, focus mode, My list, and everything section 11 describes: what you know, freshness, the streak and the passage detail. Settings is reached from here. | V0 |
+
+**V0 ships three of them**, because Recents needs a `reading_history` table that V0 does not have
+(6.4, and it is `[v1.0]` for reasons that have not changed). The bar reads DEVOTIONS, BOOKMARKS,
+MEMORISE until Recents arrives.
+
+**There is no Log tab.** v4.3 had one and it was a mistake of arrangement rather than of substance:
+Memorise and Log are two halves of one question, and a person looking at today's work and a person
+looking at how they are going are the same person on the same screen. Section 11 is unchanged and
+still ships in full; the Memorise tab is where it renders. Principle 7.6's "all of it lives in
+Memorise and Log only" now names one place instead of two, which makes it stronger.
+
+**Recents and Bookmarks are separate tabs and do not merge.** They are neighbours in the left half
+and they answer different questions: Recents is what you happened to open, Bookmarks is what you
+chose to keep. Folding them into one screen was proposed and rejected.
+
+**Devotions is a label, not a rename.** The tab reads "Devotions"; the internal name stays
+`discover` in every folder, route and identifier, because that is the name principle 7.6's
+enforcement matches on and a wall that moves when a word changes is not a wall.
+
+**Four 80px tab items do not fit a 360px phone** at the measurements design-tokens 5.6 gives. The
+items narrow when Recents lands; until then the bar is three and the tokens document is unchanged.
 
 ### 3.2 The Ruhi wedge
 
@@ -349,7 +406,7 @@ can differ between the appearances. See 18.26.
   surface and stays at v1.0.
 - Add a single quotation, a whole section, or a whole book to the list in one action.
 - **[v1.0]** **Progress per Ruhi book.** "4 of 7 quotations from Book 1 committed to memory." A
-  natural completion unit, not a leaderboard. Lives in Log, never in Discover.
+  natural completion unit, not a leaderboard. Lives on the Memorise tab (3.1), never in Discover.
 
 **Scope:** Books 1 to 3 at v0.1, as one build session. The curation is no longer the slowest
 non-code item in the project, because it is largely done. See 5.1 for its status and what is still
@@ -421,6 +478,10 @@ Full-text search across the whole corpus, local and offline.
 Every passage opened in the reading view is recorded. The Recents list is chronological, with **the
 ability to clear the whole list or delete individual entries**.
 
+**It is a tab**, in the devotional half of the bar, beside Devotions and Bookmarks (3.1). It is
+**not** merged with Bookmarks: what you happened to open and what you chose to keep are different
+questions, and a screen answering both answers neither well.
+
 Recents is the single most useful navigation aid for the devotional case: you read something at a
 gathering and want to find it again on Tuesday.
 
@@ -462,6 +523,10 @@ The passages a user has kept a place in. Deliberately separate from the list, an
 reason: a bookmark is "find this again on Sunday", the list is "I intend to learn this" (6.6). They
 share no state.
 
+**It is a tab** (3.1), in the devotional half of the bar. My list is not: it is reached from
+Memorise, because a list of things you have committed to learn is memorisation and principle 7.6
+keeps that out of the prayer book.
+
 - **Filterable** and **sortable**.
 - **Reorderable by hand**, by dragging.
 
@@ -501,7 +566,7 @@ sacred text used as a congratulation message.
 
 **7.6 Memorisation chrome never appears in Discover.** No due counts, no focus banner, no streak, no
 freshness state, no progress indicator anywhere in the library, the category lists, the search
-results or the reading view. All of it lives in Memorise and Log only.
+results or the reading view. All of it lives in Memorise only (3.1).
 
 *This is the principle that protects the devotional case. Opening the app at a gathering and being
 met with "3 due today" turns worship into a chore reminder. Specific consequences: no numeric badge
@@ -978,7 +1043,7 @@ and whether the app is pleasant to hold.
 - [ ] Quiz levels 1 to 6
 - [ ] Milestone screen and whole-passage promotion
 - [ ] Self-rating
-- [ ] Log with freshness states and passage detail
+- [ ] Freshness states and passage detail, on the Memorise tab (3.1)
 - [ ] Daily streak
 - [ ] Version number visible in Settings
 - [ ] Principle 7.6 enforced, by test
@@ -1086,7 +1151,7 @@ the scope sections to read. See `/docs/session-prompt-template.md`.
 | 7 | **The two ordered lists**: Bookmarks and My list. Filter, sort, and drag to reorder, with the manual order remembered (6.5, 6.7) | Opus | Max | 0.7.0 |
 | 8 | Chip quiz components: levels 2, 3 and 4 | Opus | Max | 0.8.0 |
 | 9 | Recite-and-reveal levels 5 and 6, milestone screen, whole-passage promotion | Opus | Max | 0.9.0 |
-| 10 | Log, freshness states, streak, passage detail view, version display | Sonnet | High | 0.10.0 |
+| 10 | Freshness states, streak, passage detail view and version display, rendered onto the Memorise tab (3.1) | Sonnet | High | 0.10.0 |
 
 **Why the two ordered lists are one session, and why session 7.** Bookmarks and My list are the
 same interaction on different material: a list of passages you can filter, sort and drag. Built
@@ -1205,3 +1270,7 @@ Structured conversations with the soft-launch group. Two questions carry the mos
 | 18.29 | **The hand-arranged order is one of the sort options, and it is remembered** | Applies to Bookmarks (6.7) and My list (6.5). If choosing another sort destroyed the arrangement, one tap on a sort control would silently undo work the user did by hand, and dragging would stop feeling safe | Safa | 25 Aug 2026 |
 | 18.30 | **`sort_order` added to `bookmarks`** | A hand-arranged order needs somewhere to live. Added before any tester has data on a device, so it costs nothing now and would cost a migration later | Safa | 25 Aug 2026 |
 | 18.31 | **One build session added: the two ordered lists, at session 7** | Bookmarks and My list are the same interaction on different material and are built once rather than twice. Sessions 7 to 9 become 8 to 10 and Ruhi becomes 11; V0's fortnight of real use begins one session later, weighed and accepted | Safa | 25 Aug 2026 |
+| 18.32 | **Four tabs in two halves: Devotions and Recents on the left, Bookmarks and Memorise on the right** | The bar had no principle behind its order. It has one now: what you open to pray sits on the left, what you do about learning sits on the right, and a future tab has to answer to that division. V0 ships three, because Recents needs a table V0 does not have | Safa | 7 Sep 2026 |
+| 18.33 | **Log stops being a tab; section 11 renders on the Memorise tab** | Two halves of one question do not want two tabs. A person looking at today's work and a person looking at how they are going are the same person on the same screen, and principle 7.6's "Memorise and Log only" becomes one place instead of two. Nothing is descoped: section 11 ships in full, in session 10, onto Memorise | Safa | 7 Sep 2026 |
+| 18.34 | **Recents and Bookmarks are separate tabs and do not merge** | Proposed and rejected. They are neighbours in the devotional half and they answer different questions: Recents is what you happened to open, Bookmarks is what you chose to keep. A screen answering both answers neither well | Safa | 8 Sep 2026 |
+| 18.35 | **The first tab reads "Devotions"; the internal name stays `discover`** | "Prayers" would have collided with the collection of that name inside it, and the library is 975 passages of which 472 are prayers. The internal name is untouched because it is what principle 7.6's enforcement matches on, in `eslint.config.js` and `discover-isolation.test.ts`, and a wall that moves when a label changes is not a wall | Safa | 7 Sep 2026 |
