@@ -100,7 +100,43 @@ const NAMED_TABLETS: Readonly<Record<number, string>> = {
   8265: 'Súrih of Remembrance',
   8266: 'Súrih of Sorrows',
   8269: 'Tablet of the Birth',
-  13691: 'Epistle to the Son of the Wolf',
+}
+
+/**
+ * Records the prayers feed carries that are not prayers, mapped to what they
+ * actually are, and left out of the corpus entirely (decision D5.7, Safa,
+ * 7 September 2026).
+ *
+ * The Epistle to the Son of the Wolf is a book: 46,232 words, the last work
+ * Bahá'u'lláh revealed, and forty times longer than anything else in the feed.
+ * It is a prayer book entry only in the sense that the feed had nowhere else to
+ * put it. Adding it to a memorisation list proposed 2,138 lines, which is not a
+ * thing anyone will ever confirm, and reading it in a view built for a prayer is
+ * not how anyone reads it either.
+ *
+ * Excluding it here rather than filtering it in the app is deliberate: the app
+ * should never hold a record it is not prepared to show on every surface.
+ */
+export const EXCLUDED_PRAYERS: Readonly<Record<number, string>> = {
+  13691: 'Epistle to the Son of the Wolf, a book rather than a prayer',
+}
+
+/**
+ * Above this, a record is a book and the fetch script stops rather than
+ * committing it (see `fetch-corpus.ts`). The longest passage that remains is
+ * 5,665 words, so the threshold sits with a wide margin either side of it and
+ * is a tripwire rather than a judgement about length.
+ *
+ * It exists because the exclusion above is a list of one, and a list of one is
+ * a list somebody forgets to add to. A second book arriving in a later feed
+ * fails the fetch loudly instead of quietly becoming 2,000 lines nobody asked
+ * for.
+ */
+export const BOOK_LENGTH_WORDS = 10000
+
+/** Whether the feed record is one of the excluded works above. */
+export function isExcludedPrayer(id: number): boolean {
+  return id in EXCLUDED_PRAYERS
 }
 
 /**

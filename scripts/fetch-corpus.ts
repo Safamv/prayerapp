@@ -3,6 +3,8 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
+  BOOK_LENGTH_WORDS,
+  isExcludedPrayer,
   normaliseGleaning,
   normaliseHiddenWord,
   normalisePrayer,
@@ -63,6 +65,31 @@ function byId<T extends { Id: number }>(rows: readonly T[]): T[] {
   return [...rows].sort((a, b) => a.Id - b.Id)
 }
 
+/**
+ * Stops the fetch if a passage is long enough to be a book (decision D5.7).
+ *
+ * The exclusion list in `normalise.ts` names the one the feed carries today. A
+ * list of one is a list somebody forgets to add to, so this is the tripwire
+ * underneath it: a second book arriving in a later feed fails the fetch by name
+ * rather than quietly becoming a passage nobody can read or learn.
+ */
+function refuseBooks(passages: readonly PassageRow[]): void {
+  const books = passages.filter((passage) => passage.word_count > BOOK_LENGTH_WORDS)
+  if (books.length === 0) return
+
+  const named = books
+    .map(
+      (book) =>
+        `${book.source_feed} ${book.source_id} "${book.title}" (${String(book.word_count)} words)`,
+    )
+    .join('\n  ')
+  throw new Error(
+    `The feed carries a passage longer than ${String(BOOK_LENGTH_WORDS)} words, which is a book ` +
+      `rather than a prayer:\n  ${named}\nAdd it to EXCLUDED_PRAYERS in scripts/lib/normalise.ts, ` +
+      `or raise BOOK_LENGTH_WORDS if it genuinely belongs in the corpus.`,
+  )
+}
+
 /** Stable, readable JSON: sorted rows, two-space indent, trailing newline. */
 function toJsonFile(value: unknown): string {
   return `${JSON.stringify(value, null, 2)}\n`
@@ -90,7 +117,9 @@ async function main(): Promise<void> {
     throw new Error(`The prayers feed reported an error: ${prayerFeed.ErrorMessage}`)
   }
 
-  const sortedPrayers = byId(prayerFeed.Prayers)
+  // Decision D5.7: the feed carries one book among the prayers, and it is left
+  // out here rather than filtered in the app.
+  const sortedPrayers = byId(prayerFeed.Prayers).filter((prayer) => !isExcludedPrayer(prayer.Id))
   const prayers: PassageRow[] = sortedPrayers.map(normalisePrayer)
   const hiddenWords: PassageRow[] = byId(rawHiddenWords).map(normaliseHiddenWord)
   const gleanings: PassageRow[] = byId(rawGleanings).map(normaliseGleaning)
@@ -101,6 +130,8 @@ async function main(): Promise<void> {
     OBLIGATORY_PRAYERS_TAG,
   ]
   const passageTags: PassageTagRow[] = sortedPrayers.flatMap(passageTagLinksForPrayer)
+
+  refuseBooks([...prayers, ...hiddenWords, ...gleanings, ...prayersAndMeditations])
 
   const files: readonly { name: string; records: readonly unknown[] }[] = [
     { name: 'prayers.json', records: prayers },
