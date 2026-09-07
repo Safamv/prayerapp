@@ -2,7 +2,13 @@ import { nowInstant } from './clock'
 import { clearPassageSegments } from './corpus'
 import { db } from './db'
 import { newId } from './ids'
-import type { UserPrayerRow, UserPrayerStatus } from './types'
+import type {
+  PassageSegmentRow,
+  ReviewLogRow,
+  SegmentProgressRow,
+  UserPrayerRow,
+  UserPrayerStatus,
+} from './types'
 
 /**
  * `user_prayers`: what the user has taken on, and how it is going.
@@ -50,6 +56,34 @@ export async function addToList(
 }
 
 /**
+ * `takeOffList` for a caller with nothing to undo with, which is the undo offered
+ * in the moment of adding (decision D4.10). It throws the snapshot away rather
+ * than doing anything different, so the two can never diverge in what they
+ * destroy.
+ */
+export async function removeFromList(userId: string, passageId: string): Promise<void> {
+  await takeOffList(userId, passageId)
+}
+
+/**
+ * Everything a removal threw away, kept whole so it can be put back.
+ *
+ * Scope 6.5 makes removing permanent and frictionless, so there is no "are you
+ * sure" in front of it. What stands behind it instead is the band of decision
+ * D4.10 with an Undo in it, and an Undo is only honest if the thing it undoes
+ * can actually be restored. A passage removed after three weeks has lines,
+ * progress against every one of them and a review history, and all three are
+ * gone the instant the row is. This is that, held in memory for as long as the
+ * band is on screen and dropped with it.
+ */
+export interface RemovedFromList {
+  readonly userPrayer: UserPrayerRow
+  readonly segments: readonly PassageSegmentRow[]
+  readonly progress: readonly SegmentProgressRow[]
+  readonly reviews: readonly ReviewLogRow[]
+}
+
+/**
  * Removes the passage from the list and, with it, every trace of having worked
  * on it: the lines it was split into, the progress against them, and the review
  * history all go too. Leaving orphaned progress behind would resurrect a
@@ -61,8 +95,62 @@ export async function addToList(
  * passage taken off the list is back to being a passage in the library. Session
  * 5 added that, when the undo of decision D4.10 became a way of undoing a
  * segmentation the user had just confirmed.
+ *
+ * **It hands back what it took**, so the list screen of scope 6.5 can offer an
+ * Undo that genuinely puts the passage back where it was rather than adding a
+ * fresh one with nothing learnt of it. `null` means there was nothing on the
+ * list to remove, which is what a second tap on the same row would find.
  */
-export async function removeFromList(userId: string, passageId: string): Promise<void> {
+export async function takeOffList(
+  userId: string,
+  passageId: string,
+): Promise<RemovedFromList | null> {
+  return db.transaction(
+    'rw',
+    db.passages,
+    db.user_prayers,
+    db.passage_segments,
+    db.segment_progress,
+    db.review_log,
+    async () => {
+      const userPrayer = await db.user_prayers
+        .where('[user_id+passage_id]')
+        .equals([userId, passageId])
+        .first()
+      if (userPrayer === undefined) return null
+
+      const segments = await db.passage_segments.where('passage_id').equals(passageId).toArray()
+      const segmentIds = new Set(segments.map((segment) => segment.id))
+      const progress = await db.segment_progress
+        .where('user_id')
+        .equals(userId)
+        .filter((row) => segmentIds.has(row.segment_id))
+        .toArray()
+      const reviews = await db.review_log
+        .where('user_id')
+        .equals(userId)
+        .filter((row) => segmentIds.has(row.segment_id))
+        .toArray()
+
+      await db.user_prayers.delete(userPrayer.id)
+      await db.segment_progress.bulkDelete(progress.map((row) => row.id))
+      await db.review_log.bulkDelete(reviews.map((row) => row.id))
+      await clearPassageSegments(passageId)
+
+      return { userPrayer, segments, progress, reviews }
+    },
+  )
+}
+
+/**
+ * Puts back exactly what `takeOffList` took, with the same ids and the same
+ * `list_order`, so the row lands where it was rather than at the end.
+ *
+ * One transaction, like the removal and like the add of decision D5.4: a passage
+ * back on the list with no lines under it is a shape session 6's queue assumes
+ * cannot happen.
+ */
+export async function putBackOnList(removed: RemovedFromList): Promise<void> {
   await db.transaction(
     'rw',
     db.passages,
@@ -71,21 +159,13 @@ export async function removeFromList(userId: string, passageId: string): Promise
     db.segment_progress,
     db.review_log,
     async () => {
-      const segments = await db.passage_segments.where('passage_id').equals(passageId).toArray()
-      const segmentIds = new Set(segments.map((segment) => segment.id))
-
-      await db.user_prayers.where('[user_id+passage_id]').equals([userId, passageId]).delete()
-      await db.segment_progress
-        .where('user_id')
-        .equals(userId)
-        .filter((row) => segmentIds.has(row.segment_id))
-        .delete()
-      await db.review_log
-        .where('user_id')
-        .equals(userId)
-        .filter((row) => segmentIds.has(row.segment_id))
-        .delete()
-      await clearPassageSegments(passageId)
+      await db.passage_segments.bulkPut([...removed.segments])
+      await db.passages.update(removed.userPrayer.passage_id, {
+        segment_count: removed.segments.length,
+      })
+      await db.user_prayers.put(removed.userPrayer)
+      await db.segment_progress.bulkPut([...removed.progress])
+      await db.review_log.bulkPut([...removed.reviews])
     },
   )
 }

@@ -258,11 +258,11 @@ you stated the same thing last session.
 
 `package.json` is the single source of truth.
 
-**Minor version equals session number.** Session 6 ships `0.6.0`. Patch increments for fixes between
+**Minor version equals session number.** Session 7 ships `0.7.0`. Patch increments for fixes between
 sessions. Injected at build time via a Vite `define` and displayed in Settings as:
 
 ```
-v0.6.0 · a3fa300 · 23 Aug 2026
+v0.7.0 · a3fa300 · 23 Aug 2026
 ```
 
 Version, short commit SHA, build date. This is what a tester reads off their screen, so it must be
@@ -285,8 +285,13 @@ src/
                 focus default, streak rules, SM-2 defaults.
   features/
     discover/   Never imports from scheduler or progress. Enforced by test.
-    memorise/
-    log/
+                The folder is the wall, not the tab: Bookmarks is its own tab
+                and its screen lives here, because this is where principle 7.6
+                is a failing build.
+    memorise/   Today's queue, My list, the add moment, upkeep. From session 7
+                this is the whole activity side of the app: Log is no longer a
+                tab or a folder, and session 10 builds the streak, the freshness
+                states and the passage detail onto the Memorise tab (D7.1).
   components/
 scripts/        Build-time tooling. Network calls allowed here only.
 docs/

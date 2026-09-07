@@ -50,10 +50,18 @@ describe('the caps slot', () => {
     expect(strings.settings.versionEyebrow).toBe(strings.settings.versionEyebrow.toUpperCase())
   })
 
-  it('keeps the sentence-case screen titles beside them, per scope 3.1', () => {
-    expect(strings.screenTitles.discover).toBe('Discover')
+  it('keeps the sentence-case screen titles beside them', () => {
+    expect(strings.screenTitles.discover).toBe('Devotions')
+    expect(strings.screenTitles.bookmarks).toBe('Bookmarks')
     expect(strings.screenTitles.memorise).toBe('Memorise')
-    expect(strings.screenTitles.log).toBe('Log')
+  })
+
+  it("says 'My list' in one place, so the table and the screen cannot drift", () => {
+    // Scope 6.5: "Internal term: `list`. V0 UI label: My list." Scope 11.5 puts
+    // the same words in the vocabulary table, and both read the one constant.
+    expect(strings.vocabulary.list).toBe('My list')
+    expect(strings.screenTitles.myList).toBe(strings.vocabulary.list)
+    expect(strings.memorise.myListRow).toBe(strings.vocabulary.list)
   })
 })
 

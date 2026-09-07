@@ -105,3 +105,17 @@ export function passageAttribution(passage: AttributedPassage): string {
 export function passageRowAttribution(passage: AttributedPassage): string {
   return capsCase(passage.author) + SEPARATOR + strings.discover.wordCount(passage.word_count)
 }
+
+/**
+ * The secondary line of a row on My list: the author, then how often the passage
+ * comes round.
+ *
+ * **The author is here because principle 7.10 admits no exception.** Session 6's
+ * upkeep roll call showed the state alone, which was a surface naming a passage
+ * without naming who wrote it. My list absorbed that roll call in session 7 and
+ * fixed it on the way through: a word count would be wrong here, because the
+ * question on this screen is not how long a thing is but how it is going.
+ */
+export function passageStateAttribution(passage: AttributedPassage, state: string): string {
+  return capsCase(passage.author) + SEPARATOR + state
+}

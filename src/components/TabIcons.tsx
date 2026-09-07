@@ -10,10 +10,16 @@
  *
  * Each one is drawn from the product rather than from an icon set:
  *
- * - **Discover** is an open book, because Discover is the library.
+ * - **Devotions** is an open book, because it is the library.
+ * - **Bookmarks** is the ribbon marker already in the reading view's toolbar, at
+ *   tab size. The mark you tap to keep a place is the mark on the tab that holds
+ *   them, which is the cheapest way to teach either one.
  * - **Memorise** is three lines of text growing downward, because that is
  *   literally the method: cumulative line building (scope 8.1).
- * - **Log** is a shelf of bound volumes, because Log is what you have taken in.
+ *
+ * The shelf of bound volumes that was Log is gone with its tab (decision D7.1).
+ * It is kept in this file's history rather than in the file, because an icon
+ * nothing renders is a drawing nobody has ever seen.
  *
  * Deliberately not used: the nine-pointed star, which design-tokens 4 reserves
  * for the freshness state and which would read as a rating if it appeared on a
@@ -63,6 +69,15 @@ export function DiscoverIcon() {
   )
 }
 
+/** A ribbon marker, notched at the foot as a ribbon hangs. The reading view's own. */
+export function BookmarksIcon() {
+  return (
+    <Icon>
+      <path d="M6 3.5 L18 3.5 L18 20.5 L12 14.8 L6 20.5 Z" />
+    </Icon>
+  )
+}
+
 /** Three lines of text, each longer than the last: cumulative line building. */
 export function MemoriseIcon() {
   return (
@@ -70,18 +85,6 @@ export function MemoriseIcon() {
       <path d="M4 7 L11 7" />
       <path d="M4 12 L16 12" />
       <path d="M4 17 L20 17" />
-    </Icon>
-  )
-}
-
-/** A shelf of bound volumes, one leaning as a shelf of read books does. */
-export function LogIcon() {
-  return (
-    <Icon>
-      <path d="M4.5 8 L8 8 L8 18.5 L4.5 18.5 Z" />
-      <path d="M9.8 5.5 L13.3 5.5 L13.3 18.5 L9.8 18.5 Z" />
-      <path d="M15.6 9.6 L19 8.7 L19 18.5 L15.6 18.5 Z" />
-      <path d="M3 18.5 L21 18.5" />
     </Icon>
   )
 }

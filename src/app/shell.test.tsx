@@ -35,15 +35,15 @@ beforeEach(async () => {
 
 afterEach(cleanup)
 
-describe('the three-tab shell', () => {
-  it('shows the three tabs of scope 3.1', async () => {
+describe('the tab shell', () => {
+  it('shows the three tabs of decision D7.1, the prayer book then the work', async () => {
     renderApp()
 
     await waitFor(() => {
       expect(screen.getByText(strings.tabs.discover)).toBeDefined()
     })
+    expect(screen.getByText(strings.tabs.bookmarks)).toBeDefined()
     expect(screen.getByText(strings.tabs.memorise)).toBeDefined()
-    expect(screen.getByText(strings.tabs.log)).toBeDefined()
   })
 
   it('opens on Discover, the devotional surface', async () => {
@@ -57,7 +57,7 @@ describe('the three-tab shell', () => {
   it('routes to each tab', async () => {
     for (const [path, title] of [
       ['/memorise', strings.screenTitles.memorise],
-      ['/log', strings.screenTitles.log],
+      ['/bookmarks', strings.screenTitles.bookmarks],
       ['/discover', strings.screenTitles.discover],
     ] as const) {
       cleanup()
@@ -100,8 +100,23 @@ describe('principle 7.6 - no memorisation chrome on the tab bar', () => {
 
     const nav = await waitFor(() => screen.getByRole('navigation'))
     expect(nav.textContent).toBe(
-      `${strings.tabs.discover}${strings.tabs.memorise}${strings.tabs.log}`,
+      `${strings.tabs.discover}${strings.tabs.bookmarks}${strings.tabs.memorise}`,
     )
+  })
+
+  it('has no Log tab and no Log route, both folded into Memorise', async () => {
+    renderApp()
+
+    const nav = await waitFor(() => screen.getByRole('navigation'))
+    expect(nav.textContent ?? '').not.toContain('LOG')
+
+    // Decision D7.1: `/log` is gone, and an unknown route goes to Devotions
+    // rather than to a screen that used to be there.
+    cleanup()
+    renderApp('/log')
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: strings.screenTitles.discover })).toBeDefined()
+    })
   })
 })
 
@@ -142,8 +157,9 @@ describe('the tab icons', () => {
     const nav = await waitFor(() => screen.getByRole('navigation'))
     const wrappers = [...nav.querySelectorAll('svg')].map((icon) => icon.parentElement)
 
-    expect(wrappers[1]?.style.color).toBe('var(--accent)')
-    expect(wrappers[1]?.style.opacity).toBe('1')
+    // Memorise is the third tab now: Devotions, Bookmarks, Memorise (D7.1).
+    expect(wrappers[2]?.style.color).toBe('var(--accent)')
+    expect(wrappers[2]?.style.opacity).toBe('1')
     expect(wrappers[0]?.style.color).toBe('var(--paper)')
     expect(wrappers[0]?.style.opacity).toBe('0.42')
   })
@@ -161,8 +177,10 @@ describe('Settings', () => {
     expect(stamp.textContent).toBeTruthy()
   })
 
-  it('is reachable from Log, which is the personal side of the app', async () => {
-    renderApp('/log')
+  it('is reachable from Memorise, which is the activity side of the app', async () => {
+    // Decision D2.4 put this row on Log by default and asked Safa to say where
+    // it belonged. He folded Log into Memorise entirely (D7.1), so here it is.
+    renderApp('/memorise')
 
     const link = await waitFor(() => screen.getByRole('link', { name: strings.settings.open }))
     expect(link.getAttribute('href')).toBe('/settings')

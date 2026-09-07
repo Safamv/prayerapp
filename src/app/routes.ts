@@ -8,8 +8,20 @@
  * /discover/collection/:collection                   its categories, or its passages
  * /discover/collection/:collection/category/:tagId   that category's passages
  * /discover/passage/:passageId                       the passage in full
+ * /bookmarks                                         the places you have kept
+ * /memorise                                          today's work, and the doors
+ * /memorise/list                                     what you intend to learn
  * /memorise/add/:passageId                           the lines, before adding it
+ * /memorise/upkeep/:passageId                        how one passage comes round
+ * /settings
  * ```
+ *
+ * **`/discover` keeps its name although the tab now reads DEVOTIONS.** The word
+ * changed on screen and nowhere else (decision D7.1): "discover" is the name
+ * principle 7.6's wall is written against, in `eslint.config.js` and in
+ * `discover-isolation.test.ts`, both of which match on the folder path. Renaming
+ * the folder to match a label would move the wall, and a wall that moves when a
+ * word changes is not a wall.
  *
  * They live here rather than in a feature folder because the last one crosses
  * between two: the reading view is in Discover and the screen it opens is in
@@ -45,7 +57,29 @@ export function passagePath(passageId: string): string {
   return `${DISCOVER_PATH}/passage/${encodeURIComponent(passageId)}`
 }
 
+/**
+ * Bookmarks, scope 6.7. A tab of its own rather than a screen inside Discover
+ * (decision D7.1), so it is a top-level path.
+ *
+ * Its screens live under `src/features/discover/` all the same. The folder is
+ * where principle 7.6 is a failing build rather than a paragraph, and a screen
+ * full of passages that must never grow a freshness star belongs inside it.
+ */
+export const BOOKMARKS_PATH = '/bookmarks'
+
 export const MEMORISE_PATH = '/memorise'
+
+/**
+ * My list, scope 6.5: the ordered list of what the user intends to memorise.
+ *
+ * Under `/memorise` because a list of things you have committed to learn is
+ * memorisation by any reading, and principle 7.6 keeps that out of the prayer
+ * book. It absorbed the roll call session 6 put on the Memorise tab, so every
+ * row here still opens `upkeepPath`. See decision D7.3.
+ */
+export const MY_LIST_PATH = `${MEMORISE_PATH}/list`
+
+export const SETTINGS_PATH = '/settings'
 
 /**
  * The add moment of scope 8.4: the proposed lines, confirmed before the passage

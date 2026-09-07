@@ -4,10 +4,11 @@ import { TabBar } from '../components/TabBar'
 import { CategoryScreen } from '../features/discover/CategoryScreen'
 import { CollectionScreen } from '../features/discover/CollectionScreen'
 import { DiscoverScreen } from '../features/discover/DiscoverScreen'
+import { BookmarksScreen } from '../features/discover/BookmarksScreen'
 import { ReadingScreen } from '../features/discover/ReadingScreen'
-import { LogScreen } from '../features/log/LogScreen'
 import { ConfirmLinesScreen } from '../features/memorise/ConfirmLinesScreen'
 import { MemoriseScreen } from '../features/memorise/MemoriseScreen'
+import { MyListScreen } from '../features/memorise/MyListScreen'
 import { UpkeepScreen } from '../features/memorise/UpkeepScreen'
 import { SettingsScreen } from '../features/settings/SettingsScreen'
 import { ThemeProvider, type ThemeSelection } from '../theme'
@@ -15,7 +16,14 @@ import { UserContext } from './userContext'
 import { persistThemeSelection, useBootstrap } from './useBootstrap'
 
 /**
- * The three-tab shell. Scope 3.1, design-tokens 5.6.
+ * The tab shell. Design-tokens 5.6.
+ *
+ * Three tabs, split down the middle: **Devotions and Bookmarks are the prayer
+ * book, Memorise is everything you do about learning** (decision D7.1). Log is
+ * no longer a tab and no longer a screen; what it was going to hold - the
+ * streak, the freshness states, the passage detail of scope 11 - belongs on the
+ * Memorise tab, and session 10 builds it there. Recents (scope 6.4) joins the
+ * left pair at v1.0 and makes it four. Scope 3.1 needs Safa's revision to match.
  *
  * The tab bar is fixed and persists through every route, including Settings and
  * the reading view (design-tokens 5.6).
@@ -61,7 +69,14 @@ export function App() {
                 element={<CategoryScreen />}
               />
               <Route path="/discover/passage/:passageId" element={<ReadingScreen />} />
+              {/* Scope 6.7's kept places. A tab of its own, and a screen in the
+                  Discover folder, because that folder is where principle 7.6 is
+                  a failing build rather than a paragraph. Decision D7.1. */}
+              <Route path="/bookmarks" element={<BookmarksScreen />} />
               <Route path="/memorise" element={<MemoriseScreen />} />
+              {/* Scope 6.5's ordered list, which absorbed session 6's upkeep
+                  roll call. Decision D7.3. */}
+              <Route path="/memorise/list" element={<MyListScreen />} />
               {/* Scope 8.4's add moment. On the memorisation side of the app,
                   reached from the reading view's list mark. Decision D5.1. */}
               <Route path="/memorise/add/:passageId" element={<ConfirmLinesScreen />} />
@@ -69,7 +84,6 @@ export function App() {
                   passage. Reached from the UPKEEP section of the Memorise tab,
                   because a resting passage is never in the queue. Decision D6.3. */}
               <Route path="/memorise/upkeep/:passageId" element={<UpkeepScreen />} />
-              <Route path="/log" element={<LogScreen />} />
               <Route path="/settings" element={<SettingsScreen />} />
               <Route path="*" element={<Navigate to="/discover" replace />} />
             </Routes>

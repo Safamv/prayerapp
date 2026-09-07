@@ -1,6 +1,16 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { addBookmark, getBookmark, isBookmarked, listBookmarks, removeBookmark } from './bookmarks'
+import {
+  addBookmark,
+  getBookmark,
+  isBookmarked,
+  listBookmarkedPassages,
+  listBookmarks,
+  removeBookmark,
+  reorderBookmarks,
+} from './bookmarks'
+import { putPassages } from './corpus'
 import { resetDatabase } from './db'
+import { makePassage, makeRuhiPassage } from './fixtures'
 
 /**
  * Bookmarks. Scope 14 lists "Bookmark, and separately Add to my list" as two
@@ -111,5 +121,108 @@ describe('the hand-arranged order', () => {
     const next = await addBookmark('user-1', 'passage-3')
 
     expect(next.sort_order).toBe(2)
+  })
+})
+
+describe('reading the screen of scope 6.7', () => {
+  const first = makePassage({ title: 'Apex' })
+  const second = makePassage({ title: 'Middle' })
+  const third = makePassage({ title: 'Zenith' })
+
+  beforeEach(async () => {
+    await putPassages([first, second, third])
+  })
+
+  it('reads bookmarks back in the hand order, not the order they were made', async () => {
+    await addBookmark(USER, first.id)
+    await addBookmark(USER, second.id)
+    await addBookmark(USER, third.id)
+    await reorderBookmarks(USER, [third.id, first.id, second.id])
+
+    const shown = await listBookmarkedPassages(USER)
+    expect(shown.map((entry) => entry.passage.title)).toEqual(['Zenith', 'Apex', 'Middle'])
+  })
+
+  it('carries the passage beside each bookmark, so a row can be drawn from one read', async () => {
+    await addBookmark(USER, first.id)
+
+    const [only] = await listBookmarkedPassages(USER)
+    expect(only?.passage.title).toBe('Apex')
+    expect(only?.bookmark.passage_id).toBe(first.id)
+  })
+
+  it('drops a bookmark whose passage has left the corpus, rather than showing a gap', async () => {
+    // Decision D5.9: a withdrawn record is removed from a device that had it,
+    // and this is the belt to that brace.
+    await addBookmark(USER, first.id)
+    await addBookmark(USER, 'a-passage-that-was-withdrawn')
+
+    const shown = await listBookmarkedPassages(USER)
+    expect(shown).toHaveLength(1)
+  })
+
+  it('never returns a Ruhi quotation, because the read goes through the devotional door', async () => {
+    // Decision D1.10. A Ruhi passage cannot be bookmarked from anywhere in the
+    // app today, and if it ever could this read still would not surface it.
+    const ruhi = makeRuhiPassage({ title: 'A quotation to memorise' })
+    await putPassages([ruhi])
+    await addBookmark(USER, ruhi.id)
+    await addBookmark(USER, first.id)
+
+    const shown = await listBookmarkedPassages(USER)
+    expect(shown.map((entry) => entry.passage.title)).toEqual(['Apex'])
+  })
+
+  it('reads only this user\u2019s bookmarks', async () => {
+    await addBookmark(USER, first.id)
+    await addBookmark(OTHER, second.id)
+
+    expect(await listBookmarkedPassages(USER)).toHaveLength(1)
+  })
+})
+
+describe('reordering, scope 6.7', () => {
+  const first = makePassage({ title: 'Apex' })
+  const second = makePassage({ title: 'Middle' })
+  const third = makePassage({ title: 'Zenith' })
+
+  beforeEach(async () => {
+    await putPassages([first, second, third])
+    await addBookmark(USER, first.id)
+    await addBookmark(USER, second.id)
+    await addBookmark(USER, third.id)
+  })
+
+  it('writes the given sequence into sort_order', async () => {
+    await reorderBookmarks(USER, [third.id, second.id, first.id])
+
+    expect((await getBookmark(USER, third.id))?.sort_order).toBe(0)
+    expect((await getBookmark(USER, second.id))?.sort_order).toBe(1)
+    expect((await getBookmark(USER, first.id))?.sort_order).toBe(2)
+  })
+
+  it('keeps bookmarks that were not named, in their relative order, behind', async () => {
+    // A filtered screen is the case: a drag there names only what is on screen,
+    // and the rows behind the filter must not be shuffled by it. `reorderList`
+    // behaves identically, because scope 6.7 governs both.
+    await reorderBookmarks(USER, [third.id])
+
+    expect((await getBookmark(USER, third.id))?.sort_order).toBe(0)
+    expect((await getBookmark(USER, first.id))?.sort_order).toBe(1)
+    expect((await getBookmark(USER, second.id))?.sort_order).toBe(2)
+  })
+
+  it('leaves another user\u2019s arrangement alone', async () => {
+    await addBookmark(OTHER, first.id)
+    await reorderBookmarks(USER, [third.id, second.id, first.id])
+
+    expect((await getBookmark(OTHER, first.id))?.sort_order).toBe(0)
+  })
+
+  it('ignores a passage id that is not bookmarked', async () => {
+    await reorderBookmarks(USER, [second.id, 'not-bookmarked', first.id])
+
+    expect((await getBookmark(USER, second.id))?.sort_order).toBe(0)
+    expect(await listBookmarks(USER)).toHaveLength(3)
   })
 })

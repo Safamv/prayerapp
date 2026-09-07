@@ -1969,3 +1969,217 @@ the app alone for a month it does not come back still suppressing your list.
   the same way. The app's name in the caps slot now has one definition rather than two.
 
 ---
+
+### D7.1 — The tab bar is split down the middle, Log is folded into Memorise, and Discover is called Devotions
+
+**Decided by Safa, 7 September 2026**, when session 7 asked where the two new screens should be
+reached from and he answered with a shape for the whole navigation instead.
+
+**The decision.** Three tabs, in this order, and they are not scope 3.1's three:
+
+```
+DEVOTIONS   BOOKMARKS  ‖  MEMORISE
+└─ the prayer book ──┘     └─ the work ─┘
+```
+
+**Safa's own words for it:** "i want the left half of the nav icons to be library buttons that when
+using the app to pray you use those and the right side is the memorising and activity side."
+
+**Four things changed.**
+
+1. **Bookmarks became a tab**, rather than a row inside the library. It is the door scope 6.7 never
+   had.
+2. **Log stopped being a tab, and stopped being a screen.** It held one row, Settings. What it was
+   going to hold - the streak, the freshness states and the passage detail of scope 11 - belongs on
+   the same screen as today's work rather than a tab away from it, and Safa described the Memorise
+   tab as "almost like a home page for the memorise section with your log streaks and dash".
+   Session 10 builds those onto Memorise. `src/features/log/` is deleted rather than left empty,
+   because an unrendered screen is a screen nobody has ever seen.
+3. **Settings moved to a row on Memorise.** Decision D2.4 put it on Log "by default rather than by
+   decision" and asked Safa to say where it belonged. This is him saying.
+4. **Discover reads "Devotions"** on the tab and as the screen's title.
+
+**Recents is not here, and could not be.** Safa's four-tab shape was Devotions, Recents, Bookmarks,
+Memorise. Recents (scope 6.4) is tagged `[v1.0]`, scope 14 lists it under "Not in V0", and it needs a
+`reading_history` table that is not in the V0 database. CLAUDE.md makes adding a table something to
+stop and ask about rather than do, so it waits. **It is the fourth tab when it arrives**, in the left
+pair, and that is written down here so the shape does not have to be rediscovered.
+
+**Why three tabs is a happy accident.** Design-tokens 5.6 draws the bar as "three 80px items". Four
+of those measure 372px, which fits an iPhone 14 and overflows a 360px Android, so a fourth tab means
+narrowing the items. Because Recents cannot ship yet, the bar stays at three and the tokens document
+needs no change this session. The narrowing and the fourth tab arrive together, later, when there is
+something to put in it.
+
+**What did not change, deliberately.** The word "discover" is still the folder name, the route and
+the strings key. That name is what principle 7.6's wall is written against, in `eslint.config.js` and
+in `discover-isolation.test.ts`, both of which match on the folder path. Renaming the folder to match
+a label would move the wall, and a wall that moves when a word changes is not a wall. **The folder is
+not the tab**: the Bookmarks screen lives in it, because a screen full of prayers that must never
+grow a freshness state belongs inside the wall whichever tab reaches it.
+
+**Scope 3.1 now needs revising** and only Safa issues those. Its table says three tabs named
+Discover, Memorise and Log. It should say what the app does.
+
+**Reversible.** Yes, and cheaply. It is a route table, a list of three tabs and a strings file.
+Rebuilding a Log tab is smaller than deleting it was.
+
+**What this means for you.** The bottom of the app now reads DEVOTIONS, BOOKMARKS, MEMORISE. The
+first two are what you open to pray. Memorise is everything you do about learning, and Settings is a
+row at the bottom of it where the Log tab used to be a tab. Nothing you could reach before is
+unreachable now.
+
+---
+
+### D7.2 — The four sorts and two filters on Bookmarks, and why a filter row appears only when it means something
+
+**Decided by Safa, 7 September 2026.** Scope 6.7 declines to fix the axes and says "the session that
+builds it should propose a set and ask", so this session did.
+
+**Four sorts:** **My order**, which is the hand arrangement and the default; **Recent**, newest kept
+place first; **Title**, alphabetical; **Shortest**, fewest words first.
+
+Scope 6.2 demoted length as a way of browsing the library ("length is not what you browse by" at
+6am) and it is right about the library. A bookmark list is the one place the question is real,
+because you are choosing something to read in the ten minutes before a gathering starts.
+
+**Two filters: collection and author.** The library has four collections and exactly three authors,
+so both are short, closed lists. Safa chose both over collection alone, knowing the cost was more
+furniture on the screen.
+
+**A filter row is drawn only once your bookmarks span more than one value on it.** Four bookmarks all
+by Bahá'u'lláh get a sort row and no author row at all; the row appears the day a second author is
+kept. A control that can only be switched between "all" and "all" is furniture, and this is a
+devotional screen where furniture costs the most.
+
+**The manual order is protected structurally rather than carefully.** Two things do it. The sorting
+is a pure function in `bookmarkView.ts` that touches no database and therefore cannot write one. And
+**the drag handles are simply absent under any sort but My order**, so a sorted view is visibly a
+view: you can see it is one because you cannot drag it. Scope 6.7 is explicit that any other
+behaviour "makes dragging feel unsafe, because one tap on a sort control would silently destroy an
+arrangement the user built by hand".
+
+**Reversible.** Completely. Adding or removing a sort is one entry in a list and one label.
+
+**What this means for you.** Bookmarks opens in the order you arranged, and you can drag rows in that
+order. Tapping RECENT, TITLE or SHORTEST shows the same bookmarks a different way and the handles
+disappear while you are in it, so nothing can be dragged out of place. Tapping MY ORDER again gives
+you your arrangement back exactly.
+
+---
+
+### D7.3 — My list absorbed the upkeep roll call, and the Memorise tab is a queue and two doors
+
+**Decision.** Session 6's UPKEEP section, which listed every passage on the list with the state it
+was in, is gone from the Memorise tab. My list carries it: the same word beside every row - ACTIVE,
+OCCASIONAL, RESTING or FOCUS - and the same upkeep screen behind every tap. The Memorise tab now
+holds TODAY, then a row reading "My list" with the count, then Settings.
+
+**Why.** Decision D6.3 built the roll call as a door and said so in as many words: "It is not the
+list screen of scope 6.5, and session 7 still builds that... session 7 should feel free to fold it
+into the list screen or leave it where it is." Leaving it would have meant the same passages listed
+on two screens one tap apart, which is the thing that makes an app feel as though it were built in
+stages, because it was.
+
+**What it costs.** Upkeep is one tap further away than it was. What it buys is a Memorise tab that is
+about today, and room between TODAY and the doors for session 10's streak and freshness.
+
+**One thing was fixed on the way through.** The roll call showed the upkeep state and nothing else,
+which made it a surface naming a passage without naming who wrote it. Principle 7.10 admits no
+exception, so **My list rows carry the author**: `BAHÁ'U'LLÁH · RESTING`. A word count would be the
+wrong number here, because the question on this screen is not how long a thing is but how it is
+going.
+
+**Reversible.** Yes. It is one section of one screen.
+
+**What this means for you.** Open Memorise and you see today's work, then a row saying "My list" with
+how many passages are on it, then Settings. Tap My list and everything you have taken on is there,
+with the author and the state beside each, draggable into the order you want and removable. Tapping
+one still opens the screen where you set how often it comes round and turn focus on.
+
+---
+
+### D7.4 — The chip is design-tokens 5.5's two buttons at chip size, rather than a new object
+
+**Decision.** The sort and filter controls of scope 6.7 are drawn as chips, and a chip is built out
+of the two buttons the tokens document already defines. Selected takes the primary: `field` fill, 1px
+`deep` border, the letterpress highlight, caps label in `accent`. Unselected takes the secondary:
+transparent, 1px `rule-str` border, caps label in `on-paper-60`. Square corners, because
+design-tokens 3 gives the whole product a radius of nought.
+
+**Why it is derived and not invented.** Design-tokens 5 names seven construction patterns and none of
+them is a chip. Scope 6.2 uses the word, so the object is sanctioned even though its drawing is not.
+In a visual language this tight the risk of a new object is not that it looks bad, it is that it
+looks as though it came from a different app. Deriving it means the chip follows a future palette
+change without anyone remembering it exists.
+
+**Two measurements are the build's own.** The chips **wrap rather than scroll sideways**, because a
+row that scrolls hides choices behind an edge with nothing to say they are there. And the padding is
+tighter than a button's: three rows of chips at button height cost a quarter of a phone before the
+first bookmark. Design-tokens 5.3's 44px minimum is written about list rows and is met by every row
+beneath these; scope 7.9 puts the full touch-target audit at `[v1.0]`, and this is one of the things
+it should look at with a real thumb.
+
+**Reversible.** Yes, one small component.
+
+**What this means for you.** The controls at the top of Bookmarks look like small versions of the
+buttons elsewhere in the app, filled in navy with gold lettering when they are on.
+
+---
+
+### D7.5 — Dragging is written, not installed: pointer events, the pressed wash, and the arrow keys
+
+**Decision.** The reorderable list is about a hundred and fifty lines in
+`src/components/Reorderable.tsx`. No drag-and-drop library was added.
+
+**Why not a library.** CLAUDE.md rule 6 makes a dependency a decision. Every drag-and-drop package in
+the ecosystem is larger than this file, ships its own motion vocabulary that design-tokens 6 would
+have to be argued out of, and solves a general problem - nested lists, several containers, transfer
+between them - that this app does not have. What it has is one flat list of rows on a touch screen.
+
+**Pointer events rather than the browser's own drag-and-drop**, which does not fire on touch at all,
+and this is a phone app first.
+
+**The lifted row does not float.** It takes the pressed wash of design-tokens 6 - "a low-opacity
+`field` wash, no scale, no ripple, no bounce" - and the rows swap places under the finger as it
+crosses their midpoints. A row that lifted, tilted and cast a shadow would be the only object in the
+product that behaved like software.
+
+**The handle is a button, and the arrow keys move the row it belongs to**, with a live region saying
+where it landed. That is not an enhancement: it is the only way to reorder anything without touch.
+
+**One component for both screens.** Scope 6.7 says Bookmarks and My list "are the same interaction on
+different material", so they hand their rows to the same component and cannot drift apart.
+
+**Reversible.** Yes, though a library would now have to match behaviour this already has.
+
+**What this means for you.** Press and hold the two short rules at the right of a row and drag it up
+or down. The row you are moving goes slightly darker, the others move out of its way, and it stays
+where you leave it.
+
+---
+
+### D7.6 — Contained decisions
+
+- **Removing a passage is one tap, and the Undo really undoes it.** Scope 6.5 forbids friction, so
+  there is no "are you sure". What stands behind it is the band of decision D4.10 with Undo in it,
+  and `takeOffList` hands back the lines, the progress and the review history it destroyed so that
+  `putBackOnList` can put them back with the same ids and the same place in the list. An Undo that
+  re-added the passage as a fresh row would look right in every way except that your prayer had
+  moved to the bottom, which is a bug nobody reports precisely enough to find. *What this means for
+  you: tap REMOVE by mistake and "Undo" gives you back everything, in its old position.*
+- **The two doors at the foot of Memorise have no section header.** Design-tokens 5.3 gives a section
+  a caps label, a rule and a count. A header above rows reading "My list" and "Settings" would only
+  repeat them, so the group gets the rule and no word. Added to `ListSurface` as `SectionRule`.
+- **`ListRow` gained an optional second line and an optional trailing count**, so that a row whose
+  title says the whole of what it is does not have to invent a subtitle.
+- **The count of passages is written once** and read by the category rows, the My list row and the
+  Bookmarks screen, the way the word count and the line count already were.
+- **The Bookmarks screen re-reads after every drag** rather than trusting its own copy, and shows the
+  reader's arrangement until that read lands. This is `useMark`'s bargain from the reading view
+  (decision D5.6) applied to a list: a screen that copied the order into an effect could redraw a
+  drag and then quietly undo it when a slower read came back.
+- **Two chips are both labelled ALL**, one per filter row. A screen reader tells them apart by the
+  label on the group around them, which is what a radiogroup is for.
+
+---

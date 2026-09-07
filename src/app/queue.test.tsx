@@ -75,6 +75,18 @@ async function addToList(passage: PassageRow, lines: number): Promise<string[]> 
   return (await listPassageSegments(passage.id)).map((segment) => segment.id)
 }
 
+/**
+ * Opens My list from the Memorise tab. Session 6 listed every passage on the
+ * Memorise screen itself; My list absorbed that roll call (decision D7.3), so
+ * upkeep is now reached through here.
+ */
+async function openMyList(): Promise<HTMLElement> {
+  // The row carries the count beside its title, so the accessible name is the
+  // two together. Matched loosely for that reason.
+  fireEvent.click(await screen.findByRole('link', { name: /My list/ }))
+  return screen.findByRole('list', { name: strings.accessibility.myList })
+}
+
 /** Marks lines as seen before and overdue, so they are due rather than new. */
 async function makeOverdue(segmentIds: readonly string[], dueDate = LONG_AGO): Promise<void> {
   for (const id of segmentIds) {
@@ -216,8 +228,10 @@ describe('the cap, principle 7.3', () => {
 
   it('shows no count of the twenty five lines it left out', async () => {
     // Principle 7.3: overdue rolls forward silently and no discouraging count is
-    // ever displayed. The only numbers the screen may carry are 15, which is
-    // today's work, and the two on the section rule saying the same thing.
+    // ever displayed. Two numbers may appear on this screen: 15, which is
+    // today's work already capped, and 1, which is how many passages are on the
+    // list. Neither is a backlog, and the backlog's own number is nowhere,
+    // because `src/queue/queue.ts` never works it out.
     await withList(async () => {
       await makeOverdue(await addToList(blessed, 40))
     })
@@ -228,21 +242,21 @@ describe('the cap, principle 7.3', () => {
     })
     const drawn = document.body.textContent ?? ''
     const numbers = [...drawn.matchAll(/\d+/g)].map((match) => match[0])
-    expect(new Set(numbers)).toEqual(new Set(['15']))
+    expect(new Set(numbers)).toEqual(new Set(['15', '1']))
     expect(numbers).not.toContain('25')
     expect(numbers).not.toContain('40')
   })
 })
 
 describe('upkeep, scope 8.5', () => {
-  it('lists everything on the list with the state it is in', async () => {
+  it('lists everything on the list with the state it is in, on My list', async () => {
     await withList(async () => {
       await addToList(blessed, 2)
     })
 
     renderApp()
-    const list = await screen.findByRole('list', { name: strings.accessibility.upkeepList })
-    expect(within(list).getByText(strings.upkeep.active.toUpperCase())).toBeTruthy()
+    const list = await openMyList()
+    expect(within(list).getByText(new RegExp(strings.upkeep.active.toUpperCase()))).toBeTruthy()
   })
 
   it('puts a passage to rest, and it leaves the day without leaving the list', async () => {
@@ -255,6 +269,7 @@ describe('upkeep, scope 8.5', () => {
       expect(queueRows()).toHaveLength(1)
     })
 
+    await openMyList()
     fireEvent.click(await screen.findByRole('link', { name: /Blessed is the spot/ }))
     fireEvent.click(await screen.findByRole('radio', { name: new RegExp(strings.upkeep.resting) }))
     await waitFor(async () => {
@@ -266,8 +281,8 @@ describe('upkeep, scope 8.5', () => {
     // shown as resting. Scope 8.5: it never decays into "needs review".
     fireEvent.click(screen.getByRole('link', { name: strings.tabs.memorise }))
     expect(await screen.findByText(strings.memorise.done)).toBeTruthy()
-    const list = screen.getByRole('list', { name: strings.accessibility.upkeepList })
-    expect(within(list).getByText(strings.upkeep.resting.toUpperCase())).toBeTruthy()
+    const list = await openMyList()
+    expect(within(list).getByText(new RegExp(strings.upkeep.resting.toUpperCase()))).toBeTruthy()
   })
 
   it('moves a passage to occasional without disturbing anything the app has learnt', async () => {
@@ -276,6 +291,7 @@ describe('upkeep, scope 8.5', () => {
     })
 
     renderApp()
+    await openMyList()
     fireEvent.click(await screen.findByRole('link', { name: /Blessed is the spot/ }))
     const before = await db.segment_progress.toArray()
 
@@ -295,6 +311,7 @@ describe('upkeep, scope 8.5', () => {
 
 describe('focus mode, scope 8.6', () => {
   async function turnFocusOn(): Promise<void> {
+    await openMyList()
     fireEvent.click(await screen.findByRole('link', { name: /Blessed is the spot/ }))
     fireEvent.click(await screen.findByRole('switch', { name: strings.upkeep.focusStart }))
     await waitFor(async () => {

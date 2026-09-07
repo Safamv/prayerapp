@@ -45,6 +45,14 @@ import {
  * `src/data/passages.ts`, `tags.ts` and `bookmarks.ts`. None of them can return
  * progress, and `isOnList` returns a boolean rather than a row, because 7.6
  * permits Discover to know only that "the add button reads as already added".
+ *
+ * ## The folder is not the tab
+ *
+ * Session 7 made Bookmarks a tab of its own and still put its screen in this
+ * folder (decision D7.1). That is deliberate and it is what this test is for:
+ * the folder is the part of the app where 7.6 is a failing build, and a screen
+ * listing prayers that must never grow a freshness star belongs inside the wall
+ * whichever tab it is reached from.
  */
 
 const DISCOVER_DIR = join(SRC_DIR, 'features', 'discover')
