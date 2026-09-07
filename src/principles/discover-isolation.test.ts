@@ -25,11 +25,13 @@ import {
  * So this test reads the source of every file under `src/features/discover/` and
  * fails if any of them can reach the material 7.6 forbids. It checks two things.
  *
- * **The module.** Nothing may import the scheduler, the queue, a progress-bearing
- * data module, or the Ruhi route (D1.10: Discover never surfaces a Ruhi
- * quotation). Session 6 added `src/queue/`, `src/data/dailyQueue.ts` and
- * `src/data/upkeep.ts`: a due count and a focus banner are the two things 7.6
- * names first, and all three are how one would be built.
+ * **The module.** Nothing may import the scheduler, the queue, the quiz ladder, a
+ * progress-bearing data module, or the Ruhi route (D1.10: Discover never
+ * surfaces a Ruhi quotation). Session 6 added `src/queue/`,
+ * `src/data/dailyQueue.ts` and `src/data/upkeep.ts`: a due count and a focus
+ * banner are the two things 7.6 names first, and all three are how one would be
+ * built. Session 8 added `src/quiz/` and `src/data/review.ts`, which are how a
+ * progress indicator would be.
  *
  * **The name.** Even through a permitted module, no binding may be one of the
  * names those forbidden modules export. That list is derived from the modules
@@ -61,7 +63,9 @@ const DISCOVER_DIR = join(SRC_DIR, 'features', 'discover')
 const FORBIDDEN_MODULES = [
   'scheduler',
   'queue',
+  'quiz',
   'data/db',
+  'data/review',
   'data/ruhi',
   'data/userPrayers',
   'data/segmentProgress',
@@ -76,7 +80,9 @@ const FORBIDDEN_MODULES = [
 const FORBIDDEN_NAME_SOURCES = [
   join(SRC_DIR, 'scheduler', 'index.ts'),
   join(SRC_DIR, 'queue', 'index.ts'),
+  join(SRC_DIR, 'quiz', 'index.ts'),
   join(SRC_DIR, 'data', 'dailyQueue.ts'),
+  join(SRC_DIR, 'data', 'review.ts'),
   join(SRC_DIR, 'data', 'upkeep.ts'),
   join(SRC_DIR, 'data', 'userPrayers.ts'),
   join(SRC_DIR, 'data', 'segmentProgress.ts'),
@@ -110,6 +116,11 @@ describe('principle 7.6 - memorisation chrome never appears in Discover', () => 
     expect(names).toContain('buildQueue')
     expect(names).toContain('getTodaysQueue')
     expect(names).toContain('startFocus')
+    // Session 8: the quiz ladder and the write a finished line makes. A
+    // progress indicator in the reading view would be built out of these.
+    expect(names).toContain('servedLevel')
+    expect(names).toContain('recordReview')
+    expect(names).toContain('getPassageWork')
   })
 
   it('imports nothing from the scheduler, a progress table, or the Ruhi route', () => {

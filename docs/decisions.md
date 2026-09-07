@@ -2266,3 +2266,233 @@ each one now reaches most of the way to the row above and below it, without ever
   place in the arrangement wins, because that is the one the user put there.
 
 ---
+
+---
+
+## D8 — Session 8, the chip quiz: levels 2, 3 and 4
+
+### D8.1 — A row of today's queue opens that prayer, and there is no button that begins the day
+
+**Decided by Safa, 8 September 2026.** Session 6 drew the rows of today's queue and left them inert,
+because the ladder did not exist. Making them do something is this session's goal sentence, and there
+was more than one door it could be.
+
+**Chosen: the row is the door.** Tap a prayer and you work through its lines for today, one after
+another. When they are done you are back on the Memorise tab and that prayer's row has gone. Do
+another, or stop. When the last row goes, the section says you are up to date.
+
+**Options considered.**
+
+- *One button that begins the whole day.* The rows stay a summary and a single button walks all
+  fifteen lines in one sitting. Rejected: fifteen lines with no landmark in the middle needs
+  something to say how far through you are, and a counter ticking down is exactly the chrome this
+  product has kept out everywhere else.
+- *Both a row and a button.* Rejected as two doors to the same room, on the one screen whose whole
+  virtue so far has been that it holds almost nothing.
+
+**Three things fall out of it, and they are why it is the right shape rather than merely the one
+chosen.** The shrinking list is the only progress indicator in the product, and it is made of the
+work itself rather than of a number. The day is resumable for free, because every rating is written
+the moment it is given. And a prayer is a natural unit to stop at, which matters at six in the
+morning.
+
+**Reversible.** Yes. It is one route and one link, and the queue underneath already knows the whole
+day.
+
+**What this means for you.** Open Memorise and today's prayers are listed. Tap one and it takes you
+through its lines. Finish it and you are back on the list with one row fewer. Nothing counts down at
+you and nothing says how many you got right.
+
+---
+
+### D8.2 — A line climbs one rung of the ladder per correct review
+
+**Decided by Safa, 8 September 2026.** Scope 9.1 says "quiz type is selected by mastery level, not at
+random" and then does not say what mastery level means. The session was asked to propose and ask.
+
+**Chosen: the count of times you have got the line right in a row.**
+
+| Times right in a row | What you meet |
+|---|---|
+| 0 | The line, to read |
+| 1 | About one word in seven taken out |
+| 2 | About two words in five taken out |
+| 3 | The lines to put back in order |
+| 4 | First letters as a scaffold (session 9) |
+| 5 or more | From memory (session 9) |
+
+Rating everything Good, that is day 0, day 1, day 7, day 22, day 60, day 155.
+
+**Options considered.**
+
+- *By how long the line has been sticking* - the rung follows the gap the scheduler has stretched to
+  rather than the count of correct answers. Kinder to a line you keep rating Hard, because its gap
+  grows slowly and it would linger on the gentler rungs. Rejected as harder to predict: two lines you
+  have met the same number of times could sit on different rungs with nothing on screen to say why.
+- *Two correct reviews on each rung.* Rejected as far too slow. Reciting would arrive about two years
+  in, and in the fortnight of real use V0 exists to produce, a tester would only ever see the first
+  two rungs, so most of what has been built would stay invisible.
+
+**Forgetting a line puts it back to reading it, and that is not a separate decision.** Decision D1.5
+sets `repetitions` back to nought on a rating of *Again*, so the ladder simply reads it. It is also
+the only shape the stored data allows: `segment_progress` holds ease, interval, repetitions, due
+date, last reviewed and lapses, and no rung, so a "drop one rung" rule would have to know the rung
+before the lapse. Storing it would mean a new column, which CLAUDE.md forbids without asking.
+
+**Two rungs the material can refuse.** A line of one or two words has nowhere to hide a blank and is
+served at level 1. A passage's first two lines cannot be put in an order, so a line with fewer than
+two before it is served at level 3 instead of level 4. Neither is a rule about the reader.
+
+**Reversible.** Completely. It is one pure function, `servedLevel` in `src/quiz/level.ts`, with no
+stored data behind it. Changing it changes tomorrow and nothing in anybody's history.
+
+**What this means for you.** The first time a line comes up you just read it. The next morning a
+couple of words are missing and you tap them back. A week later nearly half of it is missing. A
+fortnight after that you are putting the lines in order. Forget one at any point and it goes back to
+being read, and climbs again.
+
+---
+
+### D8.3 — Level 4 reuses session 7's drag, and the one thing it needed was a voice
+
+**Decision.** `src/components/Reorderable.tsx` is used as session 7 wrote it: pointer events rather
+than the browser's own drag-and-drop, the pressed wash of design-tokens 6 rather than a floating
+card, and the arrow keys as the way to move a row without touch. Decision D7.5's reasoning holds
+without amendment, and no drag-and-drop dependency was added.
+
+**One change was needed, and it is not about dragging.** The component owned a polite live region,
+and the review screen has something of its own to announce - that the true order has been shown. Two
+polite live regions on one screen give a screen reader two announcement queues with no defined order
+between them, so the component now takes an optional `announcement` and speaks it in the one region
+it already has. Eight lines.
+
+**Found by a test rather than by reading.** The component test failed with "found multiple elements
+with the role status", which is the sort of thing that is invisible to anyone not using a screen
+reader and would have shipped.
+
+**Two things were settled outside the component**, because they are about scripture rather than about
+dragging. A row announces itself by its opening five words rather than its full text, because forty
+words of the Gleanings read out on every move is not an announcement. And the misplaced-line mark is
+drawn as an underline under the words rather than a rule across the row: full width it lands a few
+pixels above the row's own divider, and two hairlines that close together read as a drawing error.
+It is now the same mark a corrected word gets in a chip cloze, so the reader meets one idea.
+
+**What was considered and not built: tapping a line to place it.** Scope 9.1 says "tap or drag" and
+this is the drag. Tap-to-place would be a second way to move a row on the same screen, and two ways
+of doing one thing is two mental models for a rung that a reader meets perhaps six times in a
+passage's life. The handles are 44px and the arrow keys work.
+
+**Reversible.** Yes. The `announcement` prop is optional and the two lists that do not pass one are
+untouched.
+
+**What this means for you.** Putting lines in order works exactly like arranging Bookmarks or My
+list, because it is the same thing. When you show the order, the lines you had somewhere else are
+underlined in gold.
+
+---
+
+### D8.4 — What a wrong answer looks like: the word in its place, with a rule under it
+
+**Decision.** When the reader taps a chip that is not the word, the **correct word takes its place**,
+drawn from the line's own text, with a hairline rule beneath it in `accent-dk`. There is no colour,
+no cross, no strike-through of what was chosen, and no sound. A word tapped correctly is drawn as
+though it had always been there.
+
+**Why it is drawn this way.** Principle 7.2 asks for the correct text to be shown after every attempt
+with deviations highlighted, and principle 7.1 forbids the buzzer. A printed correction under a word
+is what that looks like on paper. The alternative every other app of this kind reaches for is a
+colour that means "wrong", and this product has no such colour: the palette is a navy, a gold, a
+paper and a set of greys, and acquiring a red for this would be acquiring a whole register of
+judgement with it.
+
+**The reward for getting it right is that the line is whole.** Nothing else happens, and nothing is
+counted. Scope 9.6 says the reader's own rating is the only input to SM-2 and that nothing is
+auto-scored, so **the app does not know how many words you got right, because it never worked it
+out.** There is nowhere for a score to be rendered from, which is the same technique principle 7.3
+uses for the overflow count.
+
+**The line is never rebuilt from the chips.** A chip carries a word with the punctuation taken off
+both ends, because a chip reading `spot,` would say where in the line the word belongs. The blank it
+fills is redrawn from the line's own token, comma and all. So whatever the reader taps, what they end
+up looking at is the passage exactly as the corpus wrote it.
+
+**That is also the bug CLAUDE.md section 11 asks for a component test against**, and it is one
+character wide: the chip says `God` and the line says `God,`. Compared as raw strings, the reader
+taps the right word and is told, gently and immediately, that it was the wrong one - with the right
+one appearing in its place, which is exactly what a correct answer looks like too. Nothing on screen,
+in the log or in the stored data would distinguish that from working perfectly. Matching goes through
+`isSameWords` in `src/text/normalise.ts`, and `src/app/quiz.test.tsx` drives the real screen and taps
+a real chip to hold it there.
+
+**Reversible.** Yes, and cheaply: it is one span in `ClozeLine.tsx`.
+
+**What this means for you.** Tap the right word and the line simply becomes whole. Tap another and
+the right word appears anyway, with a thin gold rule under it, and the app says nothing about it.
+
+---
+
+### D8.5 — Contained decisions
+
+**A chip carrying a word of a prayer is set in the body face, not in 8.5px capitals.** The sort
+controls of decision D7.4 say `TITLE` in the caps slot because they are labels. These carry
+scripture, so they take the 19px body role. It costs no height at all: decision D7.8 separated the
+chip you tap from the chip you see, and the 44px touch target is taller than either box. The drawing
+itself is now `ChipBox`, exported from `src/components/Chips.tsx`, so the two kinds of chip cannot
+drift apart when a palette changes.
+
+**A spent chip fades and stays where it is.** A bank that reflows after every tap moves the next chip
+somewhere else between one tap and the next, which is how a reader ends up choosing a word they did
+not mean. Design-tokens 6 gives opacity and nothing else.
+
+**A wrong tap spends two chips: the one tapped and the one that was right.** A chip still in the bank
+is a chip that could still be needed, and the answer to a blank already filled cannot be.
+
+**The words taken out are chosen with a seeded shuffle rather than a real one.** Three reasons, and
+the first is the one a reader would notice: a re-render must not move the chips under their thumb.
+A line closed halfway through and come back to is also the same puzzle rather than a different one,
+and a test can state what a particular line gives up.
+
+**Longer words are taken out first, and never two side by side.** A cloze that blanks `the`, `my` and
+`of` teaches nothing, so words of four letters or more are drawn on first and three-letter words are
+reached only when a short line has nothing else to offer. Two adjacent holes stop being a cloze: the
+scaffolding either side of a missing word is the whole of what makes this assisted production rather
+than the recall cliff scope 9.2 describes.
+
+**Ordering is capped at five lines, ending at the one the queue served.** Scope 8.1 builds a passage
+cumulatively, so the group never reaches past the served line: a line the reader has not met must not
+appear in a puzzle about the order of the ones they have. Twelve lines to arrange is a clerical task
+rather than a memory one, and twelve rows do not fit a phone above a bank of controls.
+
+**A shuffle is never allowed to land on the correct order.** A puzzle that arrives finished would
+have the reader rate themselves on something they had not done.
+
+**Normalisation strips an apostrophe and spaces a hyphen, and the corpus decided which.** Counted
+across all 975 passages: 2,266 hyphens inside a word (`All-Merciful`, `loving-kindness`) against 21
+used as dashes, and 432 apostrophes, every one of them inside a word. So `Bahá’í` folds to `bahai`,
+which is the only spelling a search box will ever be given, and `All-Merciful` folds to
+`all merciful`, findable as one word or two. Stripping both would give `allmerciful`; spacing both
+would give `baha i`. The one known cost is that `allglorious` typed as one word will not find
+`all-glorious`, and no passage writes it that way. Search itself is `[v1.0]` and is not built.
+
+**`user_prayers.status` moves from `list` to `learning` on the first review.** A third write, where
+the brief named two, inside a transaction that was already open. A column saying `list` about a
+passage you have reviewed twenty times is a column that lies, and scope section 10 gives the value
+its meaning. Nothing reads it yet; session 10's passage detail will. A passage already `memorised` is
+left alone, so session 9's milestone cannot be undone by an ordinary review.
+
+**Design-tokens 5.5's secondary button was written, and its horizontal padding gives way.** Four
+self-ratings sharing one row on a 390px phone cannot each carry 13px of padding around a tracked caps
+label. The vertical measurement is kept exactly, because height is what a 44px touch target is made
+of; the four share the width equally. The row also carries its question, `HOW DID THAT GO?`, drawn as
+well as read: four bordered words with nothing above them are four words, and this is the most
+important control in the product.
+
+**A tap is written against the state as it stands, not as the render saw it.** Found in a real
+browser by tapping two chips inside one frame, which sent both at the same blank and quietly
+overwrote the first answer. A double tap or a stray second finger does that on a screen of 44px
+targets above a tab bar. `src/app/quiz.test.tsx` reproduces it, and was checked against the old
+handler to confirm it fails there.
+
+**The visually-hidden helper moved out of `Reorderable.tsx` into `src/components/VisuallyHidden.tsx`,
+because session 8 needed three more of them** - a live region on the review screen and the word a
+blank has to be when a line is read aloud.

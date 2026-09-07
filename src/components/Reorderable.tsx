@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState, type ReactNode } from 'react'
 import { strings } from '../strings'
 import { MINIMUM_ROW_HEIGHT } from './ListSurface'
+import { Announcement } from './VisuallyHidden'
 
 /**
  * **A list you arrange by hand.** Scope 6.7's rule, which governs Bookmarks and
@@ -38,6 +39,14 @@ import { MINIMUM_ROW_HEIGHT } from './ListSurface'
  * row it belongs to. A live region says where the row landed. This is the only
  * way to reorder anything without touch, so it is not an enhancement.
  *
+ * **That live region is the screen's, not this component's.** Session 8 reuses
+ * this list for level 4 of the quiz ladder, where the screen also has something
+ * to announce - that the true order has been shown - and two polite live regions
+ * on one screen give a screen reader two queues with no defined order between
+ * them. So a caller may pass a sentence in through `announcement` and it is
+ * spoken here, in the one region. That is the only change session 8 made to this
+ * file; see decision D8.3.
+ *
  * ## Where the order lives
  *
  * While a drag is in flight the order is this component's; the moment it ends it
@@ -61,6 +70,7 @@ export function ReorderableList({
   rows,
   canReorder,
   onReorder,
+  announcement: fromCaller,
 }: {
   label: string
   rows: readonly ReorderableRow[]
@@ -71,6 +81,13 @@ export function ReorderableList({
    */
   canReorder: boolean
   onReorder: (orderedIds: readonly string[]) => void
+  /**
+   * Something the screen wants said in this list's live region rather than in a
+   * second one of its own. It takes precedence while it is set, which is safe
+   * because the screens that pass one set it at the moment the list stops being
+   * reorderable and there is nothing left for this component to announce.
+   */
+  announcement?: string
 }) {
   const listRef = useRef<HTMLUListElement>(null)
   const [dragging, setDragging] = useState<{ id: string; order: readonly string[] } | null>(null)
@@ -177,10 +194,11 @@ export function ReorderableList({
           </li>
         ))}
       </ul>
-      {/* Where a row landed, for anyone who cannot see it land. */}
-      <span role="status" aria-live="polite" className="sr-only" style={SR_ONLY}>
-        {announcement}
-      </span>
+      {/* Where a row landed, for anyone who cannot see it land, and the one
+          live region on the screen (see the note above). */}
+      <Announcement>
+        {fromCaller !== undefined && fromCaller !== '' ? fromCaller : announcement}
+      </Announcement>
     </>
   )
 }
@@ -236,17 +254,3 @@ function moved(order: readonly string[], from: number, to: number): string[] {
 function clamp(index: number, length: number): number {
   return Math.min(Math.max(index, 0), length - 1)
 }
-
-/**
- * Read but never drawn. Tailwind's own `sr-only` is a utility class, and this
- * component sets the same rule inline so the announcement cannot be lost to a
- * purge of a class that appears nowhere else in the app.
- */
-const SR_ONLY = {
-  position: 'absolute',
-  width: 1,
-  height: 1,
-  overflow: 'hidden',
-  clip: 'rect(0 0 0 0)',
-  whiteSpace: 'nowrap',
-} as const

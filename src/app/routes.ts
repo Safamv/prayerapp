@@ -10,6 +10,7 @@
  * /discover/passage/:passageId                       the passage in full
  * /bookmarks                                         the places you have kept
  * /memorise                                          today's work, and the doors
+ * /memorise/review/:passageId                        one prayer's lines, today
  * /memorise/list                                     what you intend to learn
  * /memorise/add/:passageId                           the lines, before adding it
  * /memorise/upkeep/:passageId                        how one passage comes round
@@ -89,6 +90,20 @@ export const SETTINGS_PATH = '/settings'
  */
 export function addToListPath(passageId: string): string {
   return `${MEMORISE_PATH}/add/${encodeURIComponent(passageId)}`
+}
+
+/**
+ * One prayer's work for today: its lines from the queue, one at a time, at
+ * whichever rung of scope 9.1's ladder each has climbed to.
+ *
+ * A prayer rather than the whole day, because decision D8.1 makes the row on the
+ * Memorise tab the door: you take on one prayer, finish it, and are back on the
+ * tab with that row gone. The passage is in the path so the screen can be
+ * reopened on the line it left off at, and so a restored tab lands somewhere
+ * real.
+ */
+export function reviewPath(passageId: string): string {
+  return `${MEMORISE_PATH}/review/${encodeURIComponent(passageId)}`
 }
 
 /**

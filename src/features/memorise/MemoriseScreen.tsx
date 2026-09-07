@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { MY_LIST_PATH, SETTINGS_PATH } from '../../app/routes'
+import { Link } from 'react-router'
+import { MY_LIST_PATH, SETTINGS_PATH, reviewPath } from '../../app/routes'
 import { useAsyncValue } from '../../app/useAsyncValue'
 import { useUserId } from '../../app/userContext'
 import {
@@ -61,9 +62,12 @@ import { typeStyle } from '../../theme'
  * before the ladder had asked anything; and three rows carrying the same prayer
  * name tell the reader nothing at all.
  *
- * **Tapping a row does nothing yet.** The quiz ladder is sessions 8 and 9. The
- * rows are drawn but inert on purpose, rather than opening a screen that would
- * have to be unbuilt.
+ * **Tapping a row opens that prayer's lines for today**, and that is the only
+ * door into the quiz ladder (decision D8.1). There is no button that begins the
+ * whole day. You take on one prayer, work through its lines, and are back here
+ * with that row gone; when the last row goes the section says you are up to
+ * date. The shrinking list is the only progress the app ever shows, which is
+ * also the only kind principle 7.1 leaves room for.
  *
  * ## The finished day
  *
@@ -138,6 +142,7 @@ export function MemoriseScreen() {
               {loaded.queue.passages.map((entry) => (
                 <li key={entry.passage.id}>
                   <QueueRow
+                    to={reviewPath(entry.passage.id)}
                     title={entry.passage.title}
                     secondary={passageAttribution(entry.passage)}
                     lines={entry.lineCount}
@@ -192,23 +197,29 @@ function FocusLine({ focused }: { focused: readonly ListedPassage[] }) {
 }
 
 /**
- * One passage today touches. Design-tokens 5.3's list row, with the number of
- * its lines on the secondary caps line after the author.
+ * One passage today touches, and the door into its lines. Design-tokens 5.3's
+ * list row, with the number of its lines on the right.
  *
- * Not a link and not a button: the quiz ladder is sessions 8 and 9, and a row
- * that responded to a tap today would have to be unbuilt then.
+ * It is a link rather than `ListRow` because the row carries three pieces of
+ * text where that component carries two, and because its accessible name has to
+ * be the prayer and its count rather than the prayer, the author and the count
+ * read as one run-on phrase.
  */
 function QueueRow({
+  to,
   title,
   secondary,
   lines,
 }: {
+  to: string
   title: string
   secondary: string
   lines: number
 }) {
   return (
-    <div
+    <Link
+      to={to}
+      aria-label={strings.accessibility.queueRow(title, strings.memorise.lineCount(lines))}
       className="flex items-center border-b border-rule last:border-b-0"
       style={{ gap: 13, padding: '11px 0', minHeight: MINIMUM_ROW_HEIGHT }}
     >
@@ -226,7 +237,7 @@ function QueueRow({
       <span className="flex-none text-on-paper-40" style={typeStyle('rowAttribution')}>
         {strings.memorise.lineCount(lines)}
       </span>
-    </div>
+    </Link>
   )
 }
 

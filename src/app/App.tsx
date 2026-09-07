@@ -9,6 +9,7 @@ import { ReadingScreen } from '../features/discover/ReadingScreen'
 import { ConfirmLinesScreen } from '../features/memorise/ConfirmLinesScreen'
 import { MemoriseScreen } from '../features/memorise/MemoriseScreen'
 import { MyListScreen } from '../features/memorise/MyListScreen'
+import { ReviewScreen } from '../features/memorise/ReviewScreen'
 import { UpkeepScreen } from '../features/memorise/UpkeepScreen'
 import { SettingsScreen } from '../features/settings/SettingsScreen'
 import { ThemeProvider, type ThemeSelection } from '../theme'
@@ -77,6 +78,9 @@ export function App() {
               {/* Scope 6.5's ordered list, which absorbed session 6's upkeep
                   roll call. Decision D7.3. */}
               <Route path="/memorise/list" element={<MyListScreen />} />
+              {/* Scope 9.1's ladder, for one prayer's lines today. Reached from
+                  a row of today's queue, which is the only door. Decision D8.1. */}
+              <Route path="/memorise/review/:passageId" element={<ReviewScreen />} />
               {/* Scope 8.4's add moment. On the memorisation side of the app,
                   reached from the reading view's list mark. Decision D5.1. */}
               <Route path="/memorise/add/:passageId" element={<ConfirmLinesScreen />} />

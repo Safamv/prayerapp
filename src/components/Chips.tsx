@@ -1,4 +1,5 @@
-import { typeStyle } from '../theme'
+import type { ReactNode } from 'react'
+import { typeStyle, type TypeRoleName } from '../theme'
 
 /**
  * **A row of chips: one label, then a set of choices, one of them on.** The sort
@@ -48,11 +49,20 @@ import { typeStyle } from '../theme'
  * overlap would land on whichever row happened to be drawn on top, and choosing
  * an author while aiming at a collection is worse than a row of tall chips.
  *
- * See decision D7.4.
+ * ## The drawing is separate from the control
+ *
+ * `ChipBox` below is the drawing on its own, and it is exported, because session
+ * 8 needed a second kind of chip: the word bank of scope 9.3, where a chip is
+ * one word of a prayer and tapping it spends it. That is a different control -
+ * an action rather than one choice out of a set - and it must not be a second
+ * drawing. Same box, same border, same square corners, same behaviour when a
+ * palette changes.
+ *
+ * See decisions D7.4, D7.8 and D8.4.
  */
 
 /** Design-tokens 5.3's production minimum, which is what a thumb needs. */
-const TOUCH_TARGET = 44
+export const TOUCH_TARGET = 44
 
 export interface ChipChoice<T> {
   readonly value: T
@@ -126,20 +136,53 @@ function Chip({
       className="flex items-center"
       style={{ minHeight: TOUCH_TARGET }}
     >
-      <span
-        className={
-          selected
-            ? 'border border-deep bg-field text-accent'
-            : 'border border-rule-str text-on-paper-60'
-        }
-        style={{
-          ...typeStyle('rowAttribution'),
-          padding: '6px 8px',
-          boxShadow: selected ? 'inset 0 1px 0 var(--letterpress)' : undefined,
-        }}
-      >
-        {label}
-      </span>
+      <ChipBox filled={selected}>{label}</ChipBox>
     </button>
+  )
+}
+
+/**
+ * **The chip itself, drawn.** Design-tokens 5.5's two buttons at chip size, and
+ * nothing about what tapping it does.
+ *
+ * `filled` takes the primary: `field` fill, 1px `deep` border, the letterpress
+ * highlight, label in `accent`. Otherwise the secondary: transparent, 1px
+ * `rule-str` border, label in `on-paper-60`.
+ *
+ * `role` is the type role of the label, and it is the one thing the two kinds of
+ * chip differ in. A sort control says `TITLE` in the 8.5px caps slot, because it
+ * is a label. A word chip says `Blessed` in the 19px body slot, because it is a
+ * word of a prayer and setting scripture in 8.5px capitals would be treating it
+ * as furniture. Neither costs any height: the 44px touch target is taller than
+ * both boxes (decision D7.8).
+ */
+export function ChipBox({
+  filled,
+  role = 'rowAttribution',
+  faded = false,
+  children,
+}: {
+  filled: boolean
+  role?: TypeRoleName
+  /** A chip that has been spent. Design-tokens 6: opacity, and nothing else. */
+  faded?: boolean
+  children: ReactNode
+}) {
+  return (
+    <span
+      className={
+        filled
+          ? 'border border-deep bg-field text-accent'
+          : 'border border-rule-str text-on-paper-60'
+      }
+      style={{
+        ...typeStyle(role),
+        padding: '6px 8px',
+        opacity: faded ? 0.35 : undefined,
+        boxShadow: filled ? 'inset 0 1px 0 var(--letterpress)' : undefined,
+      }}
+    >
+      {children}
+    </span>
   )
 }

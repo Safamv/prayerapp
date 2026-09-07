@@ -315,3 +315,44 @@ holds. 1 new test. D7.9.
 
 **Next session should read first.** Unchanged from session 7's entry above, plus scope 3.1, which is
 new and describes a tab bar no earlier session saw.
+
+## Session 8 — The chip quiz: levels 2, 3 and 4
+
+**Version:** v0.8.0   **Branch:** session-08-chip-quiz   **Date:** 8 September 2026
+
+**Shipped.** A row in today's queue does something. Tap a prayer and you work through its lines one
+at a time; finish it and you are back on Memorise with that row gone, and when the last row goes the
+screen says you are up to date. Each line arrives at whichever rung it has climbed to: read it, then
+a couple of words missing, then nearly half of it missing, then the lines to put back in order. Tap
+a chip and the word takes its place; tap the wrong one and the right word appears anyway with a thin
+gold rule under it and the app says nothing about it. Then Again, Hard, Good or Easy, which is the
+only thing SM-2 is ever told. That rating calls `reviewSegment`, which had been written and called by
+nothing since session 1, writes `segment_progress`, appends to `review_log`, and the queue is
+genuinely smaller tomorrow. Normalisation is built, for chip matching now and search at v1.0.
+102 new tests, including the component test CLAUDE.md section 11 asks for.
+
+**Two things you decided.** The row is the door rather than a button that begins the whole day, so
+the shrinking list is the only progress the app shows (D8.1). And a line climbs one rung per correct
+review, so forgetting one puts it back to simply reading it (D8.2).
+
+**Deferred.** Nothing from this session's list. Level 1 was built although the brief named three
+levels: a new line has to be met somehow, and it is a line, a rating and no interaction at all.
+
+**Surprises.** Three, all found by running the thing rather than by reading it. The corpus settled
+how normalisation treats a hyphen and an apostrophe, which are opposite: 2,266 hyphens inside a word
+against 432 apostrophes, also inside words, so one becomes a space and the other vanishes. Reusing
+session 7's drag needed exactly one change and it was not about dragging - two live regions on one
+screen give a screen reader two queues (D8.3). And tapping two chips inside one frame in a real
+browser lost the first answer, which a thumb can do; it is fixed and the test was checked against the
+old code to be sure it would have caught it.
+
+**Next session should read first.** `/CLAUDE.md` in full. Scope sections 9.1, 9.4, 9.5, 8.7, 8.1,
+11.1 and 10 (the `user_prayers` and `review_log` entries). `/docs/design-tokens.md` sections 5.4, 5.5
+and 3. Decisions D8.2 (the ladder, which session 9 raises the ceiling of), D8.4 (what a reveal looks
+like and why nothing is scored), D1.3 and D2.11 (the weakest line sets the pace, which is what a
+promoted passage is scheduled on) and D1.5. In the repo, `src/quiz/level.ts` for
+`HIGHEST_LEVEL_BUILT`, which is the one line that lets levels 5 and 6 be served;
+`src/features/memorise/ReviewScreen.tsx` for the walk and the reveal-then-rate shape;
+`src/data/review.ts` for the write; `src/scheduler/passage.ts` for `promoteToPassage` and
+`reviewPassage`, both written and called by nothing since session 1; and `src/data/dailyQueue.ts` for
+`getPassageWork`.

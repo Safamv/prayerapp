@@ -198,7 +198,10 @@ describe("today's work", () => {
     expect(screen.queryByText('Line 2')).toBeNull()
   })
 
-  it('does nothing when a row is tapped, because the quiz ladder is sessions 8 and 9', async () => {
+  it('opens that prayer, and only that prayer, when a row is tapped', async () => {
+    // Session 6 asserted the opposite here, because the quiz ladder did not
+    // exist and a row that responded to a tap would have had to be unbuilt.
+    // Session 8 makes the row the one door into the ladder (decision D8.1).
     await withList(async () => {
       await makeOverdue(await addToList(blessed, 2))
     })
@@ -208,8 +211,9 @@ describe("today's work", () => {
       expect(queueRows()).toHaveLength(1)
     })
     const list = screen.getByRole('list', { name: strings.accessibility.queueList })
-    expect(within(list).queryByRole('link')).toBeNull()
-    expect(within(list).queryByRole('button')).toBeNull()
+    const rows = within(list).getAllByRole('link')
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.getAttribute('href')).toBe(`/memorise/review/${blessed.id}`)
   })
 })
 

@@ -62,18 +62,19 @@ const DEXIE_WALL =
 /**
  * The Discover wall. Principle 7.6, decisions D0.4 and D1.10.
  *
- * Nothing under src/features/discover/ may reach the scheduler, the queue, a
- * progress table, or the Ruhi route. The devotional half of the product is protected by
- * a failing build rather than by a paragraph somebody read forty turns ago.
+ * Nothing under src/features/discover/ may reach the scheduler, the queue, the
+ * quiz ladder, a progress table, or the Ruhi route. The devotional half of the
+ * product is protected by a failing build rather than by a paragraph somebody
+ * read forty turns ago.
  *
  * The companion test in src/principles/discover-isolation.test.ts checks the
  * same boundary against the source text, because a lint rule can be switched off
  * to get a build green and a test cannot be, quietly.
  */
 const DISCOVER_WALL =
-  'src/features/discover/ may not import the scheduler, the queue, a progress table, or the ' +
-  'Ruhi route (principle 7.6, decisions D0.4 and D1.10). Discover shows no due counts, no ' +
-  'focus banner, no streak, no freshness and no Ruhi quotation. Read through ' +
+  'src/features/discover/ may not import the scheduler, the queue, the quiz ladder, a progress ' +
+  'table, or the Ruhi route (principle 7.6, decisions D0.4 and D1.10). Discover shows no due ' +
+  'counts, no focus banner, no streak, no freshness and no Ruhi quotation. Read through ' +
   'src/data/passages.ts, src/data/tags.ts or src/data/bookmarks.ts, none of which can return ' +
   'any of it.'
 
@@ -180,6 +181,8 @@ export default tseslint.config(
                 '**/scheduler/*',
                 '**/queue',
                 '**/queue/*',
+                '**/quiz',
+                '**/quiz/*',
                 '**/data/db',
                 '**/data/ruhi',
                 '**/data/userPrayers',
@@ -189,6 +192,7 @@ export default tseslint.config(
                 '**/data/progressMapping',
                 '**/data/dailyQueue',
                 '**/data/upkeep',
+                '**/data/review',
               ],
               message: DISCOVER_WALL,
             },
