@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { DISCOVER_PATH, passagePath } from '../../app/routes'
 import { useAsyncValue } from '../../app/useAsyncValue'
@@ -17,11 +17,11 @@ import { collectionLabel, passageAttribution } from '../../strings/attribution'
 import {
   joinLines,
   lineRanges,
+  partsOfLine,
   proposedBreaks,
   segmentPassage,
   segmentsFrom,
-  splitLine,
-  splitPoint,
+  splitAt,
 } from '../../text/segmentation'
 import { typeStyle } from '../../theme'
 
@@ -33,7 +33,7 @@ import { typeStyle } from '../../theme'
  * > or split before starting.
  *
  * The proposal comes from `src/text/segmentation.ts`, which is pure and tested
- * against all 976 committed passages. This screen shows it, lets it be changed,
+ * against all 975 committed passages. This screen shows it, lets it be changed,
  * and writes the result.
  *
  * ## Why it is on the memorisation side of the app
@@ -178,7 +178,7 @@ export function ConfirmLinesScreen() {
           />
 
           <ol aria-label={strings.accessibility.lineList}>
-            {lines.map((line, index) => (
+            {lines.map((_line, index) => (
               <li key={String(index)}>
                 {index > 0 && (
                   <JoinControl
@@ -188,25 +188,31 @@ export function ConfirmLinesScreen() {
                     }}
                   />
                 )}
-                <div
-                  className="flex items-start"
-                  style={{ gap: 13, padding: '11px 0', minHeight: MINIMUM_ROW_HEIGHT }}
+                <p
+                  className="text-ink"
+                  style={{
+                    ...typeStyle('passageBody'),
+                    whiteSpace: 'pre-line',
+                    padding: '11px 0',
+                    minHeight: MINIMUM_ROW_HEIGHT,
+                  }}
                 >
-                  <span
-                    className="min-w-0 flex-1 text-ink"
-                    style={{ ...typeStyle('passageBody'), whiteSpace: 'pre-line' }}
-                  >
-                    {line}
-                  </span>
-                  {splitPoint(segmentation, ranges, index) !== null && (
-                    <SplitControl
-                      position={index + 1}
-                      onClick={() => {
-                        setChosen(splitLine(segmentation, breaks, index))
-                      }}
-                    />
-                  )}
-                </div>
+                  {partsOfLine(segmentation, ranges, index).map((part) => (
+                    <Fragment key={String(part.cut)}>
+                      {part.cut !== null && (
+                        <CutMark
+                          position={index + 1}
+                          opening={openingWords(part.text)}
+                          onClick={() => {
+                            setChosen(splitAt(breaks, part.cut ?? 0))
+                          }}
+                        />
+                      )}
+                      {part.separator}
+                      {part.text}
+                    </Fragment>
+                  ))}
+                </p>
               </li>
             ))}
           </ol>
@@ -241,20 +247,50 @@ function JoinControl({ position, onClick }: { position: number; onClick: () => v
 }
 
 /**
- * Cuts a line in two. Shown only on a line that still has a boundary inside it,
- * and it cuts at the strongest one: a paragraph before a sentence, a sentence
- * before a semicolon. Tapping again cuts what is left, in reading order.
+ * A place the line can be cut, drawn in the line itself, at the gap it would cut
+ * at. Decision D5.8, Safa's call: pointing at the cut you want beats a control
+ * that decides for you.
+ *
+ * **Drawn rather than written.** A hairline of gold in the gap between two
+ * words, `0.9em` tall so it sits with the text rather than on top of it. It is
+ * an element and not a character, which keeps it out of the subset font
+ * question entirely (decision D4.7): the app draws it, so no face has to carry
+ * it.
+ *
+ * **The target is bigger than the mark.** Ten pixels of padding above and below,
+ * pulled back by the same amount in margin, so the tap area is about 24px tall
+ * while the line box is exactly as tall as it would be without it. A line of
+ * scripture cannot be opened up to fit a 44px control inside it, and
+ * design-tokens 5.3's 44px minimum is written about rows. The full touch target
+ * audit is scope 7.9, at v1.0.
  */
-function SplitControl({ position, onClick }: { position: number; onClick: () => void }) {
+function CutMark({
+  position,
+  opening,
+  onClick,
+}: {
+  position: number
+  opening: string
+  onClick: () => void
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={strings.segmentation.splitLine(position)}
-      className="flex flex-none items-center justify-end text-on-paper-40"
-      style={{ ...typeStyle('secondaryButtonLabel'), minHeight: MINIMUM_ROW_HEIGHT, width: 52 }}
+      aria-label={strings.segmentation.splitLine(position, opening)}
+      className="inline-flex items-center align-baseline"
+      style={{ padding: '10px 4px', margin: '-10px 0' }}
     >
-      {strings.segmentation.split}
+      <span
+        aria-hidden="true"
+        className="inline-block bg-accent-md"
+        style={{ width: 1, height: '0.9em' }}
+      />
     </button>
   )
+}
+
+/** Enough of what follows a cut for a screen reader to tell one mark from another. */
+function openingWords(text: string): string {
+  return text.split(/\s+/).slice(0, 4).join(' ')
 }

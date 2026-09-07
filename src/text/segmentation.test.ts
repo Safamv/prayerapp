@@ -5,12 +5,12 @@ import {
   breakBefore,
   joinLines,
   lineRanges,
+  partsOfLine,
   proposedBreaks,
   proposeLines,
   segmentPassage,
   segmentsFrom,
-  splitLine,
-  splitPoint,
+  splitAt,
 } from './segmentation'
 
 /**
@@ -18,7 +18,7 @@ import {
  * the six things that must be unit tested because "a silent bug in any of them
  * invalidates the V0 data".
  *
- * The last block is the one that keeps this honest: every one of the 976
+ * The last block is the one that keeps this honest: every one of the 975
  * passages in the committed corpus is put through the splitter, and the text is
  * required to survive it exactly. A break in the wrong place is a matter of
  * taste and the user can fix it on the screen. A character lost between two
@@ -164,13 +164,13 @@ describe('segmentPassage - the breaks it finds but does not propose', () => {
     ])
   })
 
-  it('always leaves a way to cut a long line, however it is punctuated', () => {
+  it('always leaves somewhere to cut a long line, however it is punctuated', () => {
     const long =
       'If ye meet the abased or the downtrodden, turn not away disdainfully from them, ' +
       'for the King of Glory ever watcheth over them.'
     const segmentation = segmentPassage(long)
     const ranges = lineRanges(segmentation, proposedBreaks(segmentation))
-    expect(splitPoint(segmentation, ranges, 0)).not.toBeNull()
+    expect(partsOfLine(segmentation, ranges, 0)).toHaveLength(3)
   })
 })
 
@@ -198,51 +198,69 @@ describe('merging and splitting', () => {
     expect(breakBefore(lineRanges(segmentation, proposedBreaks(segmentation)), 0)).toBeNull()
   })
 
-  it('splits a joined line back apart at the same place', () => {
+  it('cuts a joined line back apart at the same place', () => {
     const breaks = proposedBreaks(segmentation)
+    const seam = breakBefore(lineRanges(segmentation, breaks), 1)
     const joined = joinLines(segmentation, breaks, 1)
-    expect(splitLine(segmentation, joined, 0)).toEqual(breaks)
+
+    expect(splitAt(joined, seam ?? -1)).toEqual(breaks)
   })
 
   /**
-   * A line with more than one closed boundary inside it splits at the strongest
-   * one, and at the first of them when they are equally strong. Read top to
-   * bottom, a second tap then splits what is left, which is the order a person
-   * is reading the screen in anyway.
+   * The confirm screen draws a mark at every closed boundary inside a line, and
+   * the reader taps the one they want. So a line reports its parts, each one
+   * naming the boundary a mark there would open, and the whitespace that stood
+   * in the gap so the line can be drawn from its parts unchanged.
    */
-  it('splits at the strongest boundary inside the line, then at the first of equals', () => {
+  it('reports a line as parts, each naming the cut before it', () => {
     const mixed = segmentPassage('One thing; another thing. A third thing; a fourth.')
-    const breaks = mixed.boundaries.map(() => false)
     expect(mixed.boundaries.map((boundary) => boundary.kind)).toEqual([
       'clause',
       'sentence',
       'clause',
     ])
 
-    const once = splitLine(mixed, breaks, 0)
-    expect(segmentsFrom(mixed, once)).toEqual([
-      'One thing; another thing.',
-      'A third thing; a fourth.',
+    const proposed = proposedBreaks(mixed)
+    const parts = partsOfLine(mixed, lineRanges(mixed, proposed), 0)
+    expect(parts).toEqual([
+      { text: 'One thing;', cut: null, separator: '' },
+      { text: 'another thing.', cut: 0, separator: ' ' },
     ])
+  })
 
-    const twice = splitLine(mixed, once, 0)
-    expect(segmentsFrom(mixed, twice)).toEqual([
+  it('cuts exactly where the mark was, and nowhere else', () => {
+    const mixed = segmentPassage('One thing; another thing. A third thing; a fourth.')
+    const proposed = proposedBreaks(mixed)
+
+    expect(segmentsFrom(mixed, splitAt(proposed, 0))).toEqual([
       'One thing;',
       'another thing.',
       'A third thing; a fourth.',
     ])
+    expect(segmentsFrom(mixed, splitAt(proposed, 2))).toEqual([
+      'One thing; another thing.',
+      'A third thing;',
+      'a fourth.',
+    ])
   })
 
-  it('offers no split point in a line that has no boundary left inside it', () => {
+  it('draws a line from its parts unchanged, whitespace and all', () => {
+    const verse = segmentPassage('Blessed is the spot,\nand the house. And the city.')
+    const joined = joinLines(verse, proposedBreaks(verse), 1)
+    const parts = partsOfLine(verse, lineRanges(verse, joined), 0)
+
+    expect(parts.map((part) => part.separator + part.text).join('')).toBe(
+      'Blessed is the spot,\nand the house.',
+    )
+  })
+
+  it('offers no cut in a line that has no boundary left inside it', () => {
     const plain = segmentPassage('One line here. Another line here.')
     const ranges = lineRanges(plain, proposedBreaks(plain))
-    expect(splitPoint(plain, ranges, 0)).toBeNull()
-  })
+    const parts = partsOfLine(plain, ranges, 0)
 
-  it('leaves the lines unchanged when there is nothing to split', () => {
-    const plain = segmentPassage('One line here. Another line here.')
-    const breaks = proposedBreaks(plain)
-    expect(splitLine(plain, breaks, 0)).toEqual(breaks)
+    expect(parts).toHaveLength(1)
+    expect(parts[0]?.cut).toBeNull()
   })
 })
 
