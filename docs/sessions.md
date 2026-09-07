@@ -219,3 +219,37 @@ Memorise tab holds today). In the repo, `src/scheduler/` for the SM-2 module tha
 since session 1, `src/data/segmentProgress.ts` and `src/data/progressMapping.ts` for the two shapes
 of the same numbers, `src/data/segmentation.ts` for what a confirmed passage looks like in the
 database, and `src/config/defaults.ts` for the caps the queue is meant to read.
+
+## Session 6 — The daily queue: caps, silent overflow, upkeep and focus
+
+**Version:** v0.6.0   **Branch:** session-06-queue   **Date:** 7 Sept 2026
+
+**Shipped.** The engine finally runs. Open Memorise and you get today's work: the prayers today
+touches, one row each with the author and how many of their lines are in the day, capped at fifteen
+lines and two new ones. Miss a fortnight and you still get fifteen, and the app never says how many
+it left, because it never worked the number out. Underneath, everything you have taken on, with
+ACTIVE, OCCASIONAL, RESTING or FOCUS beside each and a screen behind it to change that. Focus
+suppresses the whole rest of the list, states on Memorise what is paused and when it lifts, runs
+seven days by default and releases itself, telling you. The two caps are in Settings. Tapping a row
+in today's work does nothing: the quiz ladder is sessions 8 and 9. 106 new tests, including
+principle 7.3 checked against the rendered screen: with forty lines overdue, the only number
+anywhere on it is fifteen.
+
+**Deferred.** Nothing from this session's list.
+
+**Surprises.** One decision the brief asked for and two the build forced. Where upkeep is turned on
+had to be decided (item 6): a mark on a queue row is the obvious answer and it is wrong, because a
+resting passage is never in the queue, so the door would shut behind the first passage you put to
+rest. It is a roll call on Memorise instead (D6.3). Filling the cap in list order starves the list,
+so the cap is filled by urgency across everything and only then arranged by list (D6.2). And the
+overflow count is not hidden but never computed, because every other app of this kind shows it and
+a number that exists will eventually be rendered (D6.1).
+
+**Next session should read first.** `/CLAUDE.md` in full. Scope sections 6.5, 6.7, 6.2, 11.5 and 10
+(the `bookmarks` and `user_prayers` entries). `/docs/design-tokens.md` sections 5.1, 5.3 and 6.
+Decisions D4.13 (`sort_order` written from the first bookmark and read by nothing), D5.4 (undo takes
+the lines away with the row), D6.3 (the upkeep roll call now on Memorise, which the list screen may
+absorb) and D4.10 (the undo band). In the repo, `src/data/bookmarks.ts` and `src/data/userPrayers.ts`
+for `reorderList`, which is written and called by nothing; `src/data/upkeep.ts` for
+`listPassagesOnList`; `src/features/memorise/MemoriseScreen.tsx` for the roll call the list screen
+has to decide about; and `src/components/ListSurface.tsx` for the row pattern both screens use.
