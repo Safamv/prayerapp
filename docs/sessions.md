@@ -286,3 +286,32 @@ reuses). In the repo, `src/scheduler/index.ts` for `reviewSegment`, which is wri
 nothing; `src/data/segmentProgress.ts` and `src/data/reviewLog.ts` for the two writes a review makes;
 `src/data/dailyQueue.ts` for what today's queue hands a quiz; `src/text/segmentation.ts` for the text
 pipeline normalisation belongs beside; and `src/components/Reorderable.tsx` for the drag.
+
+## Session 7 follow-up — Four answers, and a touch target that was too small
+
+**Version:** v0.7.1   **Branch:** session-07-followup   **Date:** 8 September 2026
+
+**Shipped.** Safa's answers to the four open questions, built. **The scope is now v4.4**: section 3.1
+is four tabs in two halves rather than three tabs in a list, Log is no longer a tab and section 11
+renders onto Memorise, Recents and Bookmarks are named as separate tabs that do not merge, and
+principle 7.6 says "Memorise only" where it used to say "Memorise and Log". Four rows added to the
+scope's own decision log, 18.32 to 18.35. `CLAUDE.md` updated where it quotes 7.6, because a
+quotation that drifts from its source is worse than none. "Devotions" confirmed as the first tab's
+word.
+
+**The chip fix, which was the interesting one.** Safa's question was the right one and the original
+reasoning had the trade backwards. The chip you tap and the chip you see are now separate boxes: the
+button is 44px tall, the bordered box inside it stays 24px, and the extra height is real and simply
+has no ink in it. The height was paid for by moving the label out of a fixed 62px column into the
+same wrapping flow as the chips, which takes a wrapped line off two of the three rows. Measured at
+390px: 204px of controls with small targets before, 190px with proper ones after. Shorter screen,
+targets nearly twice as tall. D7.8.
+
+**Surprise.** Seeding a browser by hand put two bookmark rows on one passage and React complained
+about two children with one key. Nothing in the app can create that row, but v1.0 sync merging two
+devices could, and a screen with two rows for one prayer has two rows with one identity, so the row
+you dragged would not be the one that moved. The read is now one row per passage whatever the table
+holds. 1 new test. D7.9.
+
+**Next session should read first.** Unchanged from session 7's entry above, plus scope 3.1, which is
+new and describes a tab bar no earlier session saw.
