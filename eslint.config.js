@@ -62,8 +62,8 @@ const DEXIE_WALL =
 /**
  * The Discover wall. Principle 7.6, decisions D0.4 and D1.10.
  *
- * Nothing under src/features/discover/ may reach the scheduler, a progress
- * table, or the Ruhi route. The devotional half of the product is protected by
+ * Nothing under src/features/discover/ may reach the scheduler, the queue, a
+ * progress table, or the Ruhi route. The devotional half of the product is protected by
  * a failing build rather than by a paragraph somebody read forty turns ago.
  *
  * The companion test in src/principles/discover-isolation.test.ts checks the
@@ -71,10 +71,11 @@ const DEXIE_WALL =
  * to get a build green and a test cannot be, quietly.
  */
 const DISCOVER_WALL =
-  'src/features/discover/ may not import the scheduler, a progress table, or the Ruhi route ' +
-  '(principle 7.6, decisions D0.4 and D1.10). Discover shows no due counts, no streak, no ' +
-  'freshness and no Ruhi quotation. Read through src/data/passages.ts, src/data/tags.ts or ' +
-  'src/data/bookmarks.ts, none of which can return any of it.'
+  'src/features/discover/ may not import the scheduler, the queue, a progress table, or the ' +
+  'Ruhi route (principle 7.6, decisions D0.4 and D1.10). Discover shows no due counts, no ' +
+  'focus banner, no streak, no freshness and no Ruhi quotation. Read through ' +
+  'src/data/passages.ts, src/data/tags.ts or src/data/bookmarks.ts, none of which can return ' +
+  'any of it.'
 
 /**
  * Colour and font families. Design-tokens 8.4: both are build failures, not
@@ -177,6 +178,8 @@ export default tseslint.config(
                 'dexie/*',
                 '**/scheduler',
                 '**/scheduler/*',
+                '**/queue',
+                '**/queue/*',
                 '**/data/db',
                 '**/data/ruhi',
                 '**/data/userPrayers',
@@ -184,6 +187,8 @@ export default tseslint.config(
                 '**/data/reviewLog',
                 '**/data/userStats',
                 '**/data/progressMapping',
+                '**/data/dailyQueue',
+                '**/data/upkeep',
               ],
               message: DISCOVER_WALL,
             },

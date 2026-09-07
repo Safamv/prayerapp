@@ -15,6 +15,39 @@ export const DEFAULT_DAILY_REVIEW_LIMIT = 15
 export const DEFAULT_DAILY_NEW_LIMIT = 2
 
 /**
+ * Scope 8.3 says the two caps are user-adjustable and does not say between what,
+ * so these are the build's choice and are logged as decision D6.4.
+ *
+ * The review floor is five rather than nought: a cap of nought would be an app
+ * that never shows you anything, which looks broken rather than restful, and
+ * scope 8.5's resting state is the honest way to stop a passage coming round.
+ * The new floor **is** nought, because "no new lines today, just review" is a
+ * real thing to want and is the only way to say it.
+ */
+export const DAILY_REVIEW_LIMIT_RANGE = Object.freeze({ minimum: 5, maximum: 50, step: 5 })
+export const DAILY_NEW_LIMIT_RANGE = Object.freeze({ minimum: 0, maximum: 10, step: 1 })
+
+/**
+ * Scope 8.6: "Focus has an end date, defaulting to 7 days, user-settable."
+ *
+ * The maximum is 30 days. The expiry exists precisely because an open-ended
+ * focus is how a user ends up with a list of dormant passages four months later,
+ * so a range that stretched to a year would give that failure back.
+ */
+export const DEFAULT_FOCUS_DAYS = 7
+export const FOCUS_DAYS_RANGE = Object.freeze({ minimum: 1, maximum: 30, step: 1 })
+
+/** Keeps a number inside one of the ranges above, on its own step. */
+export function clampToRange(
+  value: number,
+  range: { readonly minimum: number; readonly maximum: number; readonly step: number },
+): number {
+  if (!Number.isFinite(value)) return range.minimum
+  const stepped = Math.round(value / range.step) * range.step
+  return Math.min(Math.max(stepped, range.minimum), range.maximum)
+}
+
+/**
  * The row written for a user on first run. Scope 7.9's text size and scope
  * 12.3's palette and typeface come from the theme registry, so there is one
  * definition of "Paris Navy is the default" and not two that can drift.

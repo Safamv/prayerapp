@@ -56,3 +56,16 @@ export const MEMORISE_PATH = '/memorise'
 export function addToListPath(passageId: string): string {
   return `${MEMORISE_PATH}/add/${encodeURIComponent(passageId)}`
 }
+
+/**
+ * How a passage comes round, and whether the user is driving at it: scope 8.5's
+ * three upkeep states and scope 8.6's focus, for one passage.
+ *
+ * Under `/memorise` because both are memorisation state, which principle 7.6
+ * keeps out of Discover entirely. It is reached from the UPKEEP section of the
+ * Memorise tab, which is the roll call of what is on the list. See decision D6.3
+ * for why the door is there and not on the list screen session 7 builds.
+ */
+export function upkeepPath(passageId: string): string {
+  return `${MEMORISE_PATH}/upkeep/${encodeURIComponent(passageId)}`
+}

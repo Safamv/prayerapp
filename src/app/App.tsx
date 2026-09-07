@@ -8,6 +8,7 @@ import { ReadingScreen } from '../features/discover/ReadingScreen'
 import { LogScreen } from '../features/log/LogScreen'
 import { ConfirmLinesScreen } from '../features/memorise/ConfirmLinesScreen'
 import { MemoriseScreen } from '../features/memorise/MemoriseScreen'
+import { UpkeepScreen } from '../features/memorise/UpkeepScreen'
 import { SettingsScreen } from '../features/settings/SettingsScreen'
 import { ThemeProvider, type ThemeSelection } from '../theme'
 import { UserContext } from './userContext'
@@ -64,6 +65,10 @@ export function App() {
               {/* Scope 8.4's add moment. On the memorisation side of the app,
                   reached from the reading view's list mark. Decision D5.1. */}
               <Route path="/memorise/add/:passageId" element={<ConfirmLinesScreen />} />
+              {/* Scope 8.5's upkeep states and scope 8.6's focus, for one
+                  passage. Reached from the UPKEEP section of the Memorise tab,
+                  because a resting passage is never in the queue. Decision D6.3. */}
+              <Route path="/memorise/upkeep/:passageId" element={<UpkeepScreen />} />
               <Route path="/log" element={<LogScreen />} />
               <Route path="/settings" element={<SettingsScreen />} />
               <Route path="*" element={<Navigate to="/discover" replace />} />
