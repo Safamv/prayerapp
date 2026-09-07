@@ -8,10 +8,10 @@
  * > it. The app proposes splits on sentence and line boundaries. The user can
  * > merge or split before starting.
  *
- * This module is that proposal, and the merging and splitting on top of it. It
+ * This module is that proposal, and the joining and cutting on top of it. It
  * is pure: no database, no React, no clock. CLAUDE.md section 11 names
  * segmentation as mandatory-unit-tested for the same reason it names the
- * scheduler, and `segmentation.test.ts` puts all 976 committed passages through
+ * scheduler, and `segmentation.test.ts` puts all 975 committed passages through
  * it.
  *
  * ## The one invariant
@@ -35,11 +35,12 @@
  * | `phrase` | `,` | no |
  *
  * Scope 8.4 proposes on sentence and line boundaries and nothing weaker, so the
- * last two are found and left closed. They are found at all because the split
- * control needs somewhere to cut. Devotional sentences run to fifty and two
- * hundred words - a single sentence of the Gleanings fills a phone screen - and
- * a line that long cannot be learnt as a line. Without the weaker two, the split
- * control would be missing on exactly the lines that most need it.
+ * last two are found and left closed. They are found at all because the confirm
+ * screen draws a cut mark at every closed boundary, inside the line, for the
+ * reader to tap. Devotional sentences run to fifty and two hundred words - a
+ * single sentence of the Gleanings fills a phone screen - and a line that long
+ * cannot be learnt as a line. Without the weaker two there would be nowhere to
+ * put a mark on exactly the lines that most need one.
  *
  * ## Why a capital decides a full stop
  *
@@ -50,7 +51,7 @@
  * was checked rather than assumed.
  */
 
-/** The strength of a boundary, strongest first. See the table above. */
+/** What kind of gap a boundary is. See the table above. */
 export type BoundaryKind = 'paragraph' | 'line' | 'sentence' | 'clause' | 'phrase'
 
 export interface PassageBoundary {
@@ -74,15 +75,6 @@ export interface Segmentation {
 export interface LineRange {
   readonly from: number
   readonly to: number
-}
-
-/** Strongest first. Decides where a split lands when a line holds several. */
-const STRENGTH: Record<BoundaryKind, number> = {
-  paragraph: 0,
-  line: 1,
-  sentence: 2,
-  clause: 3,
-  phrase: 4,
 }
 
 /** Scope 8.4: sentence and line boundaries are proposed, and nothing weaker. */
@@ -110,8 +102,7 @@ const PHRASE_END = /,["'’”)\]]*$/
 /**
  * A sentence opens with a capital or a numeral, after any opening quotation
  * mark or bracket. Sticky rather than anchored so it can be tested at a
- * position without slicing the rest of the passage: a 46,000 word passage
- * sliced once per space is quadratic, and one of them is in the corpus.
+ * position without slicing the rest of the passage. See `boundaryAt`.
  */
 const OPENS_SENTENCE = /["'‘“([]*[\p{Lu}\p{N}]/uy
 
@@ -221,32 +212,41 @@ export function breakBefore(ranges: readonly LineRange[], lineIndex: number): nu
 }
 
 /**
- * Where a line would split: the strongest boundary still closed inside it, and
- * the first of them where several are equally strong. `null` when the line
- * holds no boundary at all, which is what hides the split control.
+ * A line, cut into the parts a reader can put a cut mark between.
+ *
+ * Each part after the first names the boundary that would cut the line before
+ * it, and carries the whitespace that stood there, so a line drawn from these
+ * parts is the line drawn whole: the spacing is the passage's own, and a mark
+ * sits in the gaps rather than replacing them.
  */
-export function splitPoint(
+export interface LinePart {
+  readonly text: string
+  /** The boundary a cut here would open, or `null` for the first part of a line. */
+  readonly cut: number | null
+  /** The whitespace that stands before this part. Empty for the first part. */
+  readonly separator: string
+}
+
+export function partsOfLine(
   segmentation: Segmentation,
   ranges: readonly LineRange[],
   lineIndex: number,
-): number | null {
+): LinePart[] {
   const range = ranges[lineIndex]
-  if (range === undefined) return null
+  if (range === undefined) return []
 
-  let best: number | null = null
-  let bestStrength = Number.POSITIVE_INFINITY
-
-  for (let index = range.from; index < range.to; index++) {
-    const boundary = segmentation.boundaries[index]
-    if (boundary === undefined) continue
-    const strength = STRENGTH[boundary.kind]
-    if (strength < bestStrength) {
-      best = index
-      bestStrength = strength
-    }
+  const parts: LinePart[] = []
+  for (let index = range.from; index <= range.to; index++) {
+    const text = segmentation.pieces[index]
+    if (text === undefined) continue
+    const boundary = index === range.from ? undefined : segmentation.boundaries[index - 1]
+    parts.push({
+      text,
+      cut: boundary === undefined ? null : index - 1,
+      separator: boundary?.separator ?? '',
+    })
   }
-
-  return best
+  return parts
 }
 
 /** Joins a line with the one above it. Returns the breaks unchanged for line 0. */
@@ -259,14 +259,9 @@ export function joinLines(
   return index === null ? [...breaks] : withBreak(breaks, index, false)
 }
 
-/** Splits a line at its split point. Returns the breaks unchanged when it has none. */
-export function splitLine(
-  segmentation: Segmentation,
-  breaks: readonly boolean[],
-  lineIndex: number,
-): boolean[] {
-  const index = splitPoint(segmentation, lineRanges(segmentation, breaks), lineIndex)
-  return index === null ? [...breaks] : withBreak(breaks, index, true)
+/** Cuts a line in two at one named boundary inside it. */
+export function splitAt(breaks: readonly boolean[], boundaryIndex: number): boolean[] {
+  return withBreak(breaks, boundaryIndex, true)
 }
 
 function withBreak(breaks: readonly boolean[], index: number, open: boolean): boolean[] {
@@ -277,8 +272,10 @@ function withBreak(breaks: readonly boolean[], index: number, open: boolean): bo
  * What kind of boundary, if any, the whitespace at `index` is.
  *
  * Only the last few characters before it and the first one after it are looked
- * at, so this costs the same on a fifteen word prayer and on the Epistle to the
- * Son of the Wolf.
+ * at, rather than the text on either side, so a long passage costs no more per
+ * word than a fifteen word prayer. Slicing the remainder at every space would be
+ * quadratic, which is fine for the corpus as it stands and is not fine for
+ * whatever the personal library of scope 4.4 will hold.
  */
 function boundaryAt(text: string, index: number, separator: string): BoundaryKind | null {
   const newlines = countNewlines(separator)

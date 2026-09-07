@@ -179,24 +179,33 @@ add happens now, `src/data/passages.ts` for `addPassageToList`, and `src/data/co
 
 ## Session 5 — Segmentation: suggested then confirmed, at add time
 
-**Version:** v0.5.0   **Branch:** session-05-segmentation   **Date:** 25 Aug 2026
+**Version:** v0.5.0   **Branch:** session-05-segmentation   **Date:** 7 Sept 2026
+**Follow-up:** v0.5.1, branch `session-05-followup`, same day
 
 **Shipped.** The moment of commitment. Tapping the list mark on a prayer no longer adds it on the
 spot: it opens a screen showing the prayer broken into the lines you would learn it in, with the
 number of lines and the number of words stated plainly above them and no guess at how long it will
-take. Join puts two lines together, Split cuts one in half, and ADD TO MY LIST at the foot writes the
-lines, the count and the row in one go. Come back to the prayer and the navy band says "Added to your
+take. Join puts two lines together, a cut mark in the line splits one in two, and ADD TO MY LIST at
+the foot writes the lines, the count and the row in one go. Come back to the prayer and the navy band says "Added to your
 list" with Undo, which now takes the lines away too. The splitter is a pure function tested against
-all 976 committed passages, including the one that proves nothing is lost: every passage taken apart
+all 975 committed passages, including the one that proves nothing is lost: every passage taken apart
 and put back together must be itself again, character for character. 44 new tests.
+
+**Four changes after your first read (v0.5.1).** Cutting a line is now a small gold mark drawn in the
+line itself, at every place it can be cut, and you tap the one you want; the SPLIT button that
+decided for you is gone (D5.8). The Epistle to the Son of the Wolf, a 46,000 word book sitting in
+the prayers feed, is out of the corpus, so the library is 975 passages and 472 prayers (D5.7). Doing
+that turned up something worse: a passage withdrawn from the dataset stayed for ever on any device
+that had already opened the app, so the load now notices a corrected corpus and removes what it
+withdrew (D5.9). And the word for a line stays "line", confirmed. 5 new tests.
 
 **Deferred.** Normalisation (scope 9.7). Nothing built this session compares two pieces of text, so
 there was nothing for it to be right or wrong for. It belongs to session 8, with the chips. See D5.5.
 
 **Surprises.** Three, all in `decisions.md`. Breaking only at sentences leaves the Gleanings with
 lines fifty words long and no way to cut them, so the app now also finds colons, semicolons and
-commas, offers them on Split, and never proposes them (D5.2). And the confirm screen had to be
-decided into the Memorise half of the app rather than Discover, because a screen of lines a quiz will
+commas, offers a cut mark at each of them, and never proposes them (D5.2). And the confirm screen had
+to be decided into the Memorise half of the app rather than Discover, because a screen of lines a quiz will
 ask for is memorisation, and principle 7.6 keeps that out of the prayer book (D5.1). And a test that
 had been failing about one run in five since session 4 was chased rather than re-run: it turned out to
 be two real races in the bookmark mark, one that could silently undo a tap and one that could leave a

@@ -19,7 +19,7 @@
  *   layout work is not a trade this app gets to make.
  *
  * Losing the ornament on a handful of passages costs nothing that matters. Every
- * one of the 976 passages committed today opens with a plain capital, so nothing
+ * one of the 975 passages committed today opens with a plain capital, so nothing
  * in the corpus takes the fallback - it is there for the personal library
  * (scope 4.4) and for whatever a later feed contains.
  *

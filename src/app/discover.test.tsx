@@ -6,7 +6,7 @@ import { App } from './App'
 import { putPassages, putPassageTags, putTags } from '../data/corpus'
 import { db, resetDatabase } from '../data/db'
 import { makePassage, makeRuhiPassage, makeTag } from '../data/fixtures'
-import { forgetCorpusLoad } from '../data/loadCorpus'
+import { forgetCorpusLoad, rememberCorpusLoaded } from '../data/loadCorpus'
 import { confirmSegmentation } from '../data/segmentation'
 import { forgetAnonymousUserId } from '../data/userId'
 import { strings } from '../strings'
@@ -125,6 +125,8 @@ beforeEach(async () => {
   forgetCorpusLoad()
   await resetDatabase()
   await seed()
+  // This library is the test's own four records, not the committed 975.
+  rememberCorpusLoaded()
 })
 
 afterEach(cleanup)

@@ -75,6 +75,75 @@ export async function countAllPassages(): Promise<number> {
   return db.passages.count()
 }
 
+/**
+ * Removes every passage the committed corpus no longer carries, and everything
+ * that pointed at one.
+ *
+ * ## Why this exists
+ *
+ * The corpus is a committed dataset (scope 4.2), and a device loads it once.
+ * Withdrawing a record from the dataset therefore did nothing at all to a phone
+ * that already had it: session 5 dropped the Epistle to the Son of the Wolf
+ * (decision D5.7) and it stayed on every device that had already opened the app,
+ * including the only two that exist. A corpus that can gain a correction but
+ * never lose one is not a source of truth.
+ *
+ * ## What it will and will not delete
+ *
+ * Two guards, both of which must hold. A passage is a candidate only if it is
+ * `global` - so the personal library of scope 4.4 is untouchable whatever feed
+ * a user's own text claims to come from - and only if some passage in the
+ * committed set shares its `source_feed`, so the Ruhi collection is out of reach
+ * until session 11 commits it.
+ *
+ * A withdrawn passage takes with it its lines, its tag links, any bookmark, and
+ * any trace of it having been on a list. Leaving those behind would leave the
+ * queue of session 6 holding a row whose passage cannot be read.
+ *
+ * Deliberately does nothing when handed an empty set: a load that failed to
+ * import anything must not be able to empty the library.
+ */
+export async function removePassagesNotIn(committed: readonly PassageRow[]): Promise<string[]> {
+  if (committed.length === 0) return []
+
+  const keep = new Set(committed.map((row) => row.id))
+  const feeds = new Set(committed.map((row) => row.source_feed))
+
+  // Seven tables, so the array form: Dexie's positional overload stops at five.
+  return db.transaction(
+    'rw',
+    [
+      db.passages,
+      db.passage_segments,
+      db.passage_tags,
+      db.bookmarks,
+      db.user_prayers,
+      db.segment_progress,
+      db.review_log,
+    ],
+    async () => {
+      const withdrawn = (await db.passages.toArray()).filter(
+        (row) => row.visibility === 'global' && feeds.has(row.source_feed) && !keep.has(row.id),
+      )
+      if (withdrawn.length === 0) return []
+
+      const ids = withdrawn.map((row) => row.id)
+      const segments = await db.passage_segments.where('passage_id').anyOf(ids).toArray()
+      const segmentIds = new Set(segments.map((segment) => segment.id))
+
+      await db.passage_segments.where('passage_id').anyOf(ids).delete()
+      await db.passage_tags.where('passage_id').anyOf(ids).delete()
+      await db.bookmarks.where('passage_id').anyOf(ids).delete()
+      await db.user_prayers.where('passage_id').anyOf(ids).delete()
+      await db.segment_progress.filter((row) => segmentIds.has(row.segment_id)).delete()
+      await db.review_log.filter((row) => segmentIds.has(row.segment_id)).delete()
+      await db.passages.bulkDelete(ids)
+
+      return ids
+    },
+  )
+}
+
 /** Removes every passage, segment and tag. For a corpus reload, not for a user. */
 export async function clearCorpus(): Promise<void> {
   await db.transaction(

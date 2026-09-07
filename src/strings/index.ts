@@ -120,16 +120,21 @@ export const strings = {
     note: 'These are the lines you will learn, one at a time. Join or split them before you start.',
     lineCount: (count: number) => (count === 1 ? '1 LINE' : `${String(count)} LINES`),
     wordCount,
-    /** The two controls, in the caps slot, so written in capitals. */
+    /** The one control that carries a word, in the caps slot, so in capitals. */
     join: 'JOIN',
-    split: 'SPLIT',
     /**
      * What a screen reader announces, where "JOIN" on its own would not say
      * which two lines it joins. The number is the line as it is counted on
      * screen, from one.
      */
     joinLine: (position: number) => `Join line ${String(position)} with the line above it`,
-    splitLine: (position: number) => `Split line ${String(position)}`,
+    /**
+     * The cut marks inside a line have no label to read, and there can be
+     * several in one line, so each says where it would cut by quoting the words
+     * that would begin the new line. Decision D5.8.
+     */
+    splitLine: (position: number, opening: string) =>
+      `Split line ${String(position)} before "${opening}"`,
     /** The pinned button that commits it. Design-tokens 5.5, caps in the accent. */
     confirm: 'ADD TO MY LIST',
   },

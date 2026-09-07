@@ -6,7 +6,7 @@ import { App } from './App'
 import { putPassages } from '../data/corpus'
 import { db, resetDatabase } from '../data/db'
 import { makePassage } from '../data/fixtures'
-import { forgetCorpusLoad } from '../data/loadCorpus'
+import { forgetCorpusLoad, rememberCorpusLoaded } from '../data/loadCorpus'
 import { listPassageSegments } from '../data/segmentation'
 import { forgetAnonymousUserId } from '../data/userId'
 import { strings } from '../strings'
@@ -15,7 +15,7 @@ import { passageAttribution } from '../strings/attribution'
 /**
  * **The add moment, driven through the real shell.** Scope 8.4 and 6.2.
  *
- * The splitter has its own unit tests against all 976 committed passages, and
+ * The splitter has its own unit tests against all 975 committed passages, and
  * the write has its own against the database. This is the part neither of them
  * can reach: tapping the list mark on a prayer, seeing the lines the app
  * proposes, changing them, and finding the passage on the list afterwards with
@@ -50,6 +50,8 @@ beforeEach(async () => {
   forgetCorpusLoad()
   await resetDatabase()
   await putPassages([blessed])
+  // This library is the test's own record, not the committed 975.
+  rememberCorpusLoaded()
 })
 
 afterEach(cleanup)
@@ -79,14 +81,12 @@ async function openTheAddMoment() {
   await screen.findByRole('button', { name: strings.segmentation.confirm })
 }
 
-/** The lines as drawn, with the two control words taken off the ends of them. */
+/** The lines as drawn, with the JOIN seam word taken off the front of them. */
 function linesOnScreen(): string[] {
   return within(screen.getByRole('list', { name: strings.accessibility.lineList }))
     .getAllByRole('listitem')
     .map((item) => item.textContent ?? '')
-    .map((text) =>
-      text.replace(strings.segmentation.join, '').replace(strings.segmentation.split, '').trim(),
-    )
+    .map((text) => text.replace(strings.segmentation.join, '').trim())
 }
 
 describe('the lines the app proposes (scope 8.4)', () => {
@@ -149,10 +149,17 @@ describe('merging and splitting before starting (scope 8.4)', () => {
     expect(screen.getByText(strings.segmentation.lineCount(2))).toBeDefined()
   })
 
-  it('splits a line at the boundary it did not propose', async () => {
+  /**
+   * Decision D5.8: a mark sits in the line at every place it can be cut, and the
+   * reader taps the one they want. The mark says, to a screen reader, which
+   * words the new line would begin with.
+   */
+  it('cuts a line at the mark the reader taps, and not somewhere else', async () => {
     await openTheAddMoment()
 
-    fireEvent.click(screen.getByRole('button', { name: strings.segmentation.splitLine(3) }))
+    fireEvent.click(
+      screen.getByRole('button', { name: strings.segmentation.splitLine(3, 'and the mountain.') }),
+    )
 
     expect(linesOnScreen()).toEqual([
       'Blessed is the spot and the house.',
@@ -162,11 +169,14 @@ describe('merging and splitting before starting (scope 8.4)', () => {
     ])
   })
 
-  it('offers nothing to split on a line with no boundary left inside it', async () => {
+  it('offers a mark at every place a line can be cut, and none where it cannot', async () => {
     await openTheAddMoment()
 
-    expect(screen.queryByRole('button', { name: strings.segmentation.splitLine(1) })).toBeNull()
-    expect(screen.getByRole('button', { name: strings.segmentation.splitLine(3) })).toBeDefined()
+    // Line 1 has no punctuation inside it at all, so there is nowhere to cut.
+    expect(marksInLine(1)).toEqual([])
+    // Line 2 has one comma, line 3 one semicolon.
+    expect(marksInLine(2)).toEqual([strings.segmentation.splitLine(2, 'and the city.')])
+    expect(marksInLine(3)).toEqual([strings.segmentation.splitLine(3, 'and the mountain.')])
   })
 
   it('has nothing to join above the first line', async () => {
@@ -175,6 +185,18 @@ describe('merging and splitting before starting (scope 8.4)', () => {
     expect(screen.queryByRole('button', { name: strings.segmentation.joinLine(1) })).toBeNull()
   })
 })
+
+/** The cut marks drawn inside one line, by what each announces. */
+function marksInLine(position: number): string[] {
+  const item = within(
+    screen.getByRole('list', { name: strings.accessibility.lineList }),
+  ).getAllByRole('listitem')[position - 1]
+  if (item === undefined) return []
+  return within(item)
+    .queryAllByRole('button')
+    .map((button) => button.getAttribute('aria-label') ?? '')
+    .filter((label) => label.startsWith('Split'))
+}
 
 describe('confirming', () => {
   it('writes the lines as they were confirmed, in order, and puts the passage on the list', async () => {

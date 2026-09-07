@@ -18,8 +18,14 @@ describe('the build stamp', () => {
     expect(BUILD_INFO.commit).toMatch(/^[0-9a-f]{7,12}$/)
   })
 
+  /**
+   * Three letters or four. Australian English abbreviates September as "Sept",
+   * which is what `Intl` produces for `en-AU` and what this test refused until
+   * the first of September arrived and failed a build that had nothing to do
+   * with it. The format is right and the expectation was too narrow.
+   */
   it('carries a build date in Australian short form', () => {
-    expect(BUILD_INFO.buildDate).toMatch(/^\d{1,2} [A-Z][a-z]{2} \d{4}$/)
+    expect(BUILD_INFO.buildDate).toMatch(/^\d{1,2} [A-Z][a-z]{2,3} \d{4}$/)
   })
 
   it('reads as one line, separated by middle dots', () => {
