@@ -18,7 +18,7 @@ import { collectionPath } from '../../app/routes'
  * ## Why this screen exists at all
  *
  * It did not, until decision D4.1. Category browse was built first, exactly as
- * scope 6.1 specified, and it turned out to reach 473 of the library's 976
+ * scope 6.1 specified, and it turned out to reach 472 of the library's 975
  * passages: the tag feed tags prayers and nothing else, so every Hidden Word,
  * every Gleaning and every Prayer and Meditation had no category to be found
  * under. Collections are the axis that reaches them, and they are the axis a
