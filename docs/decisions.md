@@ -1679,3 +1679,122 @@ piece is still theirs to build.
   of undefined behaviour that becomes somebody's bug report in a year.
 
 ---
+
+## D5 follow-up — after Safa's first read of session 5 (v0.5.1)
+
+---
+
+### D5.7 — The Epistle to the Son of the Wolf is out of the corpus
+
+**Decision, taken by Safa, 7 September 2026**, in answer to the open question in D5.6.
+
+The prayers feed carries one record that is a book: 46,232 words, forty times longer than anything
+else in the library, and a prayer book entry only in the sense that the feed had nowhere else to put
+it. It is now excluded, so the library is 975 passages and 472 prayers.
+
+**It is excluded in the fetch script and not filtered in the app** (CLAUDE.md rule 12). The committed
+dataset never holds it, so no screen has to remember to leave it out.
+
+**A tripwire underneath the exclusion.** The exclusion is a list of one, and a list of one is a list
+somebody forgets to add to. The fetch now refuses to write a corpus containing anything over 10,000
+words, naming the record and telling whoever runs it to add it to the list or raise the limit. The
+longest passage left is 5,665 words, so the limit sits with a wide margin either side of it and is a
+tripwire rather than a judgement about length.
+
+**Reversible.** Yes: delete one line in `scripts/lib/normalise.ts` and run `npm run fetch:corpus`.
+
+**What this means for you.** The Epistle no longer appears in Prayers or in Special Tablets, and it
+has gone from your phone as well, without you doing anything. See D5.9 for how.
+
+---
+
+### D5.8 — A cut is a mark you tap, in the line, where the cut would fall
+
+**Decision, taken by Safa, 7 September 2026**, replacing the default recorded in D5.3.
+
+D5.3 gave each line a SPLIT control that decided where to cut: the strongest break inside the line,
+then the next, top to bottom. The objection to it was the right one. The app was choosing, and the
+person who knows where a line should break is the person about to learn it.
+
+**Every place a line can be cut now carries its own mark**, drawn in the line at the gap where the
+cut would fall: a one pixel hairline of gold, `0.9em` tall, in the space after the comma or the
+semicolon. Tapping it cuts there and nowhere else. Joining is unchanged: the seam between two lines
+still carries JOIN.
+
+**The mark is drawn rather than written.** It is an element, not a character, so no typeface has to
+carry a glyph for it (decision D4.7, where three characters the app draws itself turned out to be
+missing from the subset font).
+
+**The target is bigger than the mark.** Ten pixels of padding above and below it, pulled back by the
+same amount in margin, so the tap area is about 24 pixels tall while the line of scripture is set
+exactly as it would be without it. A line cannot be opened up to fit a 44 pixel control inside it,
+and design-tokens 5.3's 44 pixel minimum is written about rows. The full touch target audit is scope
+7.9, at v1.0.
+
+**What a screen reader hears.** There can be several marks in one line, so each says which words the
+new line would begin with: "Split line 1 before 'suffer not the dust'".
+
+**Reversible.** Yes. It is one small component and one function.
+
+**What this means for you.** Tap the little gold line and the prayer breaks exactly there. There is
+one at every comma, semicolon and colon that is not already a break, so a long sentence from the
+Gleanings can be cut wherever you want it cut.
+
+---
+
+### D5.9 — The corpus can withdraw a record now, and a device notices
+
+**A problem the build found, not a decision taken freely**, and the reason D5.7 is actually true.
+
+**What went wrong.** The library loads once. The load was guarded on "are there any passages here
+already", which is correct the first time and wrong for ever afterwards: dropping the Epistle from
+the committed dataset did nothing at all to a phone that had already opened the app. A corpus that
+can gain a correction but never lose one is not a source of truth, and the only two devices that
+exist are yours and mine.
+
+**The fix.** The dataset's manifest already records a hash of every file, which changes exactly when
+the committed data changes. That fingerprint is now what the load is guarded on, and it is kept
+beside the anonymous user id in the same place, for the reason given in `userId.ts`. So a corrected
+corpus is loaded once, on the next open, and never again; a re-fetch that produced identical files is
+not a change at all and costs one string comparison.
+
+**What a withdrawal takes with it.** The passage, its lines, its tag links, any bookmark of it, and
+any trace of it having been on a list. Leaving those behind would leave session 6's queue holding a
+row whose passage cannot be read.
+
+**What it will never touch.** Anything that is not `global`, so the personal library of scope 4.4 is
+safe whatever it claims to be; and any feed the committed dataset does not itself carry, so the Ruhi
+collection is out of reach until session 11 commits it. It also does nothing at all when handed an
+empty set, so a load that failed to import anything cannot empty the library.
+
+**One consequence for tests.** A test that seeds four passages of its own used to be left alone
+because the table was not empty. It now has to say "this device already holds the library"
+explicitly, through `rememberCorpusLoaded`. That is the honest version: the old quiet was the bug.
+
+**Reversible.** Yes, but there is no reason to: this is what scope 4.2 meant by a committed dataset.
+
+**What this means for you.** You do not have to do anything to get a corrected library. Open the app
+and it corrects itself, once, and says nothing about it.
+
+---
+
+### D5.10 — Contained decisions
+
+- **"Line" stays the word**, confirmed by Safa. "Passage" already means a whole prayer on the library
+  rows ("473 PASSAGES"), and using it for the pieces of one would have put "9 PASSAGES" at the top of
+  a screen showing one passage. The open question from D5.6 is closed.
+- **Adding stays two steps**, confirmed by Safa. The confirm screen stands.
+- **The one sentence of copy stands**, confirmed by Safa: "These are the lines you will learn, one at
+  a time. Join or split them before you start."
+- **`splitPoint` and `splitLine` are gone from the splitter**, replaced by `partsOfLine` and
+  `splitAt`. Nothing decides where a cut falls any more, so nothing needs a table of which boundary
+  is stronger than which.
+- **The build stamp test refused September.** `Intl` renders September in Australian English as
+  "Sept", four letters, and the test written in session 2 allowed exactly three. It passed every day
+  until the first of September and would have failed every build for a month. The format was right
+  and the expectation was too narrow; the expectation now allows both.
+- **Session 5's log entry was dated 25 August**, copied from session 4's. It was 7 September. Fixed
+  in `sessions.md`, and worth stating rather than quietly correcting, since the dates are how the
+  build is read back.
+
+---
