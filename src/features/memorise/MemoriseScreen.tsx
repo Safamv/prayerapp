@@ -1,15 +1,19 @@
 import { useEffect, useRef } from 'react'
-import { Link } from 'react-router'
-import { upkeepPath } from '../../app/routes'
+import { MY_LIST_PATH, SETTINGS_PATH } from '../../app/routes'
 import { useAsyncValue } from '../../app/useAsyncValue'
 import { useUserId } from '../../app/userContext'
-import { MINIMUM_ROW_HEIGHT, ScrollTail, SectionHeader } from '../../components/ListSurface'
+import {
+  ListRow,
+  MINIMUM_ROW_HEIGHT,
+  ScrollTail,
+  SectionHeader,
+  SectionRule,
+} from '../../components/ListSurface'
 import { TallHeader } from '../../components/NavyHeader'
 import { Screen } from '../../components/Screen'
 import { Toast, useToast } from '../../components/Toast'
 import { today as todayOf } from '../../data/clock'
 import { getTodaysQueue, type TodaysQueue } from '../../data/dailyQueue'
-import type { UserPrayerRow } from '../../data/types'
 import { listPassagesOnList, releaseExpiredFocus, type ListedPassage } from '../../data/upkeep'
 import { isFocusActive } from '../../queue'
 import { strings } from '../../strings'
@@ -25,11 +29,27 @@ import { typeStyle } from '../../theme'
  * ## What it shows, and what it must never show
  *
  * A section for today, holding one row per passage the day touches with the
- * number of its lines under it, then the passages on the list as doors to their
- * upkeep. Nothing anywhere counts what the cap left out: principle 7.3 calls the
- * capped queue the single most important requirement in the document, and the
- * count of the overflow is not merely unrendered, it is never computed. See the
- * header of `src/queue/queue.ts`.
+ * number of its lines under it, and then two doors: My list, and Settings.
+ * Nothing anywhere counts what the cap left out: principle 7.3 calls the capped
+ * queue the single most important requirement in the document, and the count of
+ * the overflow is not merely unrendered, it is never computed. See the header of
+ * `src/queue/queue.ts`.
+ *
+ * ## This tab is the whole activity side of the app now
+ *
+ * Log was a third tab holding one row. Decision D7.1 folds it in: the streak,
+ * the freshness states and the passage detail of scope 11 belong on the same
+ * screen as today's work rather than a tab away from it, and session 10 builds
+ * them between TODAY and the doors below. Settings came with it, which is Safa
+ * answering the question decision D2.4 left open.
+ *
+ * ## The roll call is gone, and where it went
+ *
+ * Session 6 listed every passage on the list here, with the state it was in,
+ * purely as a door to the upkeep screen (decision D6.3). My list absorbed it
+ * (decision D7.3): it carries the same word beside every row and the same door
+ * behind it, and this tab carries one row that opens it. Two screens listing the
+ * same passages one tap apart was the thing worth removing.
  *
  * **The secondary line is the attribution and nothing else.** Scope 6.2 puts a
  * word count on a passage row in Discover, where the question is how long a
@@ -127,34 +147,17 @@ export function MemoriseScreen() {
             </ul>
           )}
 
-          {loaded.listed.length > 0 && (
-            <>
-              <SectionHeader label={strings.memorise.upkeepSection} />
-              <ul aria-label={strings.accessibility.upkeepList}>
-                {loaded.listed.map((entry) => (
-                  <li key={entry.passage.id}>
-                    <Link
-                      to={upkeepPath(entry.passage.id)}
-                      className="flex items-center border-b border-rule last:border-b-0"
-                      style={{ gap: 13, padding: '11px 0', minHeight: MINIMUM_ROW_HEIGHT }}
-                    >
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-deep" style={typeStyle('listRowTitle')}>
-                          {entry.passage.title}
-                        </span>
-                        <span
-                          className="block text-on-paper-44"
-                          style={{ ...typeStyle('rowAttribution'), marginTop: 3 }}
-                        >
-                          {upkeepLabel(entry.userPrayer, today)}
-                        </span>
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
+          <SectionRule />
+          <ListRow
+            to={MY_LIST_PATH}
+            title={strings.memorise.myListRow}
+            trailing={
+              loaded.listed.length === 0
+                ? undefined
+                : strings.memorise.passageCount(loaded.listed.length)
+            }
+          />
+          <ListRow to={SETTINGS_PATH} title={strings.settings.open} />
 
           <ScrollTail />
         </div>
@@ -239,27 +242,4 @@ function Quiet({ text }: { text: string }) {
       {text}
     </p>
   )
-}
-
-/**
- * What the upkeep row says about a passage: the state it is in, or that focus is
- * on it. The caps slot, like every other secondary row line (design-tokens 5.3).
- */
-function upkeepLabel(row: UserPrayerRow, today: string): string {
-  if (isFocusActive({ isFocus: row.is_focus, focusUntil: row.focus_until }, today)) {
-    return capsOf(strings.upkeep.focusSection)
-  }
-  if (row.upkeep_state === 'resting') return capsOf(strings.upkeep.resting)
-  if (row.upkeep_state === 'occasional') return capsOf(strings.upkeep.occasional)
-  return capsOf(strings.upkeep.active)
-}
-
-/**
- * Design-tokens 2.3: caps-slot text is written as capitals rather than produced
- * with `text-transform`. These four words are stored in sentence case because
- * scope 11.5 fixes "Resting" in that form and the choice rows render them as
- * written, so the fold happens here, the way `attribution.ts` folds an author.
- */
-function capsOf(value: string): string {
-  return value.toLocaleUpperCase('en-AU')
 }

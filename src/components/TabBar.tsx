@@ -1,10 +1,26 @@
 import { NavLink } from 'react-router'
 import { strings } from '../strings'
 import { typeStyle } from '../theme'
-import { DiscoverIcon, LogIcon, MemoriseIcon } from './TabIcons'
+import { BOOKMARKS_PATH, DISCOVER_PATH, MEMORISE_PATH } from '../app/routes'
+import { BookmarksIcon, DiscoverIcon, MemoriseIcon } from './TabIcons'
 
 /**
- * The three-tab bar. Scope 3.1 and design-tokens 5.6.
+ * The tab bar. Design-tokens 5.6.
+ *
+ * ## Three tabs, and they are not scope 3.1's three
+ *
+ * Decision D7.1 splits the bar down the middle: **the devotional half of the app
+ * on the left, the activity half on the right.** Devotions and Bookmarks are
+ * what you open to pray; Memorise is everything you do about learning, and it
+ * absorbed Log, whose streak and freshness belong on the same screen as today's
+ * work rather than a tab away from it.
+ *
+ * Recents (scope 6.4) joins the left pair at v1.0 and makes it four. It cannot
+ * arrive sooner: it needs a `reading_history` table that is not in the V0 schema
+ * and CLAUDE.md forbids adding one without asking first.
+ *
+ * Scope 3.1 still says three tabs named Discover, Memorise and Log. That table
+ * needs Safa's revision and the session summary asks for it.
  *
  * Background `deep`, padding `15px 26px 26px`, three 80px items. Active: label
  * `accent`. Inactive: label `on-field-45`.
@@ -33,9 +49,9 @@ const ITEM_WIDTH = 80
 const ICON_LABEL_GAP = 6
 
 const TABS = [
-  { to: '/discover', label: strings.tabs.discover, Icon: DiscoverIcon },
-  { to: '/memorise', label: strings.tabs.memorise, Icon: MemoriseIcon },
-  { to: '/log', label: strings.tabs.log, Icon: LogIcon },
+  { to: DISCOVER_PATH, label: strings.tabs.discover, Icon: DiscoverIcon },
+  { to: BOOKMARKS_PATH, label: strings.tabs.bookmarks, Icon: BookmarksIcon },
+  { to: MEMORISE_PATH, label: strings.tabs.memorise, Icon: MemoriseIcon },
 ] as const
 
 export function TabBar() {

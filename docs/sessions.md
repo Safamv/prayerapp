@@ -253,3 +253,36 @@ absorb) and D4.10 (the undo band). In the repo, `src/data/bookmarks.ts` and `src
 for `reorderList`, which is written and called by nothing; `src/data/upkeep.ts` for
 `listPassagesOnList`; `src/features/memorise/MemoriseScreen.tsx` for the roll call the list screen
 has to decide about; and `src/components/ListSurface.tsx` for the row pattern both screens use.
+
+## Session 7 — Bookmarks and My list, the two ordered screens
+
+**Version:** v0.7.0   **Branch:** session-07-lists   **Date:** 7 September 2026
+
+**Shipped.** The two lists, built as one interaction because scope 6.7 says they are one. Bookmarks
+is a tab now: everything you have kept a place in, sortable four ways and filterable by collection
+and by author, with the filter rows appearing only once your bookmarks actually span more than one
+value. My list is behind a row on Memorise, in the order you arranged, with the author and the
+upkeep word on every row and a Remove whose Undo really does put the lines and the progress back.
+Both drag by hand, in one shared component, with the arrow keys as the way to do it without touch.
+Dragging is possible only in the hand order, so no sort can destroy an arrangement. 50 new tests.
+
+**The tab bar changed, on your instruction.** DEVOTIONS, BOOKMARKS, MEMORISE: the prayer book on the
+left, the work on the right. Log is folded into Memorise entirely and Settings is a row there now.
+Recents is the fourth tab when it arrives at v1.0; it needs a table V0 does not have. D7.1.
+
+**Deferred.** Nothing from this session's list. Recents was asked for and could not be built.
+
+**Surprises.** Two. The upkeep roll call session 6 left on Memorise showed the state and no author,
+which was a surface naming a passage without saying who wrote it; My list absorbed it and fixed that
+on the way through (D7.3, principle 7.10). And the sort and filter controls came out a quarter of a
+phone tall on first draft, so the chip was tightened after measuring it in a real browser rather
+than guessing (D7.4).
+
+**Next session should read first.** `/CLAUDE.md` in full. Scope sections 9.1, 9.2, 9.3, 9.4, 9.6,
+9.7, 8.1, 7.1, 7.2 and 10 (the `segment_progress` and `review_log` entries). `/docs/design-tokens.md`
+sections 5.4, 5.5 and 6. Decisions D5.5 (why normalisation waited for this session), D2.11 (the
+weakest line sets the pace), D1.4 (the SM-2 numbers) and D7.5 (the drag component, which level 4
+reuses). In the repo, `src/scheduler/index.ts` for `reviewSegment`, which is written and called by
+nothing; `src/data/segmentProgress.ts` and `src/data/reviewLog.ts` for the two writes a review makes;
+`src/data/dailyQueue.ts` for what today's queue hands a quiz; `src/text/segmentation.ts` for the text
+pipeline normalisation belongs beside; and `src/components/Reorderable.tsx` for the drag.

@@ -9,8 +9,10 @@ import {
   getUserPrayer,
   listUserPrayers,
   listUserPrayersByStatus,
+  putBackOnList,
   removeFromList,
   reorderList,
+  takeOffList,
   updateUserPrayer,
 } from './userPrayers'
 
@@ -179,5 +181,115 @@ describe('removing from the list', () => {
 
     expect(await db.segment_progress.count()).toBe(1)
     expect(await getUserPrayer('user-2', passage.id)).toBeDefined()
+  })
+})
+
+describe('taking a passage off the list, and putting it back', () => {
+  /**
+   * A passage three weeks in: lines, progress against them, a review history,
+   * and a place in the middle of the list. This is what a mis-tap on the remove
+   * control of scope 6.5 would destroy, and what the Undo beside it restores.
+   */
+  async function threeWeeksIn() {
+    const passage = makePassage()
+    const segments = [makeSegment(passage.id, 0), makeSegment(passage.id, 1)]
+    await putPassages([passage])
+    await putPassageSegments(segments)
+    await db.passages.update(passage.id, { segment_count: segments.length })
+
+    await addToList(USER, 'before-it')
+    await addToList(USER, passage.id)
+    await addToList(USER, 'after-it')
+
+    for (const segment of segments) {
+      await putSegmentProgress(USER, segment.id, {
+        ease_factor: 2.6,
+        interval_days: 21,
+        repetitions: 7,
+        due_date: '2026-09-28',
+        last_reviewed_at: '2026-09-07',
+        lapses: 1,
+      })
+      await appendReviewLog(USER, {
+        segmentId: segment.id,
+        quizType: 'level4',
+        selfRating: 'good',
+      })
+    }
+    return { passage, segments }
+  }
+
+  it('hands back everything it destroyed', async () => {
+    const { passage, segments } = await threeWeeksIn()
+
+    const removed = await takeOffList(USER, passage.id)
+
+    expect(removed?.userPrayer.passage_id).toBe(passage.id)
+    expect(removed?.segments).toHaveLength(segments.length)
+    expect(removed?.progress).toHaveLength(2)
+    expect(removed?.reviews).toHaveLength(2)
+    // And the database is as empty of it as `removeFromList` would leave it.
+    expect(await getUserPrayer(USER, passage.id)).toBeUndefined()
+    expect(await db.passage_segments.where('passage_id').equals(passage.id).count()).toBe(0)
+    expect(await db.segment_progress.count()).toBe(0)
+    expect(await db.review_log.count()).toBe(0)
+  })
+
+  it('puts it back with its lines, its progress and its place in the list', async () => {
+    const { passage, segments } = await threeWeeksIn()
+    const before = await getUserPrayer(USER, passage.id)
+
+    const removed = await takeOffList(USER, passage.id)
+    if (removed === null) throw new Error('nothing was removed')
+    await putBackOnList(removed)
+
+    expect(await getUserPrayer(USER, passage.id)).toEqual(before)
+    expect(await db.passage_segments.where('passage_id').equals(passage.id).count()).toBe(
+      segments.length,
+    )
+    expect(await db.segment_progress.count()).toBe(2)
+    expect(await db.review_log.count()).toBe(2)
+    // Scope 8.4 and decision D5.4: the count on the passage and the lines under
+    // it are one fact, and an undo that restored one without the other would
+    // leave a passage claiming lines it did not have.
+    expect((await db.passages.get(passage.id))?.segment_count).toBe(segments.length)
+  })
+
+  it('puts it back where it was rather than at the end', async () => {
+    const { passage } = await threeWeeksIn()
+
+    const removed = await takeOffList(USER, passage.id)
+    if (removed === null) throw new Error('nothing was removed')
+    await putBackOnList(removed)
+
+    const order = (await listUserPrayers(USER)).map((row) => row.passage_id)
+    expect(order).toEqual(['before-it', passage.id, 'after-it'])
+  })
+
+  it('returns null when there was nothing on the list to remove', async () => {
+    expect(await takeOffList(USER, 'never-added')).toBeNull()
+  })
+
+  it('leaves the passage itself in the library, unsegmented', async () => {
+    const { passage } = await threeWeeksIn()
+
+    await takeOffList(USER, passage.id)
+
+    // Scope 8.4: the library ships unsegmented, and a passage taken off the
+    // list is back to being a passage in the library.
+    const stored = await db.passages.get(passage.id)
+    expect(stored).toBeDefined()
+    expect(stored?.segment_count).toBe(0)
+  })
+
+  it('is what removeFromList does, so the two cannot destroy different things', async () => {
+    const { passage } = await threeWeeksIn()
+
+    await removeFromList(USER, passage.id)
+
+    expect(await getUserPrayer(USER, passage.id)).toBeUndefined()
+    expect(await db.segment_progress.count()).toBe(0)
+    expect(await db.review_log.count()).toBe(0)
+    expect(await db.passage_segments.where('passage_id').equals(passage.id).count()).toBe(0)
   })
 })

@@ -1,7 +1,8 @@
 import { nowInstant } from './clock'
 import { db } from './db'
 import { newId } from './ids'
-import type { BookmarkRow } from './types'
+import { getDevotionalPassage } from './passages'
+import type { BookmarkRow, PassageRow } from './types'
 
 /**
  * Bookmarks. Scope 14 lists "Bookmark, and separately Add to my list" as two
@@ -12,9 +13,9 @@ import type { BookmarkRow } from './types'
  * Every function takes the user id rather than reaching for one, so v1.0 can
  * swap a real account in without touching a single call site (scope 13.1).
  *
- * `sort_order` is written from the first bookmark and read by nothing yet:
- * scope 6.7 makes the bookmarks screen reorderable by hand and session 7 builds
- * it. See the note on `nextSortOrder`.
+ * `sort_order` holds the hand arrangement of scope 6.7. Session 4 started
+ * writing it (decision D4.13) and session 7 is what reads it: `listBookmarked`
+ * returns rows in it, and `reorderBookmarks` is the one write that changes it.
  */
 
 export async function addBookmark(
@@ -39,10 +40,6 @@ export async function addBookmark(
 /**
  * Where a new bookmark lands in the hand-arranged order of scope 6.7: at the
  * end, so keeping a place never moves anything the user arranged.
- *
- * Nothing reads `sort_order` until session 7 builds the screen. It is written
- * from the first bookmark all the same, because a column that starts being
- * written later has a gap in it exactly where the earliest data is.
  */
 async function nextSortOrder(userId: string): Promise<number> {
   const rows = await db.bookmarks.where('user_id').equals(userId).toArray()
@@ -69,4 +66,65 @@ export async function isBookmarked(userId: string, passageId: string): Promise<b
 export async function listBookmarks(userId: string): Promise<BookmarkRow[]> {
   const rows = await db.bookmarks.where('user_id').equals(userId).toArray()
   return rows.sort((a, b) => b.created_at.localeCompare(a.created_at))
+}
+
+/** A bookmark and the passage it keeps a place in. What the screen of 6.7 renders. */
+export interface BookmarkedPassage {
+  readonly bookmark: BookmarkRow
+  readonly passage: PassageRow
+}
+
+/**
+ * Every bookmark, **in the order the user arranged them by hand**, with the
+ * passage each one keeps a place in.
+ *
+ * The hand order is the one the screen starts in and the only one it can be
+ * dragged in (scope 6.7). The other sorts are applied over these rows rather
+ * than fetched differently, which is the whole of what makes the scope's promise
+ * true: choosing a sort cannot write anything, because the only write that
+ * touches `sort_order` is `reorderBookmarks` below.
+ *
+ * A bookmark whose passage has left the corpus is dropped rather than shown, the
+ * way the list does it (decision D5.9), and a Ruhi quotation cannot appear
+ * because the read goes through the devotional door (decision D1.10).
+ */
+export async function listBookmarkedPassages(userId: string): Promise<BookmarkedPassage[]> {
+  const rows = await db.bookmarks.where('user_id').equals(userId).toArray()
+  rows.sort((a, b) => a.sort_order - b.sort_order)
+  const found = await Promise.all(
+    rows.map(async (bookmark) => {
+      const passage = await getDevotionalPassage(bookmark.passage_id)
+      return passage === undefined ? null : { bookmark, passage }
+    }),
+  )
+  return found.filter((entry): entry is BookmarkedPassage => entry !== null)
+}
+
+/**
+ * Rewrites `sort_order` to match the given sequence. Scope 6.7's hand order, and
+ * the only thing in the app that changes it.
+ *
+ * Bookmarks the user holds but that were not named keep their relative order and
+ * follow on behind, exactly as `reorderList` does for My list: the two screens
+ * are one interaction on different material, so they may not differ in what a
+ * drag does to the rows that were not on screen.
+ */
+export async function reorderBookmarks(
+  userId: string,
+  orderedPassageIds: readonly string[],
+): Promise<void> {
+  const rows = await db.bookmarks.where('user_id').equals(userId).toArray()
+  rows.sort((a, b) => a.sort_order - b.sort_order)
+  const named = new Map(orderedPassageIds.map((passageId, index) => [passageId, index]))
+  const rest = rows.filter((row) => !named.has(row.passage_id))
+
+  await db.transaction('rw', db.bookmarks, async () => {
+    for (const row of rows) {
+      const index = named.get(row.passage_id)
+      if (index !== undefined) await db.bookmarks.update(row.id, { sort_order: index })
+    }
+    for (const [offset, row] of rest.entries()) {
+      await db.bookmarks.update(row.id, { sort_order: named.size + offset })
+    }
+  })
 }

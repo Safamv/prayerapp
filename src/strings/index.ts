@@ -39,10 +39,25 @@ const wordCount = (count: number) => (count === 1 ? '1 WORD' : `${String(count)}
 const lineCount = (count: number) => (count === 1 ? '1 LINE' : `${String(count)} LINES`)
 
 /**
+ * How many passages a thing holds, in the caps slot. Read by the category rows
+ * of scope 6.1, the row that opens My list, and the Bookmarks screen, so the
+ * three cannot come to word the same count differently.
+ */
+const passageCount = (count: number) => (count === 1 ? '1 PASSAGE' : `${String(count)} PASSAGES`)
+
+/**
  * Scope 11.5's word for the third upkeep state, written once so that the
  * vocabulary table and the control that sets it can never disagree.
  */
 const upkeepResting = 'Resting'
+
+/**
+ * Scope 11.5's V0 label for the ordered list of what the user intends to
+ * memorise, and scope 6.5's own words: "Internal term: `list`. V0 UI label: My
+ * list." Written once so the vocabulary table, the screen's own title, the row
+ * that opens it and the button that adds to it can never come to disagree.
+ */
+const myList = 'My list'
 
 /**
  * The app's own name in the caps slot, which is the eyebrow above the title on
@@ -57,18 +72,31 @@ export const strings = {
   /** The same name in the caps slot, for the tall header's eyebrow. */
   appNameEyebrow,
 
-  /** Scope 3.1. Caps slot, so written in capitals (design-tokens 2.3). */
+  /**
+   * The tabs. Caps slot, so written in capitals (design-tokens 2.3).
+   *
+   * **Three, and they are not scope 3.1's three.** Decision D7.1 splits the bar
+   * down the middle: the devotional half of the app on the left, the activity
+   * half on the right. Log is no longer a tab; everything it was going to hold
+   * belongs on Memorise, which is the whole activity side now. Recents joins the
+   * left pair at v1.0 (scope 6.4) and makes it four.
+   *
+   * `discover` keeps its internal name everywhere - the folder, the route, the
+   * strings key - because that name is what principle 7.6's wall is written
+   * against. Only the word on screen changed.
+   */
   tabs: {
-    discover: 'DISCOVER',
+    discover: 'DEVOTIONS',
+    bookmarks: 'BOOKMARKS',
     memorise: 'MEMORISE',
-    log: 'LOG',
   },
 
-  /** The same three names in the display slot, for the screen titles. */
+  /** The same names in the display slot, for the screen titles. */
   screenTitles: {
-    discover: 'Discover',
+    discover: 'Devotions',
+    bookmarks: 'Bookmarks',
     memorise: 'Memorise',
-    log: 'Log',
+    myList,
     settings: 'Settings',
   },
 
@@ -78,7 +106,7 @@ export const strings = {
    * fixed now so that no later session has to invent one under time pressure.
    */
   vocabulary: {
-    list: 'My list',
+    list: myList,
     learning: 'Learning',
     memorised: 'Memorised',
     freshnessStrong: 'Strong',
@@ -113,9 +141,17 @@ export const strings = {
      */
     done: 'You are up to date.',
     /** A user who has not added anything yet, told where adding happens. */
-    emptyList: 'Nothing on your list yet. Add a passage from Discover when you want to learn it.',
-    /** Section header above the passages on the list, each a door to its upkeep. */
-    upkeepSection: 'UPKEEP',
+    emptyList: 'Nothing on your list yet. Add a passage from Devotions when you want to learn it.',
+    /**
+     * The two doors at the foot of the Memorise tab. Session 6 had a roll call
+     * of every passage on the list here; My list absorbed it (decision D7.3),
+     * so what is left is one row that opens it and one that opens Settings.
+     *
+     * Settings arrived from Log, which decision D2.4 called a default rather
+     * than a choice and invited Safa to overturn. He did (D7.1).
+     */
+    myListRow: myList,
+    passageCount,
 
     /**
      * Scope 8.6: "a persistent line on the Memorise tab states what is paused
@@ -157,8 +193,50 @@ export const strings = {
     more: (label: string) => `More: ${label}`,
   },
 
+  /**
+   * **My list.** Scope 6.5: the ordered list of what the user intends to
+   * memorise, with the V0 label scope 11.5 fixes.
+   *
+   * A memorisation surface, so it may say what upkeep state a passage is in -
+   * and it does, because it absorbed the roll call session 6 put on the Memorise
+   * tab (decision D7.3). Every row still opens the upkeep screen behind it.
+   *
+   * **Removing is one tap and permanent.** Scope 6.5: "removable at any time,
+   * permanently, with no penalty or friction", so there is no confirmation
+   * dialogue. What it has instead is the band of decision D4.10 with an Undo
+   * beside it, because the remove throws away the lines and everything learnt of
+   * them (D5.4) and a mis-tap should not cost three weeks in silence.
+   */
+  myList: {
+    /** Nothing on the list. The same sentence the empty queue uses, so they agree. */
+    empty: 'Nothing on your list yet. Add a passage from Devotions when you want to learn it.',
+    passageCount,
+    /** The control on a row. Caps slot, in capitals. */
+    remove: 'REMOVE',
+    /** What a screen reader hears, where "REMOVE" alone would not say what of. */
+    removeNamed: (title: string) => `Remove ${title} from your list`,
+    /** The band, and the way back. The same two words the reading view uses. */
+    removed: 'Taken off your list',
+    removeUndone: 'Put back on your list',
+    undo: 'Undo',
+  },
+
+  /**
+   * **Dragging a list into the order you want.** Scope 6.7's rule, which governs
+   * Bookmarks and My list identically.
+   *
+   * Nothing here is drawn. The handle is a mark and the rest is what a screen
+   * reader announces, which is the whole of how this works for anyone not using
+   * touch: the handle takes focus, and the arrow keys move the row.
+   */
+  reorder: {
+    handle: (title: string) => `Reorder ${title}. Use the up and down arrow keys to move it.`,
+    movedTo: (title: string, position: number, total: number) =>
+      `${title} moved to ${String(position)} of ${String(total)}.`,
+  },
+
   settings: {
-    /** The row on Log that opens the settings screen. */
+    /** The row on Memorise that opens the settings screen. */
     open: 'Settings',
     /** Caps slot. Labels the version line a tester reads off their screen. */
     versionEyebrow: 'VERSION',
@@ -198,9 +276,48 @@ export const strings = {
     /** Section header above the alphabetical list of categories (scope 6.1). */
     categoriesSection: 'CATEGORIES',
     /** The count on a category row. Scope 6.1: "each with a passage count". */
-    passageCount: (count: number) => (count === 1 ? '1 PASSAGE' : `${String(count)} PASSAGES`),
+    passageCount,
     /** The count on a passage row. Scope 6.2. */
     wordCount,
+  },
+
+  /**
+   * **Bookmarks.** Scope 6.7: the passages a user has kept a place in.
+   *
+   * A devotional surface, so nothing here may name a due date, a freshness
+   * state, a streak or the list. Scope 6.6 keeps a bookmark and My list apart on
+   * purpose - "find this again on Sunday" against "I intend to learn this" - and
+   * a shared word here would blur them faster than a shared screen would.
+   *
+   * **The sort and filter labels are the axes Safa chose** when scope 6.7 told
+   * this session to propose a set and ask (decision D7.2). They are in the caps
+   * slot, so they are written in capitals.
+   */
+  bookmarks: {
+    eyebrow: appNameEyebrow,
+    /** Nothing kept yet. It says where a bookmark comes from, and stops. */
+    empty: 'Nothing bookmarked yet. Keep a place in a prayer and it will be here.',
+    /** Nothing left after the filters. Says what to do, without judgement. */
+    noneMatch: 'Nothing here with those filters. Change one and they come back.',
+    passageCount,
+
+    /** The leading caps label on each row of controls. */
+    sortLabel: 'SORT',
+    collectionLabel: 'COLLECTION',
+    authorLabel: 'AUTHOR',
+
+    /**
+     * The four sorts. **My order is the hand arrangement and the default**, and
+     * scope 6.7 is emphatic that choosing another is a view over the same
+     * bookmarks and never a rewrite of it.
+     */
+    sortManual: 'MY ORDER',
+    sortRecent: 'RECENT',
+    sortTitle: 'TITLE',
+    sortShortest: 'SHORTEST',
+
+    /** The chip that clears a filter. One per row of chips. */
+    filterAll: 'ALL',
   },
 
   /**
@@ -332,9 +449,15 @@ export const strings = {
     passageList: 'Passages',
     /** The proposed lines on the add moment's screen (scope 8.4). */
     lineList: 'Lines',
-    /** Today's queue, and the list of passages beneath it (scope 8.3, 8.5). */
+    /** Today's queue (scope 8.3). */
     queueList: 'Today',
-    upkeepList: 'Upkeep',
+    /** The two ordered screens of scope 6.5 and 6.7. */
+    bookmarkList: 'Bookmarks',
+    myList,
+    /** The three rows of controls above the bookmarks (decision D7.2). */
+    sortOptions: 'Sort bookmarks',
+    collectionFilter: 'Filter by collection',
+    authorFilter: 'Filter by author',
     /** The three upkeep states, which are one choice rather than three switches. */
     upkeepOptions: 'How often this passage comes round',
   },

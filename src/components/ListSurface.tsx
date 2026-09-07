@@ -52,16 +52,23 @@ export function SectionHeader({ label, count }: { label: string; count?: string 
  * a section.
  *
  * `title` is a string rather than a node so that a component cannot slip a
- * literal into it (principle 7.11), and `secondary` is the caps line beneath.
+ * literal into it (principle 7.11). `secondary` is the caps line beneath, and
+ * `trailing` is a caps value at the right-hand edge - a count, usually.
+ *
+ * **Both are optional.** A row whose title is the whole of what it says needs no
+ * second line, and a row with nothing to count needs no number. Session 7's two
+ * doors at the foot of the Memorise tab are both of those.
  */
 export function ListRow({
   to,
   title,
   secondary,
+  trailing,
 }: {
   to: string
   title: string
-  secondary: string
+  secondary?: string | undefined
+  trailing?: string | undefined
 }) {
   return (
     <Link
@@ -73,15 +80,34 @@ export function ListRow({
         <span className="block text-deep" style={typeStyle('listRowTitle')}>
           {title}
         </span>
-        <span
-          className="block text-on-paper-44"
-          style={{ ...typeStyle('rowAttribution'), marginTop: 3 }}
-        >
-          {secondary}
-        </span>
+        {secondary !== undefined && (
+          <span
+            className="block text-on-paper-44"
+            style={{ ...typeStyle('rowAttribution'), marginTop: 3 }}
+          >
+            {secondary}
+          </span>
+        )}
       </span>
+      {trailing !== undefined && (
+        <span className="flex-none text-on-paper-40" style={typeStyle('rowAttribution')}>
+          {trailing}
+        </span>
+      )}
     </Link>
   )
+}
+
+/**
+ * The rule a section header draws, without the header.
+ *
+ * Design-tokens 5.3 gives a section a caps label, a rule and a count. A group of
+ * rows whose labels already say what they are - "My list", "Settings" - gets the
+ * separation without a word above it, because a header that only repeats the row
+ * beneath it is a line of chrome saying nothing.
+ */
+export function SectionRule() {
+  return <div className="h-px bg-rule-md" style={{ marginTop: 24, marginBottom: 4 }} />
 }
 
 /**
