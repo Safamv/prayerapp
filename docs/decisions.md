@@ -2183,3 +2183,86 @@ where you leave it.
   label on the group around them, which is what a radiogroup is for.
 
 ---
+
+### D7.7 — Scope revised to v4.4 by Claude, on Safa's instruction
+
+**Instructed by Safa, 8 September 2026**, answering the first open question of session 7's handoff:
+"1, yes update scope with our decision."
+
+This is the third departure from the rule in CLAUDE.md section 2 that only Safa revises
+`/docs/scope.md`, after D1.11 (v4.2) and D4.12 (v4.3). The pattern is the same each time: Safa
+decides, Claude drafts, and the decision log records that it happened.
+
+**What changed in the scope.**
+
+1. **Section 3.1 rewritten**, from "Three tabs" to "Four tabs, in two halves", with the halves stated
+   as the principle a future tab has to answer to. V0 ships three of the four.
+2. **Log removed as a tab**, with a paragraph saying why and stating plainly that section 11 is
+   unchanged in substance and still ships in full, onto Memorise.
+3. **Section 6.4 (Recents)** gains that it is a tab, in the devotional half, and that it does not
+   merge with Bookmarks. **Section 6.7 (Bookmarks)** gains that it is a tab and that My list is not.
+4. **Sections 14 and 16** reworded where they named a Log screen or a Log session. Session 10 is
+   unchanged in content and now says where it renders.
+5. **Principle 7.6's wording** changed from "lives in Memorise and Log only" to "lives in Memorise
+   only", which is the same rule over one place instead of two. `CLAUDE.md` section 3 quotes 7.6 in
+   full and was updated to match, because a quotation that drifts from its source is worse than no
+   quotation.
+6. **Four rows added to the scope's own decision log**, 18.32 to 18.35.
+
+**Nothing entered or left V0.** This is a revision about where things are reached from.
+
+**What this means for you.** The scope now describes the app you have rather than the one it
+described in August, so the next session reads the right thing without being told about this
+conversation.
+
+---
+
+### D7.8 — The chip you tap is 44px; the chip you see is 24px
+
+**Raised by Safa, 8 September 2026**, on the fifth open question of session 7's handoff: "25px
+visually is fine but the touch target has to be larger for a touch screen so might as well go
+bigger no?"
+
+He is right, and the original reasoning had the trade the wrong way round. A chip drawn at 44px is a
+button, and three rows of buttons above a screen of prayers costs a quarter of a phone. But a chip
+*tapped* at less than 44px is a control a thumb misses, and that is the failure that actually
+matters.
+
+**So the two were separated.** The `<button>` is the target and measures 44px tall. The bordered box
+inside it is the drawing and measures 24px. The extra height is real, tappable, and simply has no ink
+in it.
+
+**The height was paid for out of the layout rather than out of the screen.** The label moved from a
+fixed 62px column into the same wrapping flow as the chips, which is worth about 74px of width per
+row and takes a wrapped line off two of the three rows. Measured in a browser at 390px: the controls
+were 204px tall with 24px targets and are 190px tall with 44px ones. The screen got shorter and the
+targets got nearly twice as tall.
+
+**What was deliberately not done: clawing the height back with a negative margin.** It would have
+worked and it would have made the targets of vertically adjacent rows overlap, so a tap in the
+overlap would land on whichever row happened to be drawn on top. Choosing an author while aiming at
+a collection is worse than a row of tall chips.
+
+**Width was left alone.** The narrowest chip, ALL, is 35px wide. Height was the failure; width never
+was.
+
+**Reversible.** Yes, one component.
+
+**What this means for you.** The controls look the same and are much easier to hit. The tap area of
+each one now reaches most of the way to the row above and below it, without ever overlapping them.
+
+---
+
+### D7.9 — Contained decisions, session 7 follow-up
+
+- **Recents and Bookmarks stay separate tabs**, asked and answered (scope 18.34). Recorded so that a
+  later session reaching v1.0 does not rediscover the question and answer it differently.
+- **`listBookmarkedPassages` returns one row per passage**, whatever the table holds. Found while
+  seeding a browser by hand, which put two bookmark rows on one passage and made React complain about
+  two children with the same key. Nothing in the app can create that row: `addBookmark` is
+  idempotent, and `[user_id+passage_id]` is an index rather than a unique constraint. v1.0 sync
+  merging two devices is how one would arrive, and a screen with two rows for one prayer would have
+  two rows with one identity, so the one you dragged would not be the one that moved. The earliest
+  place in the arrangement wins, because that is the one the user put there.
+
+---
