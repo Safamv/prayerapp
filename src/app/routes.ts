@@ -15,6 +15,7 @@
  * /memorise/list                                     what you intend to learn
  * /memorise/add/:passageId                           the lines, before adding it
  * /memorise/upkeep/:passageId                        how one passage comes round
+ * /memorise/passage/:passageId                       how well you know one passage
  * /settings
  * ```
  *
@@ -136,4 +137,22 @@ export function recitePath(passageId: string): string {
  */
 export function upkeepPath(passageId: string): string {
   return `${MEMORISE_PATH}/upkeep/${encodeURIComponent(passageId)}`
+}
+
+/**
+ * **The passage detail view.** Scope 11.3: "the honest answer to 'how well do I
+ * know this, and am I done?'"
+ *
+ * Reached from the WHAT YOU KNOW section of the Memorise tab, which is the only
+ * place every passage on the list appears whether or not it has work today
+ * (decision D11.1, Safa's call).
+ *
+ * Under `/memorise` for the reason every other path here is: it is memorisation
+ * state, and principle 7.6 keeps that out of the prayer book entirely. It is
+ * deliberately not `passagePath`, which is the reading view in Discover: the two
+ * are the same passage asked two different questions, and only one of them may
+ * ever carry a freshness star.
+ */
+export function passageDetailPath(passageId: string): string {
+  return `${MEMORISE_PATH}/passage/${encodeURIComponent(passageId)}`
 }

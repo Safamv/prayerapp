@@ -1,6 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
-import { MY_LIST_PATH, SETTINGS_PATH, recitePath, reviewPath } from '../../app/routes'
+import {
+  MY_LIST_PATH,
+  SETTINGS_PATH,
+  passageDetailPath,
+  recitePath,
+  reviewPath,
+} from '../../app/routes'
 import { useAsyncValue } from '../../app/useAsyncValue'
 import { useUserId } from '../../app/userContext'
 import {
@@ -16,12 +22,19 @@ import { Toast, useToast } from '../../components/Toast'
 import { today as todayOf } from '../../data/clock'
 import { getTodaysQueue, type TodaysQueue } from '../../data/dailyQueue'
 import { listRecitablePassages, type RecitablePassage } from '../../data/milestone'
+import {
+  getStreak,
+  listPassageFreshness,
+  type PassageWithFreshness,
+  type Streak,
+} from '../../data/progress'
 import { listPassagesOnList, releaseExpiredFocus, type ListedPassage } from '../../data/upkeep'
 import { isFocusActive } from '../../queue'
 import { strings } from '../../strings'
-import { passageAttribution } from '../../strings/attribution'
+import { capsCase, passageAttribution, passageStateAttribution } from '../../strings/attribution'
 import { formatDay } from '../../strings/dates'
 import { typeStyle } from '../../theme'
+import { FreshnessStar } from './FreshnessStar'
 
 /**
  * **Memorise: today's queue.** Scope 8.2, 8.3, 8.5 and 8.6.
@@ -41,9 +54,23 @@ import { typeStyle } from '../../theme'
  *
  * Log was a third tab holding one row. Decision D7.1 folds it in: the streak,
  * the freshness states and the passage detail of scope 11 belong on the same
- * screen as today's work rather than a tab away from it, and session 10 builds
- * them between TODAY and the doors below. Settings came with it, which is Safa
- * answering the question decision D2.4 left open.
+ * screen as today's work rather than a tab away from it. Session 11 built them,
+ * and the screen now reads down in the order a morning happens: **the streak**,
+ * one line and no more; **today's work**; **what can be recited whole**; and
+ * **what you know**, which is every passage on the list with its star. Settings
+ * came across with the Log tab too, which is Safa answering the question
+ * decision D2.4 left open.
+ *
+ * ## Why WHAT YOU KNOW is not the roll call coming back
+ *
+ * Session 6 listed every passage here purely as a door to the upkeep screen, and
+ * decision D7.3 removed it because My list carried the same rows one tap away.
+ * This section is not that (decision D11.1, Safa's call). It is the only place a
+ * passage with nothing due today appears at all, which is what makes a gold star
+ * reachable: today's queue holds the lines that are slipping, so a star drawn
+ * only there would never be anything but dim. My list keeps arranging, removing
+ * and the door to upkeep; this answers how each passage is going, and its rows
+ * open scope 11.3's detail view.
  *
  * ## The roll call is gone, and where it went
  *
@@ -109,6 +136,10 @@ interface Loaded {
   readonly listed: readonly ListedPassage[]
   readonly recitable: readonly RecitablePassage[]
   readonly released: readonly string[]
+  /** Scope 11.4. Derived from `review_log` on every read (decision D11.2). */
+  readonly streak: Streak
+  /** Scope 11.1's progress per passage, one star each (decision D11.1). */
+  readonly known: readonly PassageWithFreshness[]
 }
 
 export function MemoriseScreen() {
@@ -125,12 +156,21 @@ export function MemoriseScreen() {
     // Scope 8.6: focus releases automatically on expiry, and tells the user. The
     // release runs before the queue is built so the day is drawn already whole.
     const released = await releaseExpiredFocus(userId, today)
-    const [queue, listed, recitable] = await Promise.all([
+    const [queue, listed, recitable, streak, known] = await Promise.all([
       getTodaysQueue(userId, today),
       listPassagesOnList(userId),
       listRecitablePassages(userId, today),
+      getStreak(userId, today),
+      listPassageFreshness(userId, today),
     ])
-    return { queue, listed, recitable, released: released.map((passage) => passage.title) }
+    return {
+      queue,
+      listed,
+      recitable,
+      streak,
+      known,
+      released: released.map((passage) => passage.title),
+    }
   }, `${userId}:${today}`)
 
   const releasedCount = loaded?.released.length ?? 0
@@ -168,6 +208,9 @@ export function MemoriseScreen() {
       {loaded !== undefined && (
         <div style={SURFACE}>
           {focused.length > 0 && <FocusLine focused={focused} />}
+
+          {/* Scope 11.4's streak, said once and quietly. Nothing at nought. */}
+          {loaded.streak.current > 0 && <StreakLine days={loaded.streak.current} />}
 
           <SectionHeader
             label={strings.memorise.todaySection}
@@ -234,6 +277,25 @@ export function MemoriseScreen() {
             </>
           )}
 
+          {/* Scope 11.1's progress per passage. The only place a passage with
+              no work today appears at all, which is what makes a gold star
+              reachable: today's queue holds the lines that are slipping, so a
+              star drawn only there would never be anything but dim. Decision
+              D11.1, Safa's call. Not drawn on an empty list, so a reader who
+              has added nothing sees exactly the tab they saw before. */}
+          {loaded.known.length > 0 && (
+            <>
+              <SectionHeader label={strings.memorise.knownSection} />
+              <ul aria-label={strings.accessibility.knownList}>
+                {loaded.known.map((entry) => (
+                  <li key={entry.passage.id}>
+                    <KnownRow entry={entry} />
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
           <SectionRule />
           <ListRow
             to={MY_LIST_PATH}
@@ -288,6 +350,73 @@ function milestoneMessage(state: unknown): string | null {
 
 function focusOf(entry: ListedPassage) {
   return { isFocus: entry.userPrayer.is_focus, focusUntil: entry.userPrayer.focus_until }
+}
+
+/**
+ * **The streak.** Scope 11.4, and scope 11.5's own words for it, "Days in a row".
+ *
+ * One line, in the same italic the focus line uses: a sentence the app says
+ * rather than a banner it puts up. There is no flame, no best-ever, no count of
+ * what a missed day would cost, and **no notification about a streak at risk,
+ * ever**, which scope 11.4 forbids by name.
+ *
+ * **It is absent at nought rather than showing a zero.** A reader who has not
+ * started, and a reader whose streak has just gone, are both met with the screen
+ * they had before. Principle 7.1: this app is opened at six in the morning to
+ * pray, and a nought on it every morning is a reproach delivered slowly.
+ *
+ * A paused streak says the same number it said before the missed day, because
+ * scope 11.4 says a missed day pauses rather than resets and the reader has lost
+ * nothing yet. Nothing marks it as paused: that would be the risk notification
+ * in another form.
+ */
+function StreakLine({ days }: { days: number }) {
+  return (
+    <p className="text-on-paper-50" style={{ ...typeStyle('bylineItalic'), padding: '22px 0 0' }}>
+      {strings.memorise.streakLine(days)}
+    </p>
+  )
+}
+
+/**
+ * **One passage on the list, with its star.** Scope 11.1 and design-tokens 4.
+ *
+ * Design-tokens 5.3's list row with its optional 15px leading icon, which is
+ * exactly the size the star is drawn at. The secondary line is the author and
+ * the state, which is the shape My list already uses (`passageStateAttribution`)
+ * - the author because principle 7.10 admits no exception, and the state because
+ * **the star is a drawing and the word is its name**. Design-tokens 4 bans a
+ * second measure of freshness (a number, a bar, a percentage), not the four
+ * words scope 11.5 supplies precisely so the states can be said.
+ *
+ * The row opens the passage detail view of scope 11.3, which is the one screen
+ * that answers "how well do I know this, and am I done?". My list keeps its own
+ * job and its own door: arranging the list, taking things off it, and setting
+ * how often a passage comes round.
+ */
+function KnownRow({ entry }: { entry: PassageWithFreshness }) {
+  const state = strings.freshness[entry.freshness]
+  return (
+    <Link
+      to={passageDetailPath(entry.passage.id)}
+      aria-label={strings.accessibility.knownRow(entry.passage.title, state)}
+      className="flex items-center border-b border-rule last:border-b-0"
+      style={{ gap: 13, padding: '11px 0', minHeight: MINIMUM_ROW_HEIGHT }}
+    >
+      <FreshnessStar freshness={entry.freshness} />
+      <span className="min-w-0 flex-1">
+        <span className="block text-deep" style={typeStyle('listRowTitle')}>
+          {entry.passage.title}
+        </span>
+        <span
+          className="block text-on-paper-44"
+          style={{ ...typeStyle('rowAttribution'), marginTop: 3 }}
+        >
+          {passageStateAttribution(entry.passage, capsCase(state))}
+        </span>
+      </span>
+    </Link>
+  )
 }
 
 /**

@@ -62,3 +62,41 @@ export const DEFAULT_USER_SETTINGS: Omit<UserSettingsRow, 'user_id'> = Object.fr
   typeface: DEFAULT_TYPEFACE_ID,
   palette: DEFAULT_PALETTE_ID,
 })
+
+/**
+ * **Scope 11.4's streak rule, as one number.**
+ *
+ * > Missing one day **pauses** the streak. It does not reset. Two consecutive
+ * > missed days reset it.
+ *
+ * Both sentences are the same statement seen from two sides: a run of days
+ * survives a gap of one missed day and does not survive a gap of two. So the
+ * rule is one number and not two, and there is no second place for the two
+ * halves to disagree.
+ *
+ * `survivableMissedDays` is also what decides whether the streak is still alive
+ * today, which is the boundary worth being careful about. Today is not over, so
+ * today is never a missed day: a reader whose last day was the day before
+ * yesterday has missed exactly one day, and still has their streak.
+ */
+export const STREAK_RULES = Object.freeze({
+  survivableMissedDays: 1,
+})
+
+/**
+ * **Where design-tokens 4's second freshness state begins.**
+ *
+ * A line is Fading once this much or less of its rest is left: with a quarter,
+ * a line resting six days fades for the last two of them, and one resting a
+ * month fades for the last week.
+ *
+ * It is a fraction of the interval rather than a fixed number of days because
+ * the intervals in this app run from one day to a year. "Fading three days
+ * before it is due" would mean a line on a one day interval was never anything
+ * else, and a line on a year's interval fading for the last one per cent of it.
+ *
+ * Nothing about the scheduler changes when this moves. Freshness is a reading of
+ * SM-2 state and never an input to it, so this number changes what a star looks
+ * like and nothing at all about when a line comes round.
+ */
+export const FRESHNESS_FADING_REMAINDER = 0.25

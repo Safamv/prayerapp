@@ -493,3 +493,51 @@ checklist should be read against, not the v0.10.0 the session 10 entry names.
 `design-tokens.md` 8.3, which is short and now describes a boundary session 11 sits right next to:
 the freshness star it renders is the same eighteen points the home screen icon is drawn from, and
 they are meant to stay one drawing.
+
+## Session 11 — Freshness, the streak, and the passage detail view
+
+**Version:** v0.11.0   **Branch:** session-11-freshness-streak-detail   **Date:** 8 September 2026
+
+**Shipped, and the V0 list is now clear.** The four freshness states, derived as pure arithmetic over
+`segment_progress`: Strong, Fading, **Needs review** and Resting, drawn as design-tokens 4's nine
+pointed star in fill and opacity and nothing else. The daily streak, derived from `review_log` every
+time it is read rather than counted up in a column, with scope 11.4's rule that one missed day pauses
+it and two reset it. And the passage detail view, scope 11.3's honest answer to "how well do I know
+this, and am I done?", holding its five facts and no sixth. 105 new tests, 53 of them on the two pure
+functions CLAUDE.md section 11 makes mandatory. No dependency, no column, no Dexie version: scope
+11.3 promised all of it fell out of columns that already existed, and it did.
+
+**Three things you decided.** Where it all sits (D11.1): a WHAT YOU KNOW section on the Memorise tab
+listing every passage with its star, rows opening the detail view, and the streak as one quiet line
+above the day's work. What counts as a day (D11.2): a day you did some, not a day you finished, which
+is the only reading the stored history can answer and the forgiving one scope 11.4 points at. And
+what a prayer you have only just added looks like (D11.3): the unlit star, so the star fills in with
+gold as a prayer settles.
+
+**The gap that was worth closing.** `discover-isolation.test.ts` enforces principle 7.6 by reading
+what the Discover folder *imports*. A freshness star put in `src/components/` and handed its state as
+a prop would have passed every assertion in it and breached 7.6 the first time the library drew one.
+This was the first session to render memorisation chrome at all, so it was the first session where
+that gap was reachable. `src/principles/one-star.test.ts` closes it from the other side: the star
+lives in `src/features/memorise/` and nothing outside may import it. Both breaches were introduced
+deliberately and confirmed to fail the build before being removed.
+
+**Surprises.** Two. The star was still being drawn twice - session 10 moved the eighteen points into
+`ornaments.ts`, but the selection mark of design-tokens 5.7 had carried its own copy since session 2,
+and the failure mode of two copies is that somebody corrects one. There is now one, with a test. And
+session 7's own test failed, correctly: it asserted the Memorise tab names no passages of its own,
+which decision D7.3 made true and Safa's D11.1 has now overturned. It was rewritten to assert what
+D7.3 was actually protecting - that nothing on that tab opens the upkeep screen - rather than deleted.
+
+**Deferred.** Nothing from this session's list.
+
+**Next session should read first.** `/CLAUDE.md` in full. It is session 12: **Ruhi**, from the v0.1
+table in scope section 16. Scope sections 5 (all of it: 5.1 the mapping as the proprietary asset, 5.2
+versioning against a stated edition, 5.3 structure, 5.4 behaviour), 3.2, 4.4, 6.1, and 10's
+`ruhi_books`, `ruhi_units`, `ruhi_sections` and `ruhi_quotations`. Decisions D1.10 (a Ruhi quotation
+is stored as an ordinary passage and never returned by a devotional-surface function, which is the
+wall the whole feature sits behind), D7.1 and D11.1 (what the Memorise tab now holds and where a
+sixth section would have to go). In the repo, `src/data/ruhi.ts`, which has been written and called
+by nothing since session 2; `src/data/passages.ts` for the exclusion that keeps a quotation out of
+the library; `src/principles/discover-isolation.test.ts`, which already forbids the Ruhi route in
+Discover; and `src/features/memorise/MemoriseScreen.tsx`, which is now four sections deep.

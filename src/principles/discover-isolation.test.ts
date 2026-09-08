@@ -31,7 +31,9 @@ import {
  * `src/data/dailyQueue.ts` and `src/data/upkeep.ts`: a due count and a focus
  * banner are the two things 7.6 names first, and all three are how one would be
  * built. Session 8 added `src/quiz/` and `src/data/review.ts`, which are how a
- * progress indicator would be.
+ * progress indicator would be. Session 11 added `src/progress/` and
+ * `src/data/progress.ts`, which are the freshness states and the streak - the
+ * remaining two things 7.6 names.
  *
  * **The name.** Even through a permitted module, no binding may be one of the
  * names those forbidden modules export. That list is derived from the modules
@@ -47,6 +49,16 @@ import {
  * `src/data/passages.ts`, `tags.ts` and `bookmarks.ts`. None of them can return
  * progress, and `isOnList` returns a boolean rather than a row, because 7.6
  * permits Discover to know only that "the add button reads as already added".
+ *
+ * ## The gap this test cannot see, and what closes it
+ *
+ * It reads what a file **imports**. A freshness star put in `src/components/`
+ * and handed its state as a prop would import nothing forbidden, pass every
+ * assertion here, and breach 7.6 the first time a passage row in the library
+ * drew one. Session 11 is the first session to render memorisation chrome at
+ * all, so it is the first session where that gap is reachable.
+ * `src/principles/one-star.test.ts` closes it from the other side, by keeping
+ * the star inside `src/features/memorise/`.
  *
  * ## The folder is not the tab
  *
@@ -74,6 +86,8 @@ const FORBIDDEN_MODULES = [
   'data/progressMapping',
   'data/dailyQueue',
   'data/upkeep',
+  'progress',
+  'data/progress',
 ]
 
 /** The same modules, as paths, so their exported names can be read off them. */
@@ -84,6 +98,8 @@ const FORBIDDEN_NAME_SOURCES = [
   join(SRC_DIR, 'data', 'dailyQueue.ts'),
   join(SRC_DIR, 'data', 'review.ts'),
   join(SRC_DIR, 'data', 'upkeep.ts'),
+  join(SRC_DIR, 'progress', 'index.ts'),
+  join(SRC_DIR, 'data', 'progress.ts'),
   join(SRC_DIR, 'data', 'userPrayers.ts'),
   join(SRC_DIR, 'data', 'segmentProgress.ts'),
   join(SRC_DIR, 'data', 'reviewLog.ts'),
@@ -121,6 +137,14 @@ describe('principle 7.6 - memorisation chrome never appears in Discover', () => 
     expect(names).toContain('servedLevel')
     expect(names).toContain('recordReview')
     expect(names).toContain('getPassageWork')
+    // Session 11: the freshness states and the streak. Principle 7.6 names both
+    // - "no streak, no freshness state" - and this is the session that built
+    // them, so this is the session the wall has to learn their names.
+    expect(names).toContain('passageFreshness')
+    expect(names).toContain('currentStreak')
+    expect(names).toContain('getStreak')
+    expect(names).toContain('listPassageFreshness')
+    expect(names).toContain('getPassageDetail')
   })
 
   it('imports nothing from the scheduler, a progress table, or the Ruhi route', () => {

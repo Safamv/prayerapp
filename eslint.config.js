@@ -63,7 +63,8 @@ const DEXIE_WALL =
  * The Discover wall. Principle 7.6, decisions D0.4 and D1.10.
  *
  * Nothing under src/features/discover/ may reach the scheduler, the queue, the
- * quiz ladder, a progress table, or the Ruhi route. The devotional half of the
+ * quiz ladder, the freshness and streak derivations, a progress table, or the
+ * Ruhi route. The devotional half of the
  * product is protected by a failing build rather than by a paragraph somebody
  * read forty turns ago.
  *
@@ -193,6 +194,9 @@ export default tseslint.config(
                 '**/data/dailyQueue',
                 '**/data/upkeep',
                 '**/data/review',
+                '**/progress',
+                '**/progress/*',
+                '**/data/progress',
               ],
               message: DISCOVER_WALL,
             },

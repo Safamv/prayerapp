@@ -73,6 +73,19 @@ export const STAR_POINTS: readonly (readonly [number, number])[] = Object.freeze
  * whatever the icon wants. Drawing the star well inside the square, on a ground
  * that runs to all four edges, means the crop takes cloth and never a point.
  */
+/**
+ * The eighteen points as an SVG `points` attribute, on the `0 0 24 24` viewBox
+ * design-tokens 4 draws them on.
+ *
+ * Every star in the interface is this string. There were two copies of it until
+ * session 11 - the selection mark of design-tokens 5.7 carried its own - and one
+ * of the two would eventually have been the one that was corrected.
+ * `src/principles/one-star.test.ts` now fails the build if a second appears.
+ */
+export const STAR_POLYGON_POINTS: string = STAR_POINTS.map(
+  ([x, y]) => `${String(x)},${String(y)}`,
+).join(' ')
+
 export function starPolygon(
   size: number,
   fraction: number,

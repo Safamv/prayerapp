@@ -52,6 +52,32 @@ const passageCount = (count: number) => (count === 1 ? '1 PASSAGE' : `${String(c
 const upkeepResting = 'Resting'
 
 /**
+ * **Design-tokens 4's four freshness states, in scope 11.5's V0 words.**
+ *
+ * Written once and read from three places: the vocabulary table below, the row
+ * beside a passage on the Memorise tab, and the passage detail view. The keys
+ * are the token labels design-tokens 4's own table gives, so a `Freshness` value
+ * from `src/progress/` indexes this directly and no component ever holds a
+ * mapping from a state to a word.
+ *
+ * **The third is "Needs review" and never "Lapsed."** Scope 11.5 deletes that
+ * word for its resonance in a religious context and because it judges the user,
+ * which principle 7.1 forbids. Design-tokens 4 repeats it as one of its two hard
+ * rules. It is written down here in one place so that changing it back would be
+ * an edit somebody had to make on purpose.
+ *
+ * Resting is the same word as the upkeep state it comes from, because it is the
+ * same thing: scope 8.5's resting passage, seen from the star rather than from
+ * the control that set it.
+ */
+const freshness = {
+  strong: 'Strong',
+  fading: 'Fading',
+  needsReview: 'Needs review',
+  resting: upkeepResting,
+} as const
+
+/**
  * Scope 11.5's V0 label for the ordered list of what the user intends to
  * memorise, and scope 6.5's own words: "Internal term: `list`. V0 UI label: My
  * list." Written once so the vocabulary table, the screen's own title, the row
@@ -101,22 +127,39 @@ export const strings = {
   },
 
   /**
-   * Scope 11.5, transcribed exactly. Nothing here renders yet: freshness is
-   * session 9, upkeep is session 6, the daily queue is session 6. The words are
-   * fixed now so that no later session has to invent one under time pressure.
+   * Scope 11.5, transcribed exactly. Every word in it now renders: the queue and
+   * the upkeep states from session 6, the list from session 7, and freshness and
+   * the streak from session 11. The table is kept whole all the same, because it
+   * is the scope's own list of what this product calls things, and a future tone
+   * pass reads it rather than hunting through the sections below.
    */
   vocabulary: {
     list: myList,
     learning: 'Learning',
     memorised: 'Memorised',
-    freshnessStrong: 'Strong',
-    freshnessFading: 'Fading',
+    freshnessStrong: freshness.strong,
+    freshnessFading: freshness.fading,
     /** Scope 11.5 deleted "lapsed": it judges the user, which principle 7.1 forbids. */
-    freshnessNeedsReview: 'Needs review',
+    freshnessNeedsReview: freshness.needsReview,
     upkeepResting,
     dailyQueue: 'Today',
     streak: 'Days in a row',
   },
+
+  /**
+   * **The four freshness states, keyed by the token label.** Design-tokens 4.
+   *
+   * A `Freshness` value from `src/progress/` indexes this straight, so no
+   * component ever holds its own mapping from a state to a word and the four
+   * cannot come to be worded differently on two screens.
+   *
+   * The star is the only thing that draws freshness (design-tokens 4: "Nothing
+   * else encodes freshness. No numbers, no bars, no percentages"). These are its
+   * name, not a second measure of it: scope 11.5 supplies them precisely so that
+   * the states can be said, and scope 11.3 requires the current one to be named
+   * in words on the passage detail view.
+   */
+  freshness,
 
   /**
    * **Memorise: today's queue, upkeep and focus.** Scope 8.3, 8.5 and 8.6.
@@ -202,6 +245,97 @@ export const strings = {
     focusPassageCount: (count: number) => `${String(count)} passages`,
     /** Scope 8.6: on expiry focus releases automatically and tells the user. */
     focusEnded: 'Focus has ended. Your whole list is back.',
+
+    /**
+     * **The streak.** Scope 11.4, and scope 11.5's own words for it: "Days in a
+     * row".
+     *
+     * One quiet line at the top of the tab, in the same italic the focus line
+     * uses. A sentence the app says, not a banner it puts up, and nothing beside
+     * it: no flame, no best-ever, no count of what would be lost.
+     *
+     * **Nothing is said at nought.** A reader who has not started, or whose
+     * streak has just gone, is told nothing rather than told a zero. Scope 11.4
+     * forbids a notification about a streak at risk and principle 7.1 forbids
+     * anything that makes a quiet day feel like a failure; a nought on the
+     * screen every morning is the same thing said more slowly.
+     */
+    streakLine: (days: number) =>
+      days === 1 ? '1 day in a row.' : `${String(days)} days in a row.`,
+
+    /**
+     * **The section that holds every passage on the list, with its star.**
+     * Scope 11.1's "progress per passage", decision D11.1, Safa's call.
+     *
+     * Session 7 removed a roll call of the same passages from this tab and said
+     * why (decision D7.3): two screens listing the same prayers one tap apart.
+     * This is not that. My list is where the list is arranged and things are
+     * taken off it; this is where the reader is told how each one is going, and
+     * it is the only place a passage that has nothing due today appears at all.
+     *
+     * Drawn only when there is something on the list, so a new reader's tab is
+     * exactly the tab they had before.
+     */
+    knownSection: 'WHAT YOU KNOW',
+  },
+
+  /**
+   * **The passage detail view.** Scope 11.3.
+   *
+   * > The honest answer to "how well do I know this, and am I done?"
+   *
+   * Five facts and no sixth. **No percentages of any kind** (scope 11.2): with
+   * nothing auto-graded, a percentage would be built out of the reader's own
+   * self-ratings, and a reader protecting a number starts rating themselves
+   * generously, which corrupts the only input the scheduler has. Nothing here
+   * scores, ranks or congratulates.
+   *
+   * Every sentence states something that happened or is true now. The one about
+   * lapses says what a lapse actually is - a line went back to the beginning
+   * (decision D1.5) - rather than using the word, because "lapse" is the same
+   * judgement scope 11.5 deleted from the freshness states.
+   */
+  progress: {
+    /** The current state, above everything else. Scope 11.3's first item. */
+    freshnessSection: 'HOW IT IS GOING',
+    /** Scope 11.3's last item: how many lines sit at each state. */
+    linesSection: 'ITS LINES',
+    /** The three remaining facts, said as sentences rather than as figures. */
+    historySection: 'WHAT HAS HAPPENED',
+
+    /**
+     * Scope 11.3: "Longest interval reached, stated plainly." The scope's own
+     * example is "you last recalled this after 3 weeks"; this says the same
+     * thing about the state the column actually holds, which is the interval
+     * reached rather than one already elapsed.
+     */
+    longestInterval: (span: string) => `Its longest interval so far is ${span}.`,
+    noInterval: 'It has not settled into an interval yet.',
+
+    /**
+     * Scope 11.3's lapse count, said as what it is. A line goes back to a one
+     * day interval and walks the steps again (decision D1.5), which is a fact
+     * about the schedule and not a mark against the reader.
+     */
+    lapses: (count: number) =>
+      count === 1
+        ? 'Once, a line has gone back to the beginning.'
+        : `${String(count)} times, a line has gone back to the beginning.`,
+    noLapses: 'No line has gone back to the beginning.',
+
+    /** Scope 11.3's "milestone date, if reached". Kept through a demotion (D9.5). */
+    milestoneOn: (day: string) => `You recited the whole of this from memory on ${day}.`,
+    /**
+     * A passage that comes round as a whole right now (scope 8.7). Its lines are
+     * retained and not surfaced, so the breakdown above is not drawn for it and
+     * this stands in place of it.
+     */
+    comesRoundWhole: 'It comes round as one whole passage now.',
+    /** A passage that reached the milestone and has since been demoted (D9.5). */
+    backOnItsLines: 'It is back on its lines for now.',
+
+    /** The door down to scope 8.5 and 8.6, which this screen reports and never sets. */
+    upkeepRow: 'How often it comes round',
   },
 
   /**
@@ -656,6 +790,19 @@ export const strings = {
     authorFilter: 'Filter by author',
     /** The three upkeep states, which are one choice rather than three switches. */
     upkeepOptions: 'How often this passage comes round',
+    /**
+     * The section of the Memorise tab that holds every passage with its star
+     * (scope 11.1, decision D11.1), and a row of it.
+     *
+     * The row's name carries the freshness word because the star itself is
+     * `aria-hidden`: it is a drawing of a state whose name is already printed
+     * beside it, and announcing both would say everything twice.
+     */
+    knownList: 'How each passage is going',
+    knownRow: (title: string, state: string) => `${title}, ${state.toLowerCase()}`,
+    /** How many lines of a passage sit at each state. Scope 11.3. */
+    lineStates: 'How many lines sit at each state',
+    linesAtState: (state: string, lines: string) => `${state}, ${lines.toLowerCase()}`,
   },
 } as const
 
