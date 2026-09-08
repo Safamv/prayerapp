@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vitest/config'
+import { installable } from './scripts/vite/installable.ts'
 
 /**
  * The three values Settings shows a tester (CLAUDE.md section 8):
@@ -53,7 +54,18 @@ function buildDate(): string {
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  // `installable` writes the manifest, the icons and the service worker, all
+  // three of which have to be generated rather than committed: two of them carry
+  // a colour, which lives only in the theme registry (CLAUDE.md rule 1), and the
+  // third has to name every hashed chunk in the build. See its own docblock.
+  plugins: [
+    react(),
+    tailwindcss(),
+    installable({
+      version: packageVersion(),
+      commit: shortCommitSha(),
+    }),
+  ],
   define: {
     __APP_VERSION__: JSON.stringify(packageVersion()),
     __APP_COMMIT__: JSON.stringify(shortCommitSha()),

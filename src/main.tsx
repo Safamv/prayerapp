@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import { App } from './app/App'
+import { registerServiceWorker } from './app/serviceWorker'
 import { corpusReady } from './data/loadCorpus'
 import {
   applyThemeVariables,
@@ -23,6 +24,13 @@ import './index.css'
 void corpusReady().catch((error: unknown) => {
   console.error('Failed to load the corpus', error)
 })
+
+/**
+ * Stores the app itself on the device, so it cold launches with no network
+ * (scope 12.2). It caches the app and never touches IndexedDB, which is the
+ * source of truth and is already local. See `app/serviceWorker.ts`.
+ */
+registerServiceWorker()
 
 /**
  * The default palette is written onto the document before React renders, so the
