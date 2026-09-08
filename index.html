@@ -1,10 +1,34 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-AU">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>By Heart</title>
+
+    <!--
+      Installing on a home screen. Everything here is what iOS reads and the
+      manifest does not supply on its own.
+
+      Two tags are deliberately absent and are injected during the build by
+      scripts/vite/installable.ts, which also writes the manifest and the icons
+      these three lines point at. `theme-color` carries the navy, and a colour
+      written by hand is a second copy of the palette (CLAUDE.md rule 1).
+      `apple-mobile-web-app-title` is the name under the icon on the home
+      screen, which is a user-facing string, and those live in src/strings/ and
+      nowhere else (principle 7.11).
+
+      `viewport-fit=cover` is deliberately absent too. Without it iOS keeps the
+      web view clear of the notch and the home indicator by itself, which is
+      what the fixed tab bar needs and what the app has never had to think about.
+      Adding it would hand those strips to the page, and the page has no
+      safe-area handling to give them.
+    -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   </head>
   <body>
     <div id="root"></div>
