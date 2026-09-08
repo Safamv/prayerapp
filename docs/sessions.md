@@ -356,3 +356,48 @@ promoted passage is scheduled on) and D1.5. In the repo, `src/quiz/level.ts` for
 `src/data/review.ts` for the write; `src/scheduler/passage.ts` for `promoteToPassage` and
 `reviewPassage`, both written and called by nothing since session 1; and `src/data/dailyQueue.ts` for
 `getPassageWork`.
+
+## Session 9 — Recite and reveal, and the milestone
+
+**Version:** v0.9.0   **Branch:** session-09-recite-and-milestone   **Date:** 8 September 2026
+
+**Shipped.** The ladder is finished. Above the ordering rung a line arrives with only the first
+letter of each word standing, and above that with nothing at all, and both ask for the run of lines
+leading up to it rather than the one line. You recite, then show one line at a time and check
+yourself as you go, then rate yourself. `HIGHEST_LEVEL_BUILT` went from 4 to 6, which was one number
+and nobody's stored progress needed touching, which is exactly what session 8 built it for.
+
+And the milestone. Once the app has shown you every line of a prayer, a section appears on Memorise
+offering the whole of it; tap it and the screen turns navy, the only one in the app that does, with
+the first five words showing and the rest hidden. Reveal it all in one movement, rate yourself, and
+the prayer is promoted: `promoteToPassage`, written in session 1 and called by nothing since, fills
+the four columns and `milestone_reached_at`, and from then on the prayer comes round as one whole
+thing rather than as its lines. Rate it *Again* and it goes back to its lines with nothing lost.
+67 new tests.
+
+**Three things you decided.** Where the door is (D9.1), what "significant" means inside a visual
+language with no shadows and no animation (D9.2), and that the log gets somewhere to put a recital
+(D9.3).
+
+**Deferred.** Nothing from this session's list.
+
+**One thing needs your pen.** Scope section 10's `review_log` line is now short by two words:
+`passage_id`, and `milestone` among the quiz types. Nothing in the stored database changed and no
+migration runs, but the scope should say what the table holds. D9.3.
+
+**Surprises.** The queue had to learn about promotion, which was not on the list and turned out to be
+required rather than optional: without it a promoted prayer would have offered the whole of itself
+*and* every one of its lines, which reads as a scheduling bug rather than a missing rule. And the
+`review_log` gap was found by reading the columns rather than the prose - scope 11.3 promises every
+self-rating is stored and the columns could not hold one.
+
+**Next session should read first.** `/CLAUDE.md` in full. Scope sections 11 (all of it), 3.1, 8.2,
+8.5, 8.7 and 10 (`user_stats`, `review_log`, `segment_progress` and `user_prayers`).
+`/docs/design-tokens.md` sections 4 (the freshness star, which nothing renders yet), 5.3, 5.7 and 2.2.
+Decisions D7.1 (why Log is not a tab and section 11 lands on Memorise), D9.3 (what the log now holds,
+which the streak is derived from), D9.1 and D9.5 (the milestone, and what a demotion keeps), and D1.5
+(what a lapse does, which freshness has to describe). In the repo, `src/data/reviewLog.ts` for the
+history the streak is built from; `src/data/milestone.ts` for `milestone_reached_at` and the four
+whole-passage columns; `src/features/memorise/MemoriseScreen.tsx`, which is the screen everything in
+section 11 is added to; `src/theme/ornaments.ts` for where a drawn mark lives; and `src/config/` for
+the tuneable constants a streak rule belongs in.

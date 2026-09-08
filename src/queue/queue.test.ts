@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildQueue } from './queue'
 import type { QueueCandidatePassage, QueueCandidateSegment, QueueInput, QueueItem } from './types'
-import type { Day, SegmentProgress, UpkeepState } from '../scheduler'
+import type { Day, PassageProgress, SegmentProgress, UpkeepState } from '../scheduler'
 
 /**
  * **Queue construction.** CLAUDE.md section 11 names it mandatory unit tested,
@@ -42,6 +42,8 @@ function passage(
   return {
     passageId,
     upkeepState: 'active',
+    // Not promoted. Scope 8.7's whole-passage card has its own tests below.
+    passage: null,
     isFocus: false,
     focusUntil: null,
     listOrder,
@@ -58,8 +60,9 @@ function build(
   return buildQueue({ today, passages, caps })
 }
 
+/** The lines of a queue. A whole-passage card has none, and reads as its passage. */
 function ids(items: readonly QueueItem[]): string[] {
-  return items.map((item) => item.segmentId)
+  return items.map((item) => item.segmentId ?? item.passageId)
 }
 
 describe('what is due', () => {
@@ -325,5 +328,101 @@ describe('the same input gives the same queue', () => {
     const before = JSON.stringify(passages)
     build(passages)
     expect(JSON.stringify(passages)).toBe(before)
+  })
+})
+
+/**
+ * **The promoted whole-passage card.** Scope 8.7.
+ *
+ * > On reaching the milestone, the passage is promoted to a single whole-passage
+ * > card, scheduled on the slowest of its segments' intervals. Segment state is
+ * > retained but not surfaced.
+ *
+ * The assertion that carries the most weight is the second one: the lines are
+ * still there, with their due dates, and the queue offers none of them. Without
+ * it, a reader who reached a milestone would get the whole passage *and* every
+ * one of its lines, which is the worst of both and would look like a scheduling
+ * bug rather than a missing rule.
+ */
+function promoted(dueDate: Day, overrides: Partial<PassageProgress> = {}): PassageProgress {
+  return {
+    passageEaseFactor: 2.5,
+    passageIntervalDays: 6,
+    passageRepetitions: 3,
+    passageDueDate: dueDate,
+    ...overrides,
+  }
+}
+
+describe('a passage that has reached its milestone', () => {
+  it('comes as one card when its day has come', () => {
+    const queue = build([passage('p', 0, ['2026-09-01'], { passage: promoted('2026-09-07') })])
+    expect(ids(queue)).toEqual(['p'])
+    expect(queue.map((item) => item.kind)).toEqual(['passage'])
+    expect(queue[0]?.segmentId).toBeNull()
+  })
+
+  it('offers none of its lines, although they are all still due', () => {
+    const lines: Day[] = ['2026-06-01', '2026-06-02', '2026-06-03']
+    const queue = build([passage('p', 0, lines, { passage: promoted('2026-09-07') })])
+    expect(ids(queue)).toEqual(['p'])
+  })
+
+  it('offers nothing at all until its card comes round', () => {
+    const lines: Day[] = ['2026-06-01', '2026-06-02']
+    expect(build([passage('p', 0, lines, { passage: promoted('2026-12-25') })])).toEqual([])
+  })
+
+  it('offers no new lines either, even where one was never started', () => {
+    const queue = build([passage('p', 0, [null, null], { passage: promoted('2026-09-07') })])
+    expect(ids(queue)).toEqual(['p'])
+  })
+
+  it('is one piece of work against the review cap, like any other review', () => {
+    const passages = [
+      passage('a', 0, ['2026-06-01'], { passage: promoted('2026-06-01') }),
+      passage('b', 1, ['2026-06-02'], { passage: promoted('2026-06-02') }),
+      passage('c', 2, ['2026-06-03'], { passage: promoted('2026-06-03') }),
+    ]
+    expect(ids(build(passages, { reviews: 2, new: 2 }))).toEqual(['a', 'b'])
+  })
+
+  it('is never queued while the passage is resting', () => {
+    // Scope 8.5: resting is an absence of an interval, not a slow one, and it
+    // has to hold for the whole passage as it holds for a line.
+    const resting = passage('p', 0, ['2026-06-01'], {
+      passage: promoted('2026-06-01'),
+      upkeepState: 'resting',
+    })
+    expect(build([resting])).toEqual([])
+  })
+
+  it('is queued on an occasional passage exactly as on an active one', () => {
+    // Decision D1.1 again, and it holds for the whole-passage card for the same
+    // reason it holds for a line: the multiplier of three was applied when the
+    // date was chosen, so by the time the queue sees a date it has already
+    // happened, and applying it here would triple it twice.
+    const occasional = passage('p', 0, ['2026-06-01'], {
+      passage: promoted('2026-09-07'),
+      upkeepState: 'occasional',
+    })
+    expect(ids(build([occasional]))).toEqual(['p'])
+  })
+
+  it('sits among the lines of everything else, in list order', () => {
+    const passages = [
+      passage('a', 0, ['2026-09-01']),
+      passage('b', 1, ['2026-06-01'], { passage: promoted('2026-06-01') }),
+      passage('c', 2, ['2026-09-01']),
+    ]
+    expect(ids(build(passages))).toEqual(['a-0', 'b', 'c-0'])
+  })
+
+  it('is suppressed by focus on something else, like everything else', () => {
+    const passages = [
+      passage('a', 0, ['2026-09-01'], { isFocus: true, focusUntil: '2026-09-30' }),
+      passage('b', 1, ['2026-06-01'], { passage: promoted('2026-06-01') }),
+    ]
+    expect(ids(build(passages))).toEqual(['a-0'])
   })
 })

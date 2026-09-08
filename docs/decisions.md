@@ -2496,3 +2496,198 @@ handler to confirm it fails there.
 **The visually-hidden helper moved out of `Reorderable.tsx` into `src/components/VisuallyHidden.tsx`,
 because session 8 needed three more of them** - a live region on the review screen and the word a
 blank has to be when a line is read aloud.
+
+---
+
+## D9 — Session 9, recite and reveal, and the milestone
+
+---
+
+### D9.1 — The door to the milestone is a section of the Memorise tab that is usually not there
+
+**Decided by Safa, 8 September 2026.** Scope 9.5 says the milestone is "deliberately attempted"
+rather than served by the queue, and does not say from where. The session was asked to propose and
+ask, because it decides whether the emotional centre of the product is something the reader finds or
+something the app offers them.
+
+**Chosen: a section on the Memorise tab, drawn only when there is a passage to attempt.** It is
+headed FROM MEMORY and sits between today's work and the two doors below it. A passage appears in it
+once the app has shown the reader every one of its lines at least once, and stays there until it is
+recited right through.
+
+**Options considered.**
+
+- *At the end of that prayer's lines.* Finish the last line of the day and be asked whether you want
+  the whole thing. The moment is perfect, because you have just recited all of it in pieces.
+  Rejected on three counts: it is the app choosing the moment, which is the opposite of "deliberately
+  attempted"; it puts something at the end of a prayer's work where decision D8.1 deliberately put
+  nothing; and it would ask again every morning the reader declined, which is a nag with a devotional
+  text attached to it.
+- *A button on the upkeep screen*, two taps down from My list. Genuinely found rather than offered,
+  and nothing changes on the morning path. Rejected because in the fortnight of real use V0 exists to
+  produce, almost nobody would find it, so the emotional centre of the product would ship invisible.
+  That is the same trap decision D8.2 avoided when it refused a two-reviews-per-rung ladder.
+
+**Why the section is not a second door in the sense D8.1 refused.** That decision rejected "two doors
+to the same room, on the one screen whose whole virtue so far has been that it holds almost nothing".
+This is a different room, and on an ordinary morning the section is not drawn at all, so the tab
+holds exactly what it held before. When it is drawn it is because a reader has got a whole passage
+into their head, which is not an ordinary morning.
+
+**The one condition, and why it is not a test of readiness.** The app offers a passage once it has
+shown the reader every one of its lines. That is a fact about what has been shown, not a verdict on
+how well it is known. Scope 9.6 makes the reader's own rating the only judgement in the product, and
+a gate built out of mastery levels would be the app quietly keeping a second opinion. It also has to
+be reachable: a gate at the top rung would take about five months per line, so no tester would ever
+see the milestone.
+
+**Reversible.** Completely. It is one query, one section and one route.
+
+**What this means for you.** Once you have met every line of a prayer, a short section appears on
+Memorise offering the whole of it. It sits there until you feel like it. Nothing asks you, nothing
+counts down, and ignoring it costs nothing.
+
+---
+
+### D9.2 — What "significant" means on the milestone screen: the navy, inverted
+
+**Decided by Safa, 8 September 2026.** Scope 9.5 calls the milestone "the one place where the visual
+treatment is allowed to be significant" and leaves what that means open. Design-tokens 3 leaves very
+little to be significant with: no rounded corners anywhere, no shadows except one letterpress
+highlight, no animation beyond 200ms of opacity, and a palette of a navy, a gold, a bone paper and
+some greys.
+
+**Chosen: navy cloth edge to edge, dressed as the reading surface dresses a passage.** Every other
+screen in the app is bone paper with a navy header over it. This one is navy all the way down, with
+the gold eyebrow, the 40px gold title, the twin rules, a gold floated drop cap, the fleuron and the
+attribution of design-tokens 5.4. It reads as the cover of the book rather than a page of it.
+
+**Options considered.**
+
+- *Navy, plainly set.* The inversion alone, with no drop cap, no rules and no fleuron. Quieter, and
+  arguably closer to the product's temperament. Rejected as not different enough to feel like an
+  occasion: from arm's length it is a dark screen rather than a moment.
+- *Paper, fully dressed.* The reading view's full printed treatment on the usual ground. Rejected
+  because it would look like the reading view, which is a screen you meet every day, so the occasion
+  would be muted by familiarity.
+
+**No token was invented and no rule was bent.** Design-tokens 1.1 already names `accent` as "display
+type on navy" and `paper` as an ink on navy; the twin rules take the two the tokens give a line on
+navy. The ink-bleed shadow is dropped on this screen alone, because it is a dark smudge under a pale
+letter and there is no ink on navy to bleed. `Screen` and the pinned button band now take a tone,
+so the two grounds live in one place and a third screen cannot invent a third by accident.
+
+**Reversible.** Yes. It is one word on two components and a handful of colour tokens on one screen.
+
+**What this means for you.** When you go to recite a whole prayer, the screen turns navy. It is the
+only screen in the app that does, and it is set like a page of the book rather than like a quiz.
+
+---
+
+### D9.3 — The log gains a passage and a milestone, and nothing in the database changes shape
+
+**Decided by Safa, 8 September 2026.** Scope 11.3 says `review_log` "stores every self-rating with a
+timestamp from day one", and its columns in scope section 10 are a **segment** id and a quiz type
+whose values are the six rungs of the ladder. A recital of a whole passage is neither, so there was
+nowhere to record one.
+
+**This is not only about the one milestone moment.** Scope 8.7 promotes a passage on its milestone
+and stops surfacing its lines, so from that day the reader produces reviews that are not of any one
+line. A reader who had memorised everything on their list would have been writing no log rows at all
+- and session 10 derives the streak from this table, so their streak would have stopped.
+
+**Chosen: a `passage_id` column on `review_log`, a `milestone` value for `quiz_type`, and
+`segment_id` allowed to be empty on those rows.**
+
+**Options considered.**
+
+- *File a recital against the passage's opening line, at level 6.* No change to anything, and the
+  streak keeps working. Rejected because the log would quietly say something that did not happen, and
+  the one question the raw history exists to answer later - what did I actually do, and when - could
+  not be answered honestly.
+- *Do not record it.* The scheduler still gets the rating, so the passage still comes round. Rejected
+  for the reason above: a finished list would be a dead streak, and scope 11.3's promise that the raw
+  data is captured from day one would have a hole in the place that matters most.
+
+**Nothing in the stored database changed.** Dexie's schema string declares the primary key and the
+indexes, not the columns, so a column that nothing is queried by is simply stored. No version was
+bumped, no upgrade ran, and no row on a tester's device was touched. Doing this later, once people
+have a fortnight of real history on their phones, would have been a migration running on their
+device - which is the whole reason this project declares columns early.
+
+**Rows written before today have no passage on them.** They are found through their line, and nothing
+backfills them, for the same reason.
+
+**Reversible.** The column is additive and nothing reads it yet. Removing it would be one line.
+
+**What this means for you.** Nothing you can see today. It means that when session 10 counts your
+days in a row, a morning spent reciting whole prayers counts like any other, and that the app can
+still answer honest questions about your own history in a year's time. **Scope section 10's
+`review_log` line needs two words added when you next revise it: `passage_id`, and `milestone` among
+the quiz types.**
+
+---
+
+### D9.4 — A first-letter scaffold is drawn and not read aloud
+
+**Decision.** At level 5 the line is drawn as the first letter of each word with its punctuation
+kept - `Remove not, O Lord,` becomes `R n, O L,` - and a screen reader is told "The first letter of
+each word of this line" instead of being given the letters.
+
+**Why.** A first-letter scaffold is a visual mnemonic and nothing else. Read aloud, `R n, O L,` is
+either spelled out character by character or run together into a word that is not one, and both are
+noise rather than a prompt. So the region says what is on the screen, and the recital a screen reader
+user is asked for is the one level 6 asks for, which is the rung above and is a real rung.
+
+**What was considered and not built.** Announcing each letter individually. It would take a
+twelve-word line and read out twelve letters, which is slower to listen to than the line and helps
+less.
+
+**Reversible.** Yes, it is one `aria-label`.
+
+**What this means for you.** Nothing, unless you use a screen reader, in which case level 5 sounds
+like level 6 and the app says so rather than reading you an alphabet.
+
+---
+
+### D9.5 — Contained decisions
+
+**The top two rungs ask for the run of lines, not the single line.** Scope 8.1 builds a passage
+cumulatively and scope 9.5 calls level 6's scope a "segment group", so levels 5 and 6 recite the
+served line and up to four before it - the same run level 4 puts in order. That run now has one name,
+`cumulativeGroup` in `src/quiz/group.ts`, because three rungs asking for it in three places is three
+copies that agree today.
+
+**The cap on a recital is its own number, although it is the same five.** Ordering caps at five
+because twelve draggable rows do not fit a phone; reciting caps at five because the queue can serve
+four lines of one passage in a morning and four recitals of a twenty line passage is an hour drawn
+from a queue that scope 8.3 caps precisely so a morning cannot run away. Two reasons, so two numbers.
+
+**A hidden line is a hairline rule, which is the mark a blank already uses.** The reader meets one
+idea for "something is missing here" across the whole ladder rather than a new one at each rung.
+Stacked down a passage the rules also say how many lines are still to come, which is the one thing a
+reciter needs and the only thing the screen tells them. They are full width rather than traced to the
+length of each line, because a rule the length of its line gives away the shape of the passage.
+
+**A first attempt rated *Again* changes nothing at all.** Scope 8.7 describes the demotion of a
+promoted card and says nothing about a failed first attempt. Promoting the passage and demoting it in
+the same act would be true of the columns and false of the morning, so the lines simply carry on. The
+rating is still recorded, because it is a rating.
+
+**A demotion keeps `milestone_reached_at`.** The four scheduling columns are what say whether a
+passage is promoted now; the date is history, and history does not un-happen. Scope 11.3 puts
+"milestone date, if reached" on the passage detail view session 10 builds. This is also why no column
+had to be invented to tell a demoted passage from one that never got there.
+
+**A promoted passage is refused for a partial reading of itself.** Reachable only by a typed URL. The
+card is scheduled on the weakest of its lines (D1.3), and a line never met has no interval to be the
+weakest, so promoting there would schedule the whole passage off whichever lines happened to have
+been started.
+
+**A whole-passage card is suppressed by focus and by rest exactly as a line is**, and counts against
+the review cap exactly as a line does. A reader who has memorised six passages and has three due has
+three pieces of work today, not three free ones.
+
+**A recital goes with its passage when the passage is removed**, both from `takeOffList` and from the
+corpus withdrawal of session 5. A log row naming only a passage would otherwise survive a removal
+that scope 6.5 makes permanent and total.

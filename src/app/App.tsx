@@ -9,6 +9,7 @@ import { ReadingScreen } from '../features/discover/ReadingScreen'
 import { ConfirmLinesScreen } from '../features/memorise/ConfirmLinesScreen'
 import { MemoriseScreen } from '../features/memorise/MemoriseScreen'
 import { MyListScreen } from '../features/memorise/MyListScreen'
+import { RecitalScreen } from '../features/memorise/RecitalScreen'
 import { ReviewScreen } from '../features/memorise/ReviewScreen'
 import { UpkeepScreen } from '../features/memorise/UpkeepScreen'
 import { SettingsScreen } from '../features/settings/SettingsScreen'
@@ -81,6 +82,10 @@ export function App() {
               {/* Scope 9.1's ladder, for one prayer's lines today. Reached from
                   a row of today's queue, which is the only door. Decision D8.1. */}
               <Route path="/memorise/review/:passageId" element={<ReviewScreen />} />
+              {/* Scope 9.5's milestone: the whole passage, from memory. Reached
+                  deliberately from the FROM MEMORY section (D9.1) and, once the
+                  passage is promoted, from its row in today's work (8.7). */}
+              <Route path="/memorise/recite/:passageId" element={<RecitalScreen />} />
               {/* Scope 8.4's add moment. On the memorisation side of the app,
                   reached from the reading view's list mark. Decision D5.1. */}
               <Route path="/memorise/add/:passageId" element={<ConfirmLinesScreen />} />

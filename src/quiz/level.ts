@@ -24,8 +24,8 @@ import type { SegmentProgress } from '../scheduler'
  * | 1 | 2 | About one word in seven taken out |
  * | 2 | 3 | About two words in five taken out |
  * | 3 | 4 | The lines to put back in order |
- * | 4 | 5 | First letters as a scaffold (session 9) |
- * | 5 or more | 6 | From memory (session 9) |
+ * | 4 | 5 | First letters as a scaffold |
+ * | 5 or more | 6 | From memory |
  *
  * ## Forgetting a line puts it back to reading it
  *
@@ -46,17 +46,27 @@ import type { SegmentProgress } from '../scheduler'
  * words has nowhere to hide a blank, and a passage's first two lines cannot be
  * put in an order. In both cases the reader drops to the rung below rather than
  * meeting an empty puzzle.
+ *
+ * **The top two rungs refuse nothing.** Any line at all can be recited, however
+ * short, so levels 5 and 6 have no material condition and need none.
  */
 
 /**
- * The highest rung that has been built. Session 8 stops at level 4; session 9
- * builds levels 5 and 6 and raises this to 6.
+ * The highest rung that has been built. **Session 9 raised it from 4 to 6, and
+ * the ladder is finished.**
  *
- * A ceiling rather than a smaller ladder, so a tester who reaches repetition
- * five before session 9 lands keeps meeting the ordering rung instead of a blank
- * screen, and their stored progress needs nothing done to it afterwards.
+ * It was written in session 8 as a ceiling rather than as a shorter ladder, and
+ * this is the whole return on that: a tester who climbed past level 4 between
+ * the two sessions kept meeting the ordering rung instead of a blank screen, and
+ * lifting the ceiling needed one number changed and nothing done to anybody's
+ * stored progress. Nothing about a reader's history says which rung they met, so
+ * there was nothing to correct.
+ *
+ * It stays as a constant rather than being folded into `masteryLevel` because it
+ * is the parameter `servedLevel` takes for its tests, and because a `[v1.1]`
+ * rung would want it again.
  */
-export const HIGHEST_LEVEL_BUILT: QuizLevel = 4
+export const HIGHEST_LEVEL_BUILT: QuizLevel = 6
 
 /** What the material can offer, which is the other half of the decision. */
 export interface QuizMaterial {

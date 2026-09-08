@@ -22,20 +22,45 @@ import type { ReactNode } from 'react'
  * It holds the toast, and from session 5 the pinned buttons of design-tokens
  * 5.5. It is a sibling of the body rather than a layer over it, so nothing it
  * shows ever covers the last line of a prayer.
+ *
+ * ## The two grounds
+ *
+ * Every screen in the app is bone paper with a navy header above it, and one is
+ * not. Scope 9.5 allows the milestone screen "the one place where the visual
+ * treatment is allowed to be significant", and the significant thing available
+ * inside design-tokens 3 - no rounded corners, no shadows, no animation - is the
+ * inversion: navy cloth edge to edge, where every other screen is paper. It
+ * reads as the cover of the book rather than a page of it. Decision D9.2,
+ * Safa's call.
+ *
+ * It is a tone rather than a set of classes passed in, so the two grounds and
+ * their two grains stay in one place and a third screen cannot invent a third
+ * one by accident.
  */
+
+/** The ground a screen is printed on. `navy` is the milestone screen alone. */
+export type ScreenTone = 'paper' | 'navy'
+
+const BODY: Readonly<Record<ScreenTone, string>> = {
+  paper: 'paper-grain bg-paper',
+  navy: 'cloth-grain bg-field',
+}
+
 export function Screen({
   header,
   footer,
+  tone = 'paper',
   children,
 }: {
   header?: ReactNode
   footer?: ReactNode
+  tone?: ScreenTone
   children: ReactNode
 }) {
   return (
     <div className="flex h-full flex-col">
       {header}
-      <div className="paper-grain min-h-0 flex-1 overflow-y-auto bg-paper">{children}</div>
+      <div className={`${BODY[tone]} min-h-0 flex-1 overflow-y-auto`}>{children}</div>
       {footer}
     </div>
   )

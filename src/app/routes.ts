@@ -11,6 +11,7 @@
  * /bookmarks                                         the places you have kept
  * /memorise                                          today's work, and the doors
  * /memorise/review/:passageId                        one prayer's lines, today
+ * /memorise/recite/:passageId                        the whole passage, from memory
  * /memorise/list                                     what you intend to learn
  * /memorise/add/:passageId                           the lines, before adding it
  * /memorise/upkeep/:passageId                        how one passage comes round
@@ -104,6 +105,24 @@ export function addToListPath(passageId: string): string {
  */
 export function reviewPath(passageId: string): string {
   return `${MEMORISE_PATH}/review/${encodeURIComponent(passageId)}`
+}
+
+/**
+ * **The milestone**: the whole passage, recited from memory. Scope 9.5.
+ *
+ * Reached two ways, and they are the two configurations scope 9.5 describes.
+ * **Deliberately attempted**, from the FROM MEMORY section of the Memorise tab,
+ * which is where a passage appears once the app has shown you every one of its
+ * lines (decision D9.1, Safa's call). And **served by the queue**, once the
+ * passage has been promoted and its whole-passage card comes round (scope 8.7),
+ * when the row in today's work opens this instead of the line walk.
+ *
+ * A separate path from `reviewPath` rather than a mode of it, because they are
+ * two different acts on two different screens: one walks the lines of a prayer
+ * and the other asks for the whole of it in one breath.
+ */
+export function recitePath(passageId: string): string {
+  return `${MEMORISE_PATH}/recite/${encodeURIComponent(passageId)}`
 }
 
 /**

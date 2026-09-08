@@ -1,3 +1,4 @@
+import { cumulativeGroup } from './group'
 import { shuffled } from './random'
 import type { QuizLine } from './types'
 
@@ -32,15 +33,17 @@ export const MINIMUM_LINES_TO_ORDER = 3
  *
  * `lines` is the whole passage in `order_index` order. `throughIndex` is the
  * position in that array of the line the queue served.
+ *
+ * The run itself is `cumulativeGroup` in `group.ts`, which is scope 8.1's method
+ * rather than this rung's rule: levels 5 and 6 ask for the same run and recite
+ * it instead. This function is the cap that belongs to ordering alone.
  */
 export function orderingGroup(
   lines: readonly QuizLine[],
   throughIndex: number,
   maximum: number = MAXIMUM_LINES_TO_ORDER,
 ): readonly QuizLine[] {
-  if (throughIndex < 0 || throughIndex >= lines.length) return []
-  const from = Math.max(0, throughIndex + 1 - maximum)
-  return lines.slice(from, throughIndex + 1)
+  return cumulativeGroup(lines, throughIndex, maximum)
 }
 
 /**

@@ -1,4 +1,4 @@
-import type { Day, SegmentProgress, UpkeepState } from '../scheduler'
+import type { Day, PassageProgress, SegmentProgress, UpkeepState } from '../scheduler'
 
 /**
  * What today's queue is built from, and what it is.
@@ -36,6 +36,17 @@ export interface QueueCandidateSegment {
 export interface QueueCandidatePassage {
   readonly passageId: string
   readonly upkeepState: UpkeepState
+  /**
+   * The whole-passage card of scope 8.7, once the milestone has promoted the
+   * passage to one. `null` for everything that has not been promoted, which is
+   * everything until a reader recites a passage right through.
+   *
+   * When it is set, the passage stops offering its lines to the queue and offers
+   * itself instead: "segment state is retained but not surfaced". The lines are
+   * still there, untouched, which is what makes a demotion resume rather than
+   * restart.
+   */
+  readonly passage: PassageProgress | null
   readonly isFocus: boolean
   /**
    * The day focus lifts, and the first day it is no longer in force. Scope 8.6
@@ -66,16 +77,27 @@ export interface QueueInput {
 }
 
 /**
- * Whether a line is in the queue because it came round again, or because it has
- * never been seen. Scope 8.3 mixes the two rather than separating them into
- * modes, so this exists to count each against its own cap and for nothing else.
- * It is deliberately not a heading the screen groups by.
+ * Why this piece of work is in today's queue.
+ *
+ * `due` and `new` are both lines. Scope 8.3 mixes the two rather than separating
+ * them into modes, so the distinction exists to count each against its own cap
+ * and for nothing else; it is deliberately not a heading the screen groups by.
+ *
+ * `passage` is the promoted whole-passage card of scope 8.7, which is not a line
+ * and is counted against the review cap because that is what it is: a review,
+ * come round again. A passage contributes either its lines or itself, never
+ * both.
  */
-export type QueueItemKind = 'due' | 'new'
+export type QueueItemKind = 'due' | 'new' | 'passage'
 
 export interface QueueItem {
   readonly kind: QueueItemKind
   readonly passageId: string
-  readonly segmentId: string
+  /** The line, or `null` on a whole-passage card, which is not one. */
+  readonly segmentId: string | null
+  /**
+   * Where the line sits in its passage, which is what arranges the day. A
+   * whole-passage card is the whole passage, so it takes the first position.
+   */
   readonly orderIndex: number
 }

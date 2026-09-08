@@ -59,17 +59,32 @@ describe('servedLevel', () => {
     expect(servedLevel(progressAfter(3), ROOMY)).toBe(4)
   })
 
-  it('holds at the highest rung that has been built', () => {
-    // Session 9 raises the ceiling to 6. Until it does, a reader who gets there
-    // early keeps meeting the ordering rung rather than a blank screen.
-    expect(HIGHEST_LEVEL_BUILT).toBe(4)
-    expect(servedLevel(progressAfter(4), ROOMY)).toBe(4)
-    expect(servedLevel(progressAfter(7), ROOMY)).toBe(4)
+  it('holds at the highest rung that has been built, which is now the last one', () => {
+    // Session 9 raised the ceiling from 4 to 6 and the ladder is finished. The
+    // constant stays because it is what a `[v1.1]` rung would lower again, and
+    // because a reader who has climbed past the top must always meet the top
+    // rather than a blank screen.
+    expect(HIGHEST_LEVEL_BUILT).toBe(6)
+    expect(servedLevel(progressAfter(4), ROOMY)).toBe(5)
+    expect(servedLevel(progressAfter(5), ROOMY)).toBe(6)
+    expect(servedLevel(progressAfter(7), ROOMY)).toBe(6)
+    expect(servedLevel(progressAfter(40), ROOMY)).toBe(6)
   })
 
-  it('serves the rungs above the ceiling once they are built', () => {
-    expect(servedLevel(progressAfter(4), ROOMY, 6)).toBe(5)
-    expect(servedLevel(progressAfter(5), ROOMY, 6)).toBe(6)
+  it('still holds at a lower ceiling, which is how session 8 shipped four rungs', () => {
+    expect(servedLevel(progressAfter(4), ROOMY, 4)).toBe(4)
+    expect(servedLevel(progressAfter(9), ROOMY, 4)).toBe(4)
+  })
+
+  it('lets the top two rungs take a line the lower ones would refuse', () => {
+    // A one word line on its own has nowhere to hide a blank and nothing to be
+    // put in an order with, so every rung between the first and the fifth falls
+    // back to reading it. It can still be recited, so the top two stand.
+    const tiny = { linesInGroup: 1, line: 'Amen.' }
+    expect(servedLevel(progressAfter(2), tiny)).toBe(1)
+    expect(servedLevel(progressAfter(3), tiny)).toBe(1)
+    expect(servedLevel(progressAfter(4), tiny)).toBe(5)
+    expect(servedLevel(progressAfter(5), tiny)).toBe(6)
   })
 
   it('drops to the heavy cloze when there are too few lines to put in order', () => {

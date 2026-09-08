@@ -1,5 +1,5 @@
 import { getPassage } from './corpus'
-import { toSchedulerSegmentProgress } from './progressMapping'
+import { toSchedulerPassageProgress, toSchedulerSegmentProgress } from './progressMapping'
 import { listSegmentProgress } from './segmentProgress'
 import { listPassageSegments } from './segmentation'
 import { listUserPrayers } from './userPrayers'
@@ -34,6 +34,15 @@ import type { Day, PassageRow } from './types'
 export interface QueuedPassage {
   readonly passage: PassageRow
   readonly lineCount: number
+  /**
+   * Whether today's work on this passage is the promoted whole-passage card of
+   * scope 8.7 rather than a set of its lines.
+   *
+   * The screen needs it for two things and both are visible: which screen the
+   * row opens, and what the row says it holds. "3 LINES" is not true of a card
+   * that is the whole passage.
+   */
+  readonly whole: boolean
 }
 
 export interface TodaysQueue {
@@ -69,6 +78,9 @@ export async function readQueueInput(userId: string, today: Day): Promise<QueueI
       return {
         passageId: row.passage_id,
         upkeepState: row.upkeep_state,
+        // Scope 8.7's promoted card, or `null` before the milestone. A promoted
+        // passage offers itself to the queue instead of its lines.
+        passage: toSchedulerPassageProgress(row),
         isFocus: row.is_focus,
         focusUntil: row.focus_until,
         listOrder: row.list_order,
@@ -104,16 +116,24 @@ export async function getTodaysQueue(userId: string, today: Day): Promise<Todays
 
   const order: string[] = []
   const counts = new Map<string, number>()
+  const whole = new Set<string>()
   for (const item of items) {
     const seen = counts.get(item.passageId)
     if (seen === undefined) order.push(item.passageId)
     counts.set(item.passageId, (seen ?? 0) + 1)
+    if (item.kind === 'passage') whole.add(item.passageId)
   }
 
   const passages = await Promise.all(
     order.map(async (passageId) => {
       const passage = await getPassage(passageId)
-      return passage === undefined ? null : { passage, lineCount: counts.get(passageId) ?? 0 }
+      return passage === undefined
+        ? null
+        : {
+            passage,
+            lineCount: counts.get(passageId) ?? 0,
+            whole: whole.has(passageId),
+          }
     }),
   )
 
@@ -147,8 +167,8 @@ export interface PassageWork {
   readonly passage: PassageRow
   /** Every line of the passage, in the order scope 8.1 learns them in. */
   readonly lines: readonly QuizLine[]
-  /** Today's lines of this passage, in queue order. */
-  readonly items: readonly QueueItem[]
+  /** Today's lines of this passage, in queue order. Never the whole-passage card. */
+  readonly items: readonly (QueueItem & { segmentId: string })[]
   /** The SM-2 state of each line that has one, by segment id. */
   readonly progress: ReadonlyMap<string, SegmentProgress>
 }
@@ -183,7 +203,15 @@ export async function getPassageWork(
   return {
     passage,
     lines,
-    items: queue.items.filter((item) => item.passageId === passageId),
+    // Lines only. A promoted passage's work today is the whole-passage card of
+    // scope 8.7, which is recited on its own screen and is not part of this
+    // walk; leaving it out here is what sends a reader who reaches the review
+    // route for a promoted passage back to the Memorise tab rather than into an
+    // empty walk. See `RecitalScreen`.
+    items: queue.items.filter(
+      (item): item is QueueItem & { segmentId: string } =>
+        item.passageId === passageId && item.segmentId !== null,
+    ),
     progress,
   }
 }

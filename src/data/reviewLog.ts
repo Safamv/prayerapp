@@ -10,20 +10,46 @@ import type { QuizType, ReviewLogRow, SelfRating } from './types'
  *
  * Scope 9.7 removed `auto_score` from this table. Nothing here is graded by the
  * app: the only judgement recorded is the user's own rating of themselves
- * (scope 9.6, principle 7.2). The log exists so that session 9 can derive the
+ * (scope 9.6, principle 7.2). The log exists so that session 10 can derive the
  * streak and so that a future FSRS swap has a real review history to work from,
  * which is the one thing a scheduler change cannot reconstruct afterwards.
+ *
+ * ## Two kinds of row
+ *
+ * A **line review** carries the line and its passage. A **whole-passage
+ * recital** carries the passage and no line, with `quiz_type` of `milestone`:
+ * after the promotion of scope 8.7 there are no line reviews left to write, so
+ * without this shape a finished passage would go silent in the one table that is
+ * meant to hold everything. See decision D9.3, and `types.ts` for why widening
+ * these two columns changed nothing in the stored database.
  */
+
+/** A review of one line, at the rung it was served at. */
+export interface LoggedSegmentReview {
+  readonly passageId: string
+  readonly segmentId: string
+  readonly quizType: QuizType
+  readonly selfRating: SelfRating
+}
+
+/** A recital of a whole passage, which is not a review of any one line. */
+export interface LoggedPassageReview {
+  readonly passageId: string
+  readonly segmentId?: undefined
+  readonly quizType: 'milestone'
+  readonly selfRating: SelfRating
+}
 
 export async function appendReviewLog(
   userId: string,
-  entry: { segmentId: string; quizType: QuizType; selfRating: SelfRating },
+  entry: LoggedSegmentReview | LoggedPassageReview,
   createdAt: string = nowInstant(),
 ): Promise<ReviewLogRow> {
   const row: ReviewLogRow = {
     id: newId(),
     user_id: userId,
-    segment_id: entry.segmentId,
+    segment_id: entry.segmentId ?? null,
+    passage_id: entry.passageId,
     quiz_type: entry.quizType,
     self_rating: entry.selfRating,
     created_at: createdAt,
@@ -39,7 +65,7 @@ export async function listReviewLog(userId: string): Promise<ReviewLogRow[]> {
 }
 
 /**
- * Reviews recorded between two instants, inclusive of both ends. Session 9
+ * Reviews recorded between two instants, inclusive of both ends. Session 10
  * derives the streak from this rather than from a running counter, so a missed
  * write cannot leave a streak permanently wrong.
  */

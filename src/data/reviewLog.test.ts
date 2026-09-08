@@ -18,7 +18,7 @@ describe('the review log', () => {
   it('records a review with the self-rating and nothing auto-scored', async () => {
     const row = await appendReviewLog(
       USER,
-      { segmentId: 'segment-1', quizType: 'level4', selfRating: 'hard' },
+      { passageId: 'passage-1', segmentId: 'segment-1', quizType: 'level4', selfRating: 'hard' },
       '2026-08-24T06:00:00.000Z',
     )
 
@@ -28,8 +28,18 @@ describe('the review log', () => {
   })
 
   it('appends rather than replaces, so the same segment can be reviewed again', async () => {
-    await appendReviewLog(USER, { segmentId: 's', quizType: 'level2', selfRating: 'again' })
-    await appendReviewLog(USER, { segmentId: 's', quizType: 'level2', selfRating: 'good' })
+    await appendReviewLog(USER, {
+      passageId: 'passage-1',
+      segmentId: 's',
+      quizType: 'level2',
+      selfRating: 'again',
+    })
+    await appendReviewLog(USER, {
+      passageId: 'passage-1',
+      segmentId: 's',
+      quizType: 'level2',
+      selfRating: 'good',
+    })
 
     expect(await countReviews(USER)).toBe(2)
   })
@@ -37,12 +47,12 @@ describe('the review log', () => {
   it('reads oldest first, because a history is read forwards', async () => {
     await appendReviewLog(
       USER,
-      { segmentId: 'b', quizType: 'level2', selfRating: 'good' },
+      { passageId: 'passage-1', segmentId: 'b', quizType: 'level2', selfRating: 'good' },
       '2026-08-22T00:00:00.000Z',
     )
     await appendReviewLog(
       USER,
-      { segmentId: 'a', quizType: 'level2', selfRating: 'good' },
+      { passageId: 'passage-1', segmentId: 'a', quizType: 'level2', selfRating: 'good' },
       '2026-08-20T00:00:00.000Z',
     )
 
@@ -53,7 +63,7 @@ describe('the review log', () => {
     for (const day of ['19', '20', '21', '22']) {
       await appendReviewLog(
         USER,
-        { segmentId: `s-${day}`, quizType: 'level2', selfRating: 'good' },
+        { passageId: 'passage-1', segmentId: `s-${day}`, quizType: 'level2', selfRating: 'good' },
         `2026-08-${day}T00:00:00.000Z`,
       )
     }
@@ -67,8 +77,18 @@ describe('the review log', () => {
   })
 
   it('keeps one user history out of another', async () => {
-    await appendReviewLog(USER, { segmentId: 's', quizType: 'level2', selfRating: 'good' })
-    await appendReviewLog('user-2', { segmentId: 's', quizType: 'level2', selfRating: 'good' })
+    await appendReviewLog(USER, {
+      passageId: 'passage-1',
+      segmentId: 's',
+      quizType: 'level2',
+      selfRating: 'good',
+    })
+    await appendReviewLog('user-2', {
+      passageId: 'passage-1',
+      segmentId: 's',
+      quizType: 'level2',
+      selfRating: 'good',
+    })
 
     expect(await countReviews(USER)).toBe(1)
     expect(await countReviews('user-2')).toBe(1)

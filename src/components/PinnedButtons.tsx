@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import type { ScreenTone } from './Screen'
 import { typeStyle } from '../theme'
 
 /**
@@ -41,9 +42,43 @@ const PINNED = { padding: '0 32px 30px', gap: 11 }
 /** Design-tokens 5.3's production minimum, which the padding already exceeds. */
 const MINIMUM_HEIGHT = 44
 
-export function PinnedButtons({ children }: { children: ReactNode }) {
+/**
+ * ## The band follows the ground it sits on
+ *
+ * The footer is a sibling of the scrolling body rather than a layer over it, so
+ * on the navy milestone screen of decision D9.2 a paper band would draw a hard
+ * bone edge across the bottom of a navy page. The tone is the same one `Screen`
+ * takes, so the two cannot disagree about which screen this is.
+ *
+ * Design-tokens 1.1 supplies every colour used here. On navy a secondary button
+ * takes the border the tokens give a bordered thing on navy (`accent-34`, the
+ * search field's) and the label colour they give text on navy (`accent-90`, the
+ * eyebrow's). No token was invented and no colour was written down.
+ */
+const BAND: Readonly<Record<ScreenTone, string>> = {
+  paper: 'bg-paper',
+  navy: 'bg-field',
+}
+
+const SECONDARY: Readonly<Record<ScreenTone, string>> = {
+  paper: 'border-rule-str text-on-paper-60',
+  navy: 'border-accent-34 text-accent-90',
+}
+
+const ROW_LABEL: Readonly<Record<ScreenTone, string>> = {
+  paper: 'text-on-paper-40',
+  navy: 'text-on-field-55',
+}
+
+export function PinnedButtons({
+  tone = 'paper',
+  children,
+}: {
+  tone?: ScreenTone
+  children: ReactNode
+}) {
   return (
-    <div className="flex shrink-0 flex-col bg-paper" style={PINNED}>
+    <div className={`flex shrink-0 flex-col ${BAND[tone]}`} style={PINNED}>
       {children}
     </div>
   )
@@ -61,16 +96,18 @@ export function SecondaryButton({
   label,
   onClick,
   wide = false,
+  tone = 'paper',
 }: {
   label: string
   onClick: () => void
   wide?: boolean
+  tone?: ScreenTone
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`border border-rule-str text-center text-on-paper-60${wide ? ' min-w-0 flex-1' : ''}`}
+      className={`border text-center ${SECONDARY[tone]}${wide ? ' min-w-0 flex-1' : ''}`}
       style={{
         ...typeStyle('secondaryButtonLabel'),
         padding: wide ? '13px 2px' : 13,
@@ -95,12 +132,14 @@ export function SecondaryButton({
 export function PinnedRow({
   label,
   ariaLabel,
+  tone = 'paper',
   children,
 }: {
   /** Drawn, so it is in the caps slot and written in capitals (design-tokens 2.3). */
   label: string
   /** Heard, so it is a sentence. The same pairing `ChipRow` uses. */
   ariaLabel: string
+  tone?: ScreenTone
   children: ReactNode
 }) {
   return (
@@ -110,7 +149,7 @@ export function PinnedRow({
           are one question, and this is the most important control in the app. */}
       <p
         aria-hidden="true"
-        className="text-center text-on-paper-40"
+        className={`text-center ${ROW_LABEL[tone]}`}
         style={{ ...typeStyle('sectionHeader'), marginBottom: 11 }}
       >
         {label}

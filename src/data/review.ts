@@ -31,6 +31,10 @@ import { newSegmentProgress, reviewSegment } from '../scheduler'
  * reconstruct afterwards. Session 10 derives the streak from it rather than from
  * a running counter, so a missed write cannot leave a streak permanently wrong.
  *
+ * The row names its passage as well as its line, from session 9. It costs
+ * nothing here and it is what lets a whole-passage recital, which has no line at
+ * all, be written to the same table. See `src/data/milestone.ts`.
+ *
  * ## The third write, which is a column and not a row
  *
  * A passage whose first line has just been reviewed stops being something you
@@ -91,6 +95,7 @@ export async function recordReview(
   await db.transaction('rw', db.segment_progress, db.review_log, db.user_prayers, async () => {
     await putSegmentProgress(userId, finished.segmentId, fromSchedulerSegmentProgress(after))
     await appendReviewLog(userId, {
+      passageId: finished.passageId,
       segmentId: finished.segmentId,
       quizType: quizTypeOf(finished.level),
       selfRating: finished.rating,
