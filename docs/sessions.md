@@ -466,3 +466,30 @@ session 11 gets there). In the repo, `src/theme/ornaments.ts` for `STAR_POINTS` 
 `src/data/reviewLog.ts` for the history a streak is built from; `src/data/milestone.ts`;
 `src/features/memorise/MemoriseScreen.tsx`, which is the screen section 11 is added to; and
 `src/config/` for the tuneable constants a streak rule belongs in.
+
+## Session 10 follow-up — The tokens document catches up with the icon
+
+**Version:** v0.10.2   **Branch:** session-10-followup, session-10-followup-2
+**Date:** 8 September 2026
+
+**Shipped.** Nothing in the app changed. `design-tokens.md` is now version 1.2, because section 8.3
+still said "No image or icon files" without qualification while the build was writing four PNGs. It
+is still true of every mark in the interface, which is what the rule is for, but a reader meeting 8.3
+and then finding `scripts/lib/png.ts` had nothing to reconcile the two with. 8.3 now names the
+exception, says why iOS leaves no alternative, and lists the three things that keep it from
+spreading: the icons are generated from section 4's own star, nothing is committed, and
+`src/principles/no-image-files.test.ts` fails the build if an image file ever is. The home screen
+icon joins the icon table. This is the same reasoning that updated CLAUDE.md in session 7: a
+quotation that drifts from its source is worse than none.
+
+**Why it is two patches and not one.** The tokens edit went out as v0.10.1 before this entry existed,
+and `/docs/sessions.md` is append-only, so the record of it is this entry rather than a correction to
+the one above. **The version line in Settings now reads v0.10.2**, which is what the install
+checklist should be read against, not the v0.10.0 the session 10 entry names.
+
+**Surprise.** None.
+
+**Next session should read first.** Exactly what the session 10 entry above says, plus
+`design-tokens.md` 8.3, which is short and now describes a boundary session 11 sits right next to:
+the freshness star it renders is the same eighteen points the home screen icon is drawn from, and
+they are meant to stay one drawing.
