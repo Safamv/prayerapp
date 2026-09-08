@@ -194,6 +194,77 @@ export const strings = {
   },
 
   /**
+   * **The quiz ladder.** Scope 9.1, 9.3, 9.4 and 9.6.
+   *
+   * Three rules govern every word here, and all three are principles rather than
+   * taste.
+   *
+   * **Nothing is scored** (7.2, 9.6). There is no count of right answers on this
+   * screen, no percentage, no total at the end. The reader rates themselves and
+   * that rating is the only judgement the app ever holds.
+   *
+   * **Correct and incorrect are shown calmly** (7.1). No buzzer, no failure
+   * word, no exclamation mark. A word you did not choose is simply put in its
+   * place, and the sentence that says so states what happened rather than how it
+   * went.
+   *
+   * **Nothing congratulates you, least of all with scripture** (7.5). Finishing
+   * a prayer's lines returns you to the Memorise tab with one row fewer on it,
+   * and finishing the day is the sentence that was already there: "You are up to
+   * date."
+   */
+  review: {
+    /** Level 1, a line the reader has not met before. Scope 9.1: read and reveal. */
+    readNew: 'A new line. Read it through.',
+    /** Level 1 again, for a line that came back after being forgotten. */
+    readAgain: 'Read it through.',
+    /** Levels 2 and 3. Scope 9.3: the blanked words are a tappable word bank. */
+    fillBlanks: 'Tap the words back into their places.',
+    /** Level 4. Scope 9.1: order the segments, in the app's word for a segment. */
+    putInOrder: 'Put the lines back in the order they run.',
+    /** Level 4's reveal, which is the whole answer at once (scope 7.2). */
+    orderRevealed: 'This is the order they run in.',
+    /** The pinned button that ends level 4. A reveal, never a verdict. */
+    showOrder: 'SHOW THE ORDER',
+
+    /**
+     * Which line of this prayer's work today, in the caps slot. A count of what
+     * you have taken on, already capped by scope 8.3, and the only number on the
+     * screen. Principle 7.3 forbids counting what the cap left out, and nothing
+     * here does.
+     */
+    lineOfDay: (position: number, total: number) => `LINE ${String(position)} OF ${String(total)}`,
+
+    /**
+     * Scope 9.6: "Again, Hard, Good, Easy, chosen after the reveal. This is the
+     * only input to SM-2. Nothing is auto-scored." The four words are the
+     * scope's own, in the caps slot, so they are written in capitals.
+     */
+    ratingSection: 'HOW DID THAT GO?',
+    ratingAgain: 'AGAIN',
+    ratingHard: 'HARD',
+    ratingGood: 'GOOD',
+    ratingEasy: 'EASY',
+
+    /**
+     * What a blank is called by anyone who cannot see the rule drawn in the
+     * line, and what is said when one is filled.
+     *
+     * The two sentences are the same shape on purpose. Getting it right and
+     * getting it wrong are both reported as what happened to the text, never as
+     * how the reader did: principle 7.2 displays strictly and judges gently, and
+     * a screen reader hearing "Wrong!" would be the buzzer principle 7.1 forbids
+     * on every other surface.
+     */
+    missingWord: 'missing word',
+    wordPlaced: (word: string) => `${word} is in place.`,
+    wordCorrected: (chosen: string, correct: string) =>
+      `${chosen} is not the word. The word is ${correct}.`,
+    /** A chip that has been used. Read where the dimming cannot be seen. */
+    chipUsed: (word: string) => `${word}, already used`,
+  },
+
+  /**
    * **My list.** Scope 6.5: the ordered list of what the user intends to
    * memorise, with the V0 label scope 11.5 fixes.
    *
@@ -451,6 +522,13 @@ export const strings = {
     lineList: 'Lines',
     /** Today's queue (scope 8.3). */
     queueList: 'Today',
+    /** A row of today's queue, which opens that prayer's lines (decision D8.1). */
+    queueRow: (title: string, lines: string) => `${title}, ${lines.toLowerCase()}`,
+    /** The three parts of a quiz screen (scope 9.1, 9.3, 9.6). */
+    quizLine: 'The line',
+    chipBank: 'Words to choose from',
+    orderLines: 'The lines to put in order',
+    selfRating: 'How did that go?',
     /** The two ordered screens of scope 6.5 and 6.7. */
     bookmarkList: 'Bookmarks',
     myList,

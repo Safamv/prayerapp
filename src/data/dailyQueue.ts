@@ -5,6 +5,8 @@ import { listPassageSegments } from './segmentation'
 import { listUserPrayers } from './userPrayers'
 import { getOrCreateUserSettings } from './userSettings'
 import { buildQueue, type QueueCandidatePassage, type QueueInput, type QueueItem } from '../queue'
+import type { QuizLine } from '../quiz'
+import type { SegmentProgress } from '../scheduler'
 import type { Day, PassageRow } from './types'
 
 /**
@@ -119,5 +121,69 @@ export async function getTodaysQueue(userId: string, today: Day): Promise<Todays
     items,
     passages: passages.filter((entry): entry is QueuedPassage => entry !== null),
     listIsEmpty: input.passages.length === 0,
+  }
+}
+
+/**
+ * **One passage's work for today.** Scope 8.2 and 9.1.
+ *
+ * Decision D8.1: a row on the Memorise tab opens the lines of that prayer and
+ * nothing else, so the walk needs the day's queue narrowed to one passage, and
+ * it needs three more things the queue itself has no reason to carry.
+ *
+ * **Every line of the passage, not only today's.** Level 4 puts the lines
+ * leading up to the served one back in order (scope 8.1), and levels 2 and 3
+ * take their distractors from elsewhere in the same passage (scope 9.3).
+ * Neither is answerable from today's queue alone.
+ *
+ * **The progress against each line**, because scope 9.1 selects the quiz type by
+ * mastery level, and `src/quiz/level.ts` reads that off `repetitions`.
+ *
+ * It is read once, when the screen opens, and the walk holds it. So a rating
+ * written halfway through does not rebuild the day underneath the reader and
+ * take the next line away from them.
+ */
+export interface PassageWork {
+  readonly passage: PassageRow
+  /** Every line of the passage, in the order scope 8.1 learns them in. */
+  readonly lines: readonly QuizLine[]
+  /** Today's lines of this passage, in queue order. */
+  readonly items: readonly QueueItem[]
+  /** The SM-2 state of each line that has one, by segment id. */
+  readonly progress: ReadonlyMap<string, SegmentProgress>
+}
+
+export async function getPassageWork(
+  userId: string,
+  passageId: string,
+  today: Day,
+): Promise<PassageWork | undefined> {
+  const passage = await getPassage(passageId)
+  if (passage === undefined) return undefined
+
+  const [queue, segments, progressRows] = await Promise.all([
+    getTodaysQueue(userId, today),
+    listPassageSegments(passageId),
+    listSegmentProgress(userId),
+  ])
+
+  const lines: QuizLine[] = segments.map((segment) => ({
+    segmentId: segment.id,
+    orderIndex: segment.order_index,
+    text: segment.text,
+  }))
+
+  const ofThisPassage = new Set(lines.map((line) => line.segmentId))
+  const progress = new Map(
+    progressRows
+      .filter((row) => ofThisPassage.has(row.segment_id))
+      .map((row) => [row.segment_id, toSchedulerSegmentProgress(row)] as const),
+  )
+
+  return {
+    passage,
+    lines,
+    items: queue.items.filter((item) => item.passageId === passageId),
+    progress,
   }
 }

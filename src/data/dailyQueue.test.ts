@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { putPassages } from './corpus'
-import { getTodaysQueue, readQueueInput } from './dailyQueue'
+import { getPassageWork, getTodaysQueue, readQueueInput } from './dailyQueue'
 import { resetDatabase } from './db'
 import { makePassage } from './fixtures'
 import { confirmSegmentation, listPassageSegments } from './segmentation'
@@ -160,5 +160,84 @@ describe("today's queue", () => {
 
     const queue = await getTodaysQueue(USER, TODAY)
     expect(queue.passages).toEqual([])
+  })
+})
+
+/**
+ * One prayer's work for today. Decision D8.1: a row on the Memorise tab opens
+ * this and nothing else.
+ *
+ * It carries three things today's queue has no reason to: every line of the
+ * passage rather than only today's, because level 4 orders the ones leading up
+ * to the served line and levels 2 and 3 take their distractors from elsewhere
+ * in the same passage; and the progress against each, because scope 9.1 selects
+ * the rung from it.
+ */
+describe('getPassageWork', () => {
+  it('narrows the day to one passage, and leaves the rest of it alone', async () => {
+    const here = makePassage({ title: 'Blessed is the spot' })
+    const elsewhere = makePassage({ title: 'Remover of difficulties' })
+    const mine = await addWithLines(here, 2)
+    const others = await addWithLines(elsewhere, 2)
+    for (const id of [...mine, ...others]) await putSegmentProgress(USER, id, state('2026-09-01'))
+
+    const work = await getPassageWork(USER, here.id, TODAY)
+    expect(work?.items.map((item) => item.segmentId)).toEqual(mine)
+  })
+
+  it('carries every line of the passage, not only the ones due today', async () => {
+    const passage = makePassage()
+    const lines = await addWithLines(passage, 5)
+    await putSegmentProgress(USER, lines[4] ?? '', state('2026-09-01'))
+    for (const id of lines.slice(0, 4)) await putSegmentProgress(USER, id, state('2099-01-01'))
+
+    const work = await getPassageWork(USER, passage.id, TODAY)
+    expect(work?.items).toHaveLength(1)
+    expect(work?.lines.map((line) => line.segmentId)).toEqual(lines)
+  })
+
+  it('gives the lines in the order they are learnt', async () => {
+    const passage = makePassage()
+    await addWithLines(passage, 4)
+
+    const work = await getPassageWork(USER, passage.id, TODAY)
+    expect(work?.lines.map((line) => line.orderIndex)).toEqual([0, 1, 2, 3])
+  })
+
+  it('matches the progress to the right line, and leaves an unmet line without any', async () => {
+    const passage = makePassage()
+    const lines = await addWithLines(passage, 3)
+    await putSegmentProgress(USER, lines[1] ?? '', state('2026-09-01'))
+
+    const work = await getPassageWork(USER, passage.id, TODAY)
+    expect(work?.progress.get(lines[1] ?? '')?.repetitions).toBe(2)
+    expect(work?.progress.get(lines[0] ?? '')).toBeUndefined()
+  })
+
+  it('carries no progress belonging to another passage', async () => {
+    const here = makePassage({ title: 'Blessed is the spot' })
+    const elsewhere = makePassage({ title: 'Remover of difficulties' })
+    await addWithLines(here, 1)
+    const others = await addWithLines(elsewhere, 1)
+    for (const id of others) await putSegmentProgress(USER, id, state('2026-09-01'))
+
+    const work = await getPassageWork(USER, here.id, TODAY)
+    expect(work?.progress.size).toBe(0)
+  })
+
+  it('gives nothing for a passage that is not in the corpus', async () => {
+    expect(await getPassageWork(USER, 'no-such-passage', TODAY)).toBeUndefined()
+  })
+
+  it('gives a passage with nothing due today, and no work in it', async () => {
+    // The screen sends the reader back to the tab rather than drawing an empty
+    // one, and it can only do that if this tells the two states apart.
+    const passage = makePassage()
+    const lines = await addWithLines(passage, 2)
+    for (const id of lines) await putSegmentProgress(USER, id, state('2099-01-01'))
+
+    const work = await getPassageWork(USER, passage.id, TODAY)
+    expect(work?.passage.id).toBe(passage.id)
+    expect(work?.items).toEqual([])
   })
 })
