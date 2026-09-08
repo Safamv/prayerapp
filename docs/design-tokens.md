@@ -1,8 +1,8 @@
 # Design Tokens and Patterns
 ## By Heart — Bahá'í Prayer and Memorisation App
 
-**Version:** 1.1
-**Date:** 24 August 2026
+**Version:** 1.2
+**Date:** 8 September 2026
 **Supersedes:** `Handoff: Bahá'í Prayer Memorization — Library, Reader, Typeface settings`
 **Repo path:** `/docs/design-tokens.md`
 **Spelling:** Australian English throughout
@@ -375,6 +375,20 @@ Both are scope-side data model items, recorded here because the visual pattern d
 
 **No image or icon files.** Every mark in the app is an inline SVG. The fleuron is a text glyph.
 
+**The one exception, and its boundary. Decision D10.2.** The home screen icon is a bitmap, because
+iOS reads `apple-touch-icon` as one and will not take an SVG, and neither will the manifest's icon
+list. This does not loosen the rule above, which is about marks *in the interface*: every one of
+those is still an inline SVG, and the icon is not one of them. Three things keep the exception from
+spreading.
+
+- The icons are **generated during the build**, from the same eighteen numbers section 4 draws the
+  freshness star with. They are not a second drawing of the star; they are the star.
+- **Nothing is committed.** They exist only in `dist/`, which is gitignored, so the repository holds
+  no image file at all.
+- `src/principles/no-image-files.test.ts` **fails the build** if any image file is ever committed
+  anywhere in the repository. The exception is a rule with a wall around it, not a paragraph
+  somebody has to remember.
+
 | Icon | Where | Drawing |
 |---|---|---|
 | Nine-pointed star | Freshness state (section 4) | Path in section 4 |
@@ -383,6 +397,7 @@ Both are scope-side data model items, recorded here because the visual pattern d
 | Open book | Discover tab | Two page quadrilaterals rising from a centre gutter |
 | Three ascending rules | Memorise tab | Cumulative line building (scope 8.1) |
 | Shelf of volumes | Log tab | Three uprights, one leaning, on a baseline |
+| Nine-pointed star, filled | Home screen icon | Section 4's points, gold on `field`, 64% of the square. Generated, never committed; see above |
 
 The three tab icons were added in session 2 at Safa's request; see decision D2.10. They are a first
 pass, explicitly open to being redrawn, and nothing in the tab bar depends on which shapes they are.
@@ -427,3 +442,4 @@ For the record, so nobody restores it by accident.
 |---|---|---|
 | 1.0 | 23 Aug 2026 | Derived from the design handoff. Product scoping and information architecture removed, nine conflicts with scope v4.0 resolved in the scope's favour, screens converted to patterns, theming made registry-driven, fonts moved to self-hosted, text size interaction specified. |
 | 1.1 | 24 Aug 2026 | Section 8.3: three tab icons added and the icon list turned into a table with common drawing rules. Requested by Safa in session 2, recorded as decision D2.10. No other section changed. |
+| 1.2 | 8 Sep 2026 | Section 8.3: the home screen icon recorded as the single exception to "no image or icon files", with the three things that keep it from spreading, and added to the icon table. Section 4 unchanged, but its eighteen points now live in `src/theme/ornaments.ts` so the icon and the freshness star are one drawing. Session 10, decision D10.2. No other section changed. |
