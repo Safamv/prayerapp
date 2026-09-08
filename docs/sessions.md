@@ -401,3 +401,68 @@ history the streak is built from; `src/data/milestone.ts` for `milestone_reached
 whole-passage columns; `src/features/memorise/MemoriseScreen.tsx`, which is the screen everything in
 section 11 is added to; `src/theme/ornaments.ts` for where a drawn mark lives; and `src/config/` for
 the tuneable constants a streak rule belongs in.
+
+## Session 10 — Installable: the manifest, the icon, and offline
+
+**Version:** v0.10.0   **Branch:** session-10-installable   **Date:** 8 September 2026
+
+**This session took the number 10, which was not what its prompt said.** The prompt was written as
+session 11 and assumed session 10 had been built. It had not: the repository was at v0.9.0 and the V0
+list still had the streak and the freshness stars unticked. Safa chose to install now rather than
+wait, so freshness, streak and the passage detail view are session 11 and Ruhi is session 12. Nothing
+was resequenced away. D10.0.
+
+**Shipped.** The app installs on a home screen and runs with no network. A manifest and the head tags
+iOS actually reads; the old gold nine-pointed star on navy as the icon, at four sizes including a
+maskable one; a service worker precaching all seventeen files, four and a half megabytes raw and just
+over one over the wire, the corpus included; a `vercel.json` that rewrites every path to the app and
+caches the hashed chunks hard while leaving `index.html` and the worker revalidating. 35 new tests. No
+dependency was added: the PNG encoder is forty lines over `node:zlib` and the worker is written, both
+following D7.5.
+
+**Three things generated rather than written**, because each would otherwise have been a copy of
+something. The manifest carries two colours and reads them from the theme registry (D10.1). The icons
+are drawn from the same eighteen numbers as design-tokens 4's freshness star, which moved into
+`src/theme/ornaments.ts` (D10.2). The worker has to name every hashed chunk, which nobody knows until
+the build has run, and `assertCorpusPrecached` fails the build if the corpus is not among them.
+
+**Design-tokens 8.3 said the app contains no image files, and now it ships four.** The exception is
+drawn as narrowly as it can be and then enforced: nothing is committed, the PNGs exist only in
+`dist/`, and `src/principles/no-image-files.test.ts` fails the build if an image file is ever
+committed anywhere. `public/favicon.svg`, Vite's scaffold logo since session 1, is deleted. D10.2.
+
+**Updates arrive on their own and start on the next cold launch**, with nothing announced and nothing
+asking to reload. `skipWaiting` is deliberately absent: it would seize control mid-session and delete
+the cache the running page is still reading prayers out of. The cost is that a build is one cold start
+behind, and the version line at the foot of Settings is how anyone confirms which build they hold.
+D10.4.
+
+**Deferred.** Nothing from this session's list.
+
+**The surprise, and it would have shipped.** Pulling the server down and reloading showed the app
+blank with a full cache sitting behind it. Hosts send `Vary: Origin` on static files, and Vite loads
+its module script and stylesheet with `crossorigin`, so the browser puts an `Origin` header on those
+requests that a precaching worker cannot put on its own. Vary matching then fails every lookup and
+the worker falls through to a network that is not there. Every lookup now ignores Vary. It was
+invisible from inside the page, because JavaScript cannot set `Origin` on a `Request`, so a
+cache.match test from the console passed while the real load failed. Found by turning the server off,
+not by reading the code.
+
+**What the gates could not prove, and what still has to happen.** Nothing in the test suite can
+install an app on a phone. What was actually verified here: the built output was served, the worker
+registered and activated, seventeen files cached, the manifest parsed with all four icon sizes, and
+then the server was stopped and the app cold-loaded at `/memorise` with IndexedDB wiped and rebuilt
+all 975 passages from the precached chunks. That is offline proven on a desktop browser. **The real
+proof is the install checklist in this session's handoff, and it happens on Safa's device after the
+merge.**
+
+**Next session should read first.** `/CLAUDE.md` in full. Scope sections 11 (all of it), 3.1, 8.7,
+8.5, 8.2 and 10 (`user_stats`, `review_log`, `segment_progress` and `user_prayers`).
+`/docs/design-tokens.md` sections 4 (the freshness star, whose eighteen points are now in the repo and
+which nothing renders yet), 5.3, 5.7 and 2.2. Decisions D7.1 (why Log is not a tab and section 11
+lands on Memorise), D9.3 (what the log now holds, which the streak is derived from), D9.5, D1.5 (what
+a lapse does, which freshness has to describe) and D10.4 (how a build reaches a phone, which is how
+session 11 gets there). In the repo, `src/theme/ornaments.ts` for `STAR_POINTS` and `starPolygon`;
+`src/data/reviewLog.ts` for the history a streak is built from; `src/data/milestone.ts`;
+`src/features/memorise/MemoriseScreen.tsx`, which is the screen section 11 is added to; and
+`src/config/` for the tuneable constants a streak rule belongs in.

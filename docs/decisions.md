@@ -2691,3 +2691,226 @@ three pieces of work today, not three free ones.
 **A recital goes with its passage when the passage is removed**, both from `takeOffList` and from the
 corpus withdrawal of session 5. A log row naming only a passage would otherwise survive a removal
 that scope 6.5 makes permanent and total.
+
+---
+
+## D10 — Session 10, installable: the manifest, the icon, and offline
+
+### D10.0 — This session took the number 10, and the streak session became session 11
+
+**Decided by Safa, 8 September 2026.** The session prompt was written as session 11 and assumed
+session 10 had already been built. It had not: the repository was at v0.9.0, `main`'s last merge was
+session 9, and the V0 list in scope section 14 still had "Freshness states and passage detail" and
+"Daily streak" unticked.
+
+**Chosen: install now, and this session is 10.** The build sequence in scope section 16 is otherwise
+unchanged and nothing is resequenced away: freshness, streak and the passage detail view are now
+session 11, and Ruhi, which the table had at 11, is session 12.
+
+**Options considered.**
+
+- *Build the streak and the freshness stars first, install afterwards.* The fortnight would begin on
+  a complete V0 with nothing missing. Rejected because the two weeks are for finding out whether the
+  app is pleasant to hold and whether the daily queue feels punishing, and both of those can be
+  found out today.
+- *Install now but keep the number 11.* Rejected because CLAUDE.md section 8 makes the minor version
+  the session number, so the tags would have read 0.9.0, 0.11.0, 0.10.0, and the version line in
+  Settings would have stopped saying which build is newer. That line is how a tester tells us what
+  they are holding, so it has to be readable in order.
+
+**Reversible.** The numbering, no. The sequencing, yes and cheaply: session 11 is next either way.
+
+**What this means for you.** The app goes on your phone now. What is not in it yet is the daily
+streak and the little gold stars that show how fresh each prayer is, so for the moment you cannot
+see your own progress at a glance. Those are the next session, and they will arrive on your phone by
+themselves without you doing anything.
+
+---
+
+### D10.1 — The manifest is generated from the theme registry, not written
+
+**Decided by Claude, 8 September 2026.** A web app manifest is a static JSON file the browser reads
+before any of the app has run, so it cannot ask the theme provider anything. It also has to name two
+colours: the navy behind the status bar and the colour a launch shows before the first paint.
+CLAUDE.md rule 1 admits no hard-coded colour anywhere, and there are two palettes with two different
+navies, so writing one of them into a file would have put a third copy of the palette in the
+repository.
+
+**Chosen: the manifest, the icons and the one head tag that carries a colour are all generated during
+the build**, by `scripts/vite/installable.ts`, reading `defaultPalette()` from the theme registry.
+Changing `field` in `src/theme/palettes.ts` changes the shipped manifest at the next build and there
+is nothing else to remember. A test hands the generator the second palette and fails if the result
+does not follow it, which is the assertion a pasted hex cannot survive.
+
+**Options considered.**
+
+- *Write `public/manifest.webmanifest` with the navy in it.* One small file, no build machinery.
+  Rejected: it is precisely the breach rule 1 exists to prevent, and the copy would have been silent
+  and permanent.
+- *Read the manifest at runtime and rewrite it.* Not possible. It is read at install time, once,
+  before the app exists.
+
+**The exception this does not remove.** It is still the *default* palette. Someone using Oxblood
+Cloth has an installed app whose status bar strip and launch colour are navy, because a manifest
+describes the installed thing rather than the running one. The only way round it is a manifest per
+palette, which would mean reinstalling the app to change a colour. Recorded rather than hidden.
+
+**Reversible.** Yes, entirely. One plugin file.
+
+**What this means for you.** Nothing you can see, unless you switch to the Oxblood palette, in which
+case the strip behind the clock at the very top of the screen stays navy. Tell me if that bothers you
+and I will look at it again.
+
+---
+
+### D10.2 — The app icon is a real image file, and it is the only one
+
+**Decided by Safa (the design) and Claude (the boundary), 8 September 2026.** Design-tokens 8.3 says
+"No image or icon files. Every mark in the app is an inline SVG." That has been true of every mark on
+every screen for nine sessions. A home screen icon cannot be one of those marks: iOS reads
+`apple-touch-icon` as a bitmap and will not take an SVG, and neither will the manifest's icon list.
+So this is a genuine conflict with a rule the visual language depends on, not a technicality.
+
+**Chosen: the exception is drawn as narrowly as it can be, and then enforced.**
+
+- The icons are **generated during the build** from the same eighteen numbers design-tokens 4 draws
+  the freshness star with, which now live in `src/theme/ornaments.ts`. They are not a second drawing
+  of the star; they are the star.
+- Nothing is committed. The four PNGs and the favicon exist only in `dist/`, which is gitignored, so
+  the repository still contains no image file at all. `public/favicon.svg`, which had been Vite's
+  scaffold logo since session 1, is deleted rather than replaced.
+- `src/principles/no-image-files.test.ts` fails the build if any image file is ever committed
+  anywhere. The exception is now a rule with a wall around it rather than a paragraph somebody has
+  to remember.
+- No image library was installed. The PNG encoder is forty lines over `node:zlib`
+  (`scripts/lib/png.ts`), because the alternative was a native binary of tens of megabytes to draw
+  one star on a flat ground. This follows D7.5.
+
+**The design, which Safa chose.** The old gold nine-pointed star, filled, on the navy cloth of
+`field` - the same navy the milestone screen inverts to in D9.2, so the icon is the cover of the book
+whose pages the app is. Considered and rejected: the star in navy on a gold ground, which is easier
+to pick out on a home screen but matches no screen in the app; and gold on bone paper, which is the
+quietest and the hardest to find among other pale icons.
+
+**The crop, which is not negotiable.** iOS rounds every icon's corners regardless of design-tokens
+3's "border radius: 0 everywhere", and Android launchers crop harder still. The icon is drawn to
+survive that rather than to argue with it: the navy runs to all four edges so a crop of any radius
+takes cloth, and the star spans 64% of the square, well inside the 80% centre circle a maskable icon
+must keep its content within. One geometry for all four sizes, so they cannot drift apart.
+
+**Reversible.** Yes. The colours are two token names and the size is one number.
+
+**What this means for you.** The app on your home screen is a gold nine-pointed star on navy. It is
+the same star that will show how fresh each prayer is when session 11 builds that, and it is the
+only picture file this app has ever had.
+
+---
+
+### D10.3 — A service worker, written rather than installed, that caches the app and never the data
+
+**Decided by Claude, 8 September 2026.** Scope 12.2 says the app "works fully offline", and until
+this session that was half true. IndexedDB held every prayer and every review, so the data was local;
+but the app itself was a set of files on a server, and a phone in aeroplane mode could not fetch them
+to run. The fortnight includes mornings without signal.
+
+**Chosen: a hand-written service worker, generated at build time, precaching the whole app.** All
+seventeen files, four and a half megabytes raw and just over one over the wire, including the four
+corpus chunks, which are most of it.
+
+**Two boundaries that are the point of the entry.**
+
+**It caches the app. It does not touch IndexedDB.** IndexedDB is the source of truth and is already
+local. A worker that took an interest in it would be a second copy of the data with its own opinions
+about which was right. Nothing in the worker reads or writes a record, and a test asserts the
+generated source never mentions it.
+
+**It is not a breach of CLAUDE.md rule 11.** Rule 11 forbids the application making a network call.
+Registering a worker asks the browser for one file from the origin the app was served from, and that
+worker then caches the app's own files. It is the opposite of a call out: it is what stops the app
+needing one. The boundary is that the worker may fetch the app and nothing else, and there is no code
+path in it that could fetch anything else.
+
+**Why written rather than installed.** The obvious alternative is Workbox by way of
+`vite-plugin-pwa`. What is needed from it is a list of filenames, `cache.addAll`, and a fetch handler
+that prefers the cache: about forty lines. Workbox is a large dependency tree whose defaults -
+`skipWaiting`, runtime caching strategies, navigation preload - are mostly things this app wants
+turned off, and CLAUDE.md rule 6 asks for a decision before any dependency. No dependency was added
+this session. This follows D7.5.
+
+**Why the file list is generated.** Vite hashes every chunk, and the corpus is four dynamic imports,
+so the files that matter most offline are named things like `prayers-C8QwaqbG.js` and are renamed by
+any change to the dataset. A hand-written list would have been wrong the first time the corpus was
+re-fetched, and wrong *silently*: the app would still have started offline and simply had no prayers
+in it. `assertCorpusPrecached` fails the build instead, naming the missing file.
+
+**Reversible.** Yes, but not invisibly: removing it from a phone that already has it installed means
+the worker has to be told to unregister, not merely deleted. Worth knowing before it is ever done.
+
+**What this means for you.** After you have opened the app once, it works with no signal at all -
+every prayer, the whole library, the queue. Aeroplane mode, the Tube, a valley in the country.
+
+---
+
+### D10.4 — A new build arrives on its own and starts on the next cold launch, with nothing asked
+
+**Decided by Claude, 8 September 2026.** Once the app is on a home screen, a deploy has to actually
+reach it. The choice is what happens at the moment a new build is found.
+
+**Chosen: it downloads in the background and takes effect the next time the app is opened from
+cold.** Nothing is announced, nothing asks to reload, no session is interrupted. In service worker
+terms there is no `skipWaiting`: the new build installs itself, waits, and takes over when the last
+page the old one controlled goes away, which is what closing the app does.
+
+**Options considered.**
+
+- *Take over immediately.* The tempting one and it is actively wrong here. The new worker would seize
+  control mid-session and delete the cache the running page was loaded from - and that page is still
+  lazily reading the corpus out of it. Someone would be reading a prayer and the library would empty
+  underneath them.
+- *Ask.* A banner saying a new version is available. Rejected on principle 7.1: this is a screen
+  someone opened at six in the morning to pray, and a software update notice is exactly the chrome
+  7.1 and 7.6 keep out. It would also be the only thing in the app that ever interrupted anybody.
+
+**The cost, stated plainly.** A build is one cold start behind. Deploy in the morning, close the app
+and open it again, and you have it.
+
+**How to tell which build you are holding.** The last line at the foot of Settings, below the two
+queue caps. It reads `v0.10.0 · 6f2ad19 · 8 Sep 2026`: the version, the commit and the build date.
+Read the first part. If it says what it should, the update has landed; if it still says the old
+number, close the app fully and open it again.
+
+**Reversible.** Yes. It is the absence of one line in the generated worker.
+
+**What this means for you.** You never have to update the app and you will never be asked to. When I
+deploy something, closing it and opening it again is all it takes, and the version line in Settings
+is how you check.
+
+---
+
+### D10.5 — Contained decisions, session 10
+
+**The status bar is `black`, not `default` or `black-translucent`.** iOS's behaviour here has changed
+across versions and cannot be verified from here. `black` gives a dark strip with light glyphs above
+the navy header under every version, so both the old behaviour and the current one land somewhere
+correct. `black-translucent` would hand the notch and the home indicator to the page, and nothing in
+the app reads a safe-area inset. On the install checklist for confirmation on the device.
+
+**`viewport-fit=cover` is deliberately absent**, for the same reason: without it iOS keeps the web
+view clear of the notch and the home indicator by itself, which is what the fixed tab bar of
+design-tokens 5.6 needs. Asserted by test so it is not added casually.
+
+**The manifest has no `description`.** The field is optional and iOS ignores it, and the scope has no
+tagline for the app, so writing one would have been inventing user-facing copy outside
+`src/strings/`. Principle 7.11 and the strings module's own first rule both forbid that.
+
+**The icon has no cloth grain.** Design-tokens 3's navy grain is a four pixel dot pattern meant to be
+met at one to one on a screen. At icon scale it either vanishes into the navy or beats against the
+display's own grid.
+
+**The nine-pointed star moved into `src/theme/ornaments.ts`**, as eighteen numbers rather than a path
+string, so that the icon and session 11's freshness star are drawn from one source. Nothing renders
+it yet; session 11 will.
+
+**`vercel.json` rather than `netlify.toml`.** Scope 12.1 names either. Vercel is named first and its
+GitHub import is the shorter path for someone who does not run git. `docs/hosting.md` records the
+Netlify equivalent, which is four lines.
