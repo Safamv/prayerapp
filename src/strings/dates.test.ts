@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDay } from './dates'
+import { formatDay, formatInterval } from './dates'
 
 describe('a day, written the way a person says it', () => {
   it('puts the day before the month and spells the month out', () => {
@@ -22,5 +22,40 @@ describe('a day, written the way a person says it', () => {
   it('renders nothing at all rather than the words Invalid Date', () => {
     expect(formatDay('')).toBe('')
     expect(formatDay('not a day')).toBe('')
+  })
+})
+
+describe('formatInterval', () => {
+  it('says short spans in days', () => {
+    expect(formatInterval(1)).toBe('1 day')
+    expect(formatInterval(6)).toBe('6 days')
+  })
+
+  it('says the scope 11.3 example in weeks', () => {
+    // "you last recalled this after 3 weeks"
+    expect(formatInterval(21)).toBe('3 weeks')
+  })
+
+  it('says a week as a week rather than as seven days', () => {
+    expect(formatInterval(7)).toBe('1 week')
+    expect(formatInterval(14)).toBe('2 weeks')
+    expect(formatInterval(30)).toBe('4 weeks')
+  })
+
+  it('moves to months once weeks stop being natural', () => {
+    expect(formatInterval(31)).toBe('1 month')
+    expect(formatInterval(60)).toBe('2 months')
+    expect(formatInterval(180)).toBe('6 months')
+  })
+
+  it('says the schedulers ceiling as a year, and stays in months below it', () => {
+    // `maximumIntervalDays` is 365, so nothing longer than a year is reachable
+    // and eleven months is said as eleven months rather than rounded up to one.
+    expect(formatInterval(365)).toBe('1 year')
+    expect(formatInterval(340)).toBe('11 months')
+  })
+
+  it('never says nought days', () => {
+    expect(formatInterval(0)).toBe('1 day')
   })
 })

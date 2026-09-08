@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { typeStyle } from '../theme'
+import { STAR_POLYGON_POINTS, typeStyle } from '../theme'
 
 /**
  * The settings row. Design-tokens 5.7, transcribed.
@@ -121,9 +121,14 @@ export function SettingsChoiceRow({
  * does not make the rows above it jump. Design-tokens 5.7 says so explicitly and
  * it is the sort of thing only felt when it is wrong.
  *
- * The same glyph carries the freshness states of design-tokens 4, which are
- * session 10's and are not rendered anywhere yet. It is used here as a selection
- * mark because 5.7 prescribes exactly that, on exactly this row.
+ * The same glyph carries the freshness states of design-tokens 4, which session
+ * 11 renders on the Memorise tab. It is used here as a selection mark because
+ * 5.7 prescribes exactly that, on exactly this row, and that is not a freshness
+ * usage any more than the decorative star in the tab bar is.
+ *
+ * **The points come from `src/theme/ornaments.ts`**, which is where session 10
+ * put them so that the home screen icon and the freshness star would be one
+ * drawing. This row had its own copy until session 11 and now does not.
  */
 export function SelectionStar({ selected }: { selected: boolean }) {
   return (
@@ -136,14 +141,7 @@ export function SelectionStar({ selected }: { selected: boolean }) {
       aria-hidden="true"
       focusable="false"
     >
-      <polygon
-        fill="currentColor"
-        points={
-          '12,2 13.44,8.05 18.43,4.34 15.64,9.9 21.85,10.26 16.14,12.73 20.66,17 14.7,15.22 ' +
-          '15.42,21.4 12,16.2 8.58,21.4 9.3,15.22 3.34,17 7.86,12.73 2.15,10.26 8.36,9.9 ' +
-          '5.57,4.34 10.56,8.05'
-        }
-      />
+      <polygon fill="currentColor" points={STAR_POLYGON_POINTS} />
     </svg>
   )
 }

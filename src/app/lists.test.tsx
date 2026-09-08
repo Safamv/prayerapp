@@ -378,7 +378,7 @@ describe('My list, scope 6.5', () => {
 })
 
 describe('the Memorise tab after My list absorbed the roll call', () => {
-  it('lists no passages of its own beneath today, only the two doors', async () => {
+  it('carries no roll call of its own, and no second door to upkeep', async () => {
     await asThisDevice(async () => {
       await confirmSegmentation(thisDevice(), apex.id, ['Apex, first line.'])
     })
@@ -388,11 +388,28 @@ describe('the Memorise tab after My list absorbed the roll call', () => {
     expect(listRow.getAttribute('href')).toBe('/memorise/list')
     expect(screen.getByRole('link', { name: strings.settings.open })).toBeTruthy()
 
-    // Decision D7.3: the same passages are no longer on two screens one tap
-    // apart. The Memorise tab names a passage only where today's queue does.
+    // **What decision D7.3 removed, and what session 11 did not put back.**
+    // Session 6 listed every passage here purely as a door to the upkeep
+    // screen, which was the same rows My list already carried one tap away.
+    // Session 11 added WHAT YOU KNOW (decision D11.1, Safa's call), which names
+    // passages again - but for a different question and behind a different
+    // door. So the assertion that still holds is the one D7.3 was actually
+    // about: **nothing on this tab opens the upkeep screen.** Setting how often
+    // a passage comes round is reached from My list, and from the passage
+    // detail view that these rows open.
     const queue = screen.getByRole('list', { name: strings.accessibility.queueList })
     expect(within(queue).getAllByText('Apex')).toHaveLength(1)
-    expect(screen.getAllByText('Apex')).toHaveLength(1)
+
+    const upkeepDoors = screen
+      .getAllByRole('link')
+      .filter((link) => link.getAttribute('href')?.startsWith('/memorise/upkeep/') === true)
+    expect(upkeepDoors).toEqual([])
+
+    // Every row of the new section opens the detail view of scope 11.3.
+    const known = screen.getByRole('list', { name: strings.accessibility.knownList })
+    for (const row of within(known).getAllByRole('link')) {
+      expect(row.getAttribute('href')).toContain('/memorise/passage/')
+    }
   })
 
   it('counts what is on the list, and nothing else', async () => {

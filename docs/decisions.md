@@ -2914,3 +2914,194 @@ it yet; session 11 will.
 **`vercel.json` rather than `netlify.toml`.** Scope 12.1 names either. Vercel is named first and its
 GitHub import is the shorter path for someone who does not run git. `docs/hosting.md` records the
 Netlify equivalent, which is four lines.
+
+---
+
+## D11 — Session 11, freshness, the streak, and the passage detail view
+
+### D11.1 — Everything you know is a section on the Memorise tab, and its rows open the passage detail
+
+**Decided by Safa, 8 September 2026.** The session asked where the stars and the streak should sit,
+because a star has to appear next to prayers and the only prayers on the Memorise tab are the ones
+with work today. A prayer you know well has no work today, so a star drawn only on today's rows could
+never be gold: today's rows are, by definition, the lines that are slipping.
+
+**The decision.** A section called WHAT YOU KNOW on the Memorise tab, below today's work and above
+the two doors, listing every passage on the list with its star and the state's own word. Its rows
+open the passage detail view of scope 11.3. The streak is one quiet line at the top of the same tab.
+
+The alternative offered was to leave the tab as it was, put the stars on My list, and reach the
+detail view from there. Safa chose the section, which is the shape he described when he folded Log
+into Memorise in the first place: "almost like a home page for the memorise section with your log
+streaks and dash" (D7.1).
+
+**What about decision D7.3.** Session 7 removed a list of every passage from this tab and gave the
+reason plainly: "two screens listing the same passages one tap apart was the thing worth removing."
+That reason still stands and this is not the thing it removed. What session 6 put here was a roll
+call whose only purpose was to open the upkeep screen, which is precisely what My list already did.
+This section asks a different question and opens a different door, and it is the only place in the
+app where a passage with nothing due today appears at all. **My list keeps its own job**: the order,
+the removing, and the door to how often a passage comes round. Nothing on the Memorise tab opens the
+upkeep screen, which is what session 7's test now asserts.
+
+**A passage with work today is named twice on the screen**, once in TODAY with its count of lines and
+once below with its star. That was in the sketch Safa chose from and he chose it knowing. The two
+rows say different things - what to do, and how it is going - and the alternative, hiding a passage
+from WHAT YOU KNOW on the days it has work, would take the star away on exactly the mornings its
+state is changing.
+
+**Reversible.** Yes, and cheaply. It is one section in one file and one route.
+
+**What this means for you.** The Memorise tab now tells you how you are going as well as what to do.
+At the top, one line saying how many days in a row you have kept up, and nothing at all if the answer
+is none. Below your work for the day, every prayer on your list with a small gold star showing how
+fresh it is, and the word beside it. Tap any of them for the fuller picture.
+
+---
+
+### D11.2 — A day counts towards the streak because you did some, not because you finished
+
+**Decided by Safa, 8 September 2026.** Scope 11.4 says the streak "counts days on which the day's
+queue was completed". The app cannot know that about a past day, and this had to be settled before
+the streak could be built at all.
+
+**Why it cannot be known.** Finishing a line moves its due date. So the queue that stood on Tuesday
+does not exist anywhere on Thursday - not in `review_log`, not in `segment_progress`, nowhere. The
+app records every review with its time, and nothing records that a day was finished.
+
+**Chosen: a day counts when the reader completed at least one line, or one whole passage, on it.**
+
+**Options considered.**
+
+- *Start writing down "finished today" from now on.* Closer to the scope's sentence. Rejected by
+  Safa: it needs a new column, every day before it becomes unreadable, the count restarts at nought
+  on the day it ships, and a long day half done breaks a streak.
+- *Count the day if the queue is empty right now.* Coherent for today and impossible for yesterday,
+  so history and today would be counted by two different rules.
+
+The chosen reading is also the forgiving one, which scope 11.4 says in as many words is the direction
+the product's principles already point.
+
+**Reversible.** The rule, yes: it is one function. The history, no - the days before a "finished"
+column existed could never be read that way, which is the whole reason this was Safa's to decide.
+
+**What this means for you.** A morning you turn up and do some of your prayers counts, even if you do
+not get to the end of the list. Miss a day and the number holds where it is; miss two in a row and it
+starts again. Nothing will ever tell you your streak is at risk - scope 11.4 forbids that by name,
+and there are no notifications in this app at all.
+
+---
+
+### D11.3 — A prayer you have just added shows the unlit star
+
+**Decided by Safa, 8 September 2026.** Design-tokens 4 gives freshness four states and says nothing
+else may encode it. A line the app has not yet shown the reader fits none of them cleanly, and every
+prayer starts out as nothing but such lines.
+
+**Chosen: it reads as Needs review, which is the dimmest of the three states that are not Resting.**
+
+It is literally true - those lines are exactly what the queue is about to serve - and it gives the
+star a life: `field` at .3 is an unlit star, `accent-md` at .5 is half lit, `accent` at 1 is lit. The
+star fills in with gold as a prayer settles, which is the only kind of progress indicator principle
+7.1 leaves room for, in the same way the shrinking queue is.
+
+**The option not taken** was to draw no star at all until every line had been met. Nothing could then
+read as a rebuke on day one, at the cost of a ragged list and a row that says nothing where every
+other row says something.
+
+**Reversible.** Yes, one branch in one pure function.
+
+**What this means for you.** A prayer you add today shows a faint, unfilled star and the words "Needs
+review". That is the app saying it has not shown you those lines yet, not that you have forgotten
+them.
+
+---
+
+### D11.4 — The streak is derived every time, and `user_stats` is written and never read
+
+**Decided by Claude, 8 September 2026.** Scope section 10 gives `user_stats` four columns -
+`streak_current`, `streak_longest`, `last_active_date`, `total_reviews` - which invites a running
+counter. The streak is computed from `review_log` instead, on every read.
+
+**Why.** A counter that misses one write is wrong for ever, and there is nothing to check it against.
+A derivation is wrong only for as long as the bug is. `src/data/reviewLog.ts` was written in session 2
+with a comment saying exactly this, and this is the session that made good on it. A test writes
+nonsense into the stored row and asserts that the next read corrects it.
+
+**The columns are still written**, as a by-product of each derivation, because a row saying nought
+about a reader who has done ninety days is a row that lies and it syncs at v1.0 (scope 13.1). Nothing
+displayed ever comes from it.
+
+**`streak_longest` is computed and deliberately never rendered.** Scope 11.1 asks for a daily streak;
+scope 11.2 excludes every score. A personal best is a number to beat, and a reader who has just lost
+a ninety day run does not need to be shown the ninety.
+
+**Reversible.** Yes.
+
+**What this means for you.** Nothing you can see. If a review ever fails to record itself, your
+streak will be wrong for that day and right again afterwards, rather than wrong for ever.
+
+---
+
+### D11.5 — Contained decisions, session 11
+
+**A promoted passage's freshness comes from its card, and it gets no line breakdown.** Scope 8.7
+promotes a passage to a single whole-passage card and keeps the line state "retained but not
+surfaced". Those lines are not reviewed again after the promotion, so reading them would show a
+prayer memorised a fortnight ago as needing review the next morning, and a breakdown of them on the
+detail view would say the same thing in numbers. The card is what the app actually asks for, so it is
+what the star describes, and the screen states that the passage comes round whole instead of counting
+lines that are no longer being asked for.
+
+**Due today is Fading, not Needs review.** The app is asking for a line now and the reader has missed
+nothing. The star goes dim only once a day has actually been let go, which costs one comparison and
+is what principle 7.1 asks for.
+
+**Fading is a fraction of the rest rather than a number of days.** A quarter: a line resting six days
+fades for its last two, one resting a month fades for its last week. The intervals in this app run
+from one day to a year, so "fading three days before it is due" would make a line on a one day
+interval permanently fading and a line on a year's interval fade for the last one per cent of it.
+The fraction is in `src/config/defaults.ts` with the streak rule.
+
+**A passage is as fresh as its weakest line.** The same rule the promotion itself uses (D1.3): a
+passage is only as settled as the line you are most likely to lose. So a prayer with seven settled
+lines and one just added reads as Needs review, and the detail view is where the fuller picture is.
+
+**The star's eighteen points now exist once.** Session 10 moved them into `src/theme/ornaments.ts`
+so the home screen icon and the freshness star would be one drawing, but the selection mark of
+design-tokens 5.7 still carried its own copy from session 2. It does not now.
+`src/principles/one-star.test.ts` fails the build if a second copy appears anywhere.
+
+**The freshness star lives in `src/features/memorise/` and nothing outside it may import it.**
+`discover-isolation.test.ts` enforces principle 7.6 by reading what the Discover folder imports, and
+**a star component in `src/components/` would have gone straight through it** - handed its state as
+a prop, importing nothing forbidden, and breaching 7.6 the first time a passage row in the library
+drew one. This was the first session to render memorisation chrome at all, so it was the first
+session where that gap was reachable. The same test closes it from the other side. The decorative
+star in the tab bar and the selection star of design-tokens 5.7 are not freshness usages, which
+design-tokens 4 says in as many words.
+
+**`src/progress/` is the folder name because both documents already used it.** CLAUDE.md sections 9
+and 11 say no component under `src/features/discover/**` may import from "`scheduler`, `progress`, or
+progress-related types". The wall was written against this folder before the folder existed; the
+ESLint rule and the isolation test now name it.
+
+**The freshness word is printed beside the star, and that is not a second encoding.** Design-tokens 4
+bans a second *measure* of freshness by name - a number, a bar, a percentage. Scope 11.5 supplies the
+four words precisely so the states can be said, and scope 11.3 requires the current one to be named
+in words on the detail view. The star is aria-hidden and the word is what a screen reader is given,
+so nothing is announced twice and nothing is announced as a shape.
+
+**Every date the reader sees is converted to their own timezone.** `review_log.created_at` and
+`milestone_reached_at` are UTC instants. Counting days off the stored string would tell a reader in
+Melbourne they had broken a streak they had not broken, and would put the date of their milestone a
+day early. `today()` in `src/data/clock.ts` already carried that reasoning for the queue; both new
+readings go through it.
+
+**The lapse count is said as what a lapse is.** "3 times, a line has gone back to the beginning",
+which is what decision D1.5 actually does, rather than the word "lapse". That word carries the same
+judgement scope 11.5 deleted from the freshness states.
+
+**Nothing was added to the database.** Scope 11.3 promises the passage detail view "falls straight
+out of `segment_progress`. No new instrumentation." It did. No column, no Dexie version, no upgrade,
+nothing migrated on a phone.

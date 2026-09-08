@@ -9,6 +9,7 @@ import { ReadingScreen } from '../features/discover/ReadingScreen'
 import { ConfirmLinesScreen } from '../features/memorise/ConfirmLinesScreen'
 import { MemoriseScreen } from '../features/memorise/MemoriseScreen'
 import { MyListScreen } from '../features/memorise/MyListScreen'
+import { PassageDetailScreen } from '../features/memorise/PassageDetailScreen'
 import { RecitalScreen } from '../features/memorise/RecitalScreen'
 import { ReviewScreen } from '../features/memorise/ReviewScreen'
 import { UpkeepScreen } from '../features/memorise/UpkeepScreen'
@@ -24,7 +25,7 @@ import { persistThemeSelection, useBootstrap } from './useBootstrap'
  * book, Memorise is everything you do about learning** (decision D7.1). Log is
  * no longer a tab and no longer a screen; what it was going to hold - the
  * streak, the freshness states, the passage detail of scope 11 - belongs on the
- * Memorise tab, and session 10 builds it there. Recents (scope 6.4) joins the
+ * Memorise tab, and session 11 built it there. Recents (scope 6.4) joins the
  * left pair at v1.0 and makes it four. Scope 3.1 needs Safa's revision to match.
  *
  * The tab bar is fixed and persists through every route, including Settings and
@@ -93,6 +94,10 @@ export function App() {
                   passage. Reached from the UPKEEP section of the Memorise tab,
                   because a resting passage is never in the queue. Decision D6.3. */}
               <Route path="/memorise/upkeep/:passageId" element={<UpkeepScreen />} />
+              {/* Scope 11.3's passage detail: how well you know one passage,
+                  and whether you are done. Reached from the WHAT YOU KNOW
+                  section of the Memorise tab. Decision D11.1. */}
+              <Route path="/memorise/passage/:passageId" element={<PassageDetailScreen />} />
               <Route path="/settings" element={<SettingsScreen />} />
               <Route path="*" element={<Navigate to="/discover" replace />} />
             </Routes>

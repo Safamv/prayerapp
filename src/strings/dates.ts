@@ -35,3 +35,40 @@ export function formatDay(day: string): string {
   // "Invalid Date" in the middle of a sentence.
   return Number.isNaN(time) ? '' : FORMAT.format(new Date(time))
 }
+
+/**
+ * A number of days, said the way a person says it: `3 weeks`, `1 month`,
+ * `5 days`.
+ *
+ * Scope 11.3 asks for the longest interval reached to be "stated plainly", and
+ * gives its own example in weeks. The intervals this app produces run from one
+ * day to a year (`maximumIntervalDays`), and "97 days" is a number rather than a
+ * span: nobody holds it. So each range is said in the unit a person would use
+ * for it.
+ *
+ * The unit changes at the point where the smaller one stops being natural. Four
+ * weeks is still a span someone pictures; five is a month. Eleven months is
+ * still months; twelve is a year, and a year is where the scheduler's ceiling
+ * sits, so nothing above it is reachable.
+ *
+ * It is here, in `src/strings/`, rather than in a component or beside the
+ * arithmetic, for the same reason `formatDay` is: the number is data and the
+ * word beside it is the app's own vocabulary (principle 7.11).
+ */
+const DAYS_PER_WEEK = 7
+const DAYS_PER_MONTH = 30.44
+const DAYS_PER_YEAR = 365.25
+
+function plural(count: number, unit: string): string {
+  return `${String(count)} ${unit}${count === 1 ? '' : 's'}`
+}
+
+export function formatInterval(days: number): string {
+  const whole = Math.max(1, Math.round(days))
+  if (whole < DAYS_PER_WEEK) return plural(whole, 'day')
+  if (whole < 31) return plural(Math.round(whole / DAYS_PER_WEEK), 'week')
+
+  const months = Math.round(whole / DAYS_PER_MONTH)
+  if (months < 12) return plural(months, 'month')
+  return plural(Math.max(1, Math.round(whole / DAYS_PER_YEAR)), 'year')
+}
