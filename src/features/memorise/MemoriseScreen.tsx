@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { Link } from 'react-router'
-import { MY_LIST_PATH, SETTINGS_PATH, reviewPath } from '../../app/routes'
+import { Link, useLocation, useNavigate } from 'react-router'
+import { MY_LIST_PATH, SETTINGS_PATH, recitePath, reviewPath } from '../../app/routes'
 import { useAsyncValue } from '../../app/useAsyncValue'
 import { useUserId } from '../../app/userContext'
 import {
@@ -15,6 +15,7 @@ import { Screen } from '../../components/Screen'
 import { Toast, useToast } from '../../components/Toast'
 import { today as todayOf } from '../../data/clock'
 import { getTodaysQueue, type TodaysQueue } from '../../data/dailyQueue'
+import { listRecitablePassages, type RecitablePassage } from '../../data/milestone'
 import { listPassagesOnList, releaseExpiredFocus, type ListedPassage } from '../../data/upkeep'
 import { isFocusActive } from '../../queue'
 import { strings } from '../../strings'
@@ -69,6 +70,29 @@ import { typeStyle } from '../../theme'
  * date. The shrinking list is the only progress the app ever shows, which is
  * also the only kind principle 7.1 leaves room for.
  *
+ * ## The door to the milestone
+ *
+ * Scope 9.5 says the milestone is "deliberately attempted" rather than served by
+ * the queue, and does not say from where. **Here, in a section that exists only
+ * when there is something to attempt** (decision D9.1, Safa's call). A passage
+ * appears in it once the app has shown the reader every one of its lines, and
+ * stays until it is recited right through.
+ *
+ * That keeps decision D8.1's promise about this screen. On every ordinary
+ * morning the tab holds exactly what it held before - today's work and two doors
+ * - because the section is not drawn when it is empty. When it is drawn, it is
+ * because a reader has got a whole passage into their head, which is not an
+ * ordinary morning.
+ *
+ * It is a standing invitation and never a prompt. Nothing asks at the end of a
+ * session, nothing counts down, and declining is not tapping it. An attempt the
+ * app chose the moment for would not be a deliberate one.
+ *
+ * **A promoted passage is not in that section.** Its recital is a review now
+ * (scope 8.7), so it arrives in TODAY like any other work, as one row that opens
+ * the same screen. It only returns to FROM MEMORY if a rating of Again ever
+ * demotes it.
+ *
  * ## The finished day
  *
  * Scope 8.3: "When the queue is done, it is done. No study more prompt." So the
@@ -83,6 +107,7 @@ const SURFACE = { padding: '0 26px' }
 interface Loaded {
   readonly queue: TodaysQueue
   readonly listed: readonly ListedPassage[]
+  readonly recitable: readonly RecitablePassage[]
   readonly released: readonly string[]
 }
 
@@ -90,6 +115,8 @@ export function MemoriseScreen() {
   const userId = useUserId()
   const today = todayOf()
   const toast = useToast()
+  const location = useLocation()
+  const navigate = useNavigate()
   // Told once. The release itself only ever happens once, so a second read of
   // the same day finds nothing to say; this guards the re-render in between.
   const told = useRef(false)
@@ -98,11 +125,12 @@ export function MemoriseScreen() {
     // Scope 8.6: focus releases automatically on expiry, and tells the user. The
     // release runs before the queue is built so the day is drawn already whole.
     const released = await releaseExpiredFocus(userId, today)
-    const [queue, listed] = await Promise.all([
+    const [queue, listed, recitable] = await Promise.all([
       getTodaysQueue(userId, today),
       listPassagesOnList(userId),
+      listRecitablePassages(userId, today),
     ])
-    return { queue, listed, released: released.map((passage) => passage.title) }
+    return { queue, listed, recitable, released: released.map((passage) => passage.title) }
   }, `${userId}:${today}`)
 
   const releasedCount = loaded?.released.length ?? 0
@@ -112,6 +140,23 @@ export function MemoriseScreen() {
     told.current = true
     show({ text: strings.memorise.focusEnded, undo: null })
   }, [releasedCount, show])
+
+  /**
+   * The reader is back from a recital. What happened is said here rather than
+   * there, for the reason decision D4.10 gives about the add: there is where it
+   * happened, here is where the reader is - and here is the screen the outcome
+   * has changed, because a promoted passage's work tomorrow is a different
+   * shape.
+   *
+   * The state is cleared as it is read, so stepping back onto this entry later
+   * does not announce a recital from ten minutes ago.
+   */
+  useEffect(() => {
+    const text = milestoneMessage(location.state)
+    if (text === null) return
+    void navigate(location.pathname, { replace: true, state: null })
+    show({ text, undo: null })
+  }, [location, navigate, show])
 
   const focused = (loaded?.listed ?? []).filter((entry) => isFocusActive(focusOf(entry), today))
 
@@ -141,15 +186,52 @@ export function MemoriseScreen() {
             <ul aria-label={strings.accessibility.queueList}>
               {loaded.queue.passages.map((entry) => (
                 <li key={entry.passage.id}>
+                  {/* A promoted passage's work today is the whole of it, so the
+                      row opens the recital rather than the line walk and says
+                      so (scope 8.7). Everything else is unchanged. */}
                   <QueueRow
-                    to={reviewPath(entry.passage.id)}
+                    to={entry.whole ? recitePath(entry.passage.id) : reviewPath(entry.passage.id)}
                     title={entry.passage.title}
                     secondary={passageAttribution(entry.passage)}
-                    lines={entry.lineCount}
+                    trailing={
+                      entry.whole
+                        ? strings.memorise.wholePassage
+                        : strings.memorise.lineCount(entry.lineCount)
+                    }
+                    ariaLabel={
+                      entry.whole
+                        ? strings.accessibility.reciteRow(entry.passage.title)
+                        : strings.accessibility.queueRow(
+                            entry.passage.title,
+                            strings.memorise.lineCount(entry.lineCount),
+                          )
+                    }
                   />
                 </li>
               ))}
             </ul>
+          )}
+
+          {/* Scope 9.5's deliberate attempt, decision D9.1. Drawn only when
+              there is a whole passage to attempt, so on an ordinary morning this
+              screen holds exactly what it held before. */}
+          {loaded.recitable.length > 0 && (
+            <>
+              <SectionHeader label={strings.memorise.reciteSection} />
+              <ul aria-label={strings.accessibility.reciteList}>
+                {loaded.recitable.map((entry) => (
+                  <li key={entry.passage.id}>
+                    <QueueRow
+                      to={recitePath(entry.passage.id)}
+                      title={entry.passage.title}
+                      secondary={passageAttribution(entry.passage)}
+                      trailing={strings.memorise.wholePassage}
+                      ariaLabel={strings.accessibility.reciteRow(entry.passage.title)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
 
           <SectionRule />
@@ -169,6 +251,39 @@ export function MemoriseScreen() {
       )}
     </Screen>
   )
+}
+
+/**
+ * What to say about a recital that has just happened, or `null` when the reader
+ * arrived here some other way.
+ *
+ * Four outcomes and four plain sentences, none of which congratulates: principle
+ * 7.1 forbids the arcade and principle 7.5 forbids encouragement made out of
+ * scripture. Each one says what changed about how the passage will come round,
+ * which is the only thing the reader could not work out for themselves.
+ *
+ * The state is read defensively because it is a router value and can be
+ * anything at all: a restored tab, a hand-typed history entry, a future screen
+ * that navigates here with something else in it.
+ */
+function milestoneMessage(state: unknown): string | null {
+  const outcome =
+    typeof state === 'object' && state !== null && 'milestone' in state
+      ? (state as { milestone?: unknown }).milestone
+      : undefined
+
+  switch (outcome) {
+    case 'promoted':
+      return strings.memorise.milestoneReached
+    case 'scheduled':
+      return strings.memorise.milestoneScheduled
+    case 'demoted':
+      return strings.memorise.milestoneDemoted
+    case 'unchanged':
+      return strings.memorise.milestoneUnchanged
+    default:
+      return null
+  }
 }
 
 function focusOf(entry: ListedPassage) {
@@ -197,8 +312,13 @@ function FocusLine({ focused }: { focused: readonly ListedPassage[] }) {
 }
 
 /**
- * One passage today touches, and the door into its lines. Design-tokens 5.3's
- * list row, with the number of its lines on the right.
+ * One passage with work behind it, and the door into it. Design-tokens 5.3's
+ * list row, with what it holds on the right.
+ *
+ * Three sections use it: today's lines, today's promoted passages, and the
+ * standing invitation of decision D9.1. They are one row because they are one
+ * thing to the reader - a prayer with something to do - and because the door
+ * behind it is the only thing that differs.
  *
  * It is a link rather than `ListRow` because the row carries three pieces of
  * text where that component carries two, and because its accessible name has to
@@ -209,17 +329,20 @@ function QueueRow({
   to,
   title,
   secondary,
-  lines,
+  trailing,
+  ariaLabel,
 }: {
   to: string
   title: string
   secondary: string
-  lines: number
+  /** What the row holds, in the caps slot: a count of lines, or the whole of it. */
+  trailing: string
+  ariaLabel: string
 }) {
   return (
     <Link
       to={to}
-      aria-label={strings.accessibility.queueRow(title, strings.memorise.lineCount(lines))}
+      aria-label={ariaLabel}
       className="flex items-center border-b border-rule last:border-b-0"
       style={{ gap: 13, padding: '11px 0', minHeight: MINIMUM_ROW_HEIGHT }}
     >
@@ -235,7 +358,7 @@ function QueueRow({
         </span>
       </span>
       <span className="flex-none text-on-paper-40" style={typeStyle('rowAttribution')}>
-        {strings.memorise.lineCount(lines)}
+        {trailing}
       </span>
     </Link>
   )

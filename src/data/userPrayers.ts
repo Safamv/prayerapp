@@ -22,9 +22,10 @@ import type {
  * Discover's legitimate question, "is this already added", is answered by
  * `isOnList` in `passages.ts`, which returns a boolean and nothing else.
  *
- * The scheduling columns are `null` until session 8 promotes a passage on
- * milestone (scope 8.7). Before that, scheduling happens per segment in
- * `segment_progress`.
+ * The four scheduling columns and `milestone_reached_at` are `null` until the
+ * passage reaches its milestone and is promoted (scope 8.7). Before that,
+ * scheduling happens per segment in `segment_progress`. The promotion itself
+ * lives in `src/data/milestone.ts`, which is the only writer of those columns.
  */
 
 export async function addToList(
@@ -126,10 +127,19 @@ export async function takeOffList(
         .equals(userId)
         .filter((row) => segmentIds.has(row.segment_id))
         .toArray()
+      // Two shapes of row, both belonging to this passage. A line review names
+      // its line; a whole-passage recital names only the passage and has no
+      // line at all (decision D9.3). Matching on either catches both, and also
+      // catches a line review written before session 9, when the row carried no
+      // passage of its own.
       const reviews = await db.review_log
         .where('user_id')
         .equals(userId)
-        .filter((row) => segmentIds.has(row.segment_id))
+        .filter(
+          (row) =>
+            row.passage_id === passageId ||
+            (row.segment_id !== null && segmentIds.has(row.segment_id)),
+        )
         .toArray()
 
       await db.user_prayers.delete(userPrayer.id)

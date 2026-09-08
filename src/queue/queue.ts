@@ -1,4 +1,4 @@
-import { isQueueable, isSegmentDue, type Day } from '../scheduler'
+import { isPassageDue, isQueueable, isSegmentDue, type Day } from '../scheduler'
 import { focusedPassages } from './focus'
 import type { QueueCandidatePassage, QueueCandidateSegment, QueueInput, QueueItem } from './types'
 
@@ -19,6 +19,14 @@ import type { QueueCandidatePassage, QueueCandidateSegment, QueueInput, QueueIte
  * is to make the number impossible to render rather than merely forbidden. A
  * user who misses four days comes back to a queue of fifteen lines, the same as
  * every other day, and the rest simply wait.
+ *
+ * ## A promoted passage is one piece of work, not many
+ *
+ * Scope 8.7: on reaching the milestone a passage becomes a single whole-passage
+ * card, and its segment state "is retained but not surfaced". So a promoted
+ * passage contributes exactly one item to the day when its card is due and none
+ * at all when it is not, and never its lines. That is what makes the promotion
+ * mechanically real rather than a label: the shape of the morning changes.
  *
  * ## Selection is by urgency, arrangement is by passage
  *
@@ -69,8 +77,41 @@ function inOrder(segments: readonly QueueCandidateSegment[]): readonly QueueCand
   return [...segments].sort((a, b) => a.orderIndex - b.orderIndex)
 }
 
-/** Every line of this passage that has come round. Overdue lines are included. */
+/**
+ * The whole-passage card, if this passage has been promoted and it has come
+ * round. Scope 8.7.
+ *
+ * It sorts as though it were the first line of the passage, because that is
+ * where the passage itself begins and the arrangement is by passage anyway. It
+ * counts against the review cap like any other review: a reader who has
+ * memorised six passages and has three due has three pieces of work today, not
+ * three free ones.
+ */
+function promotedOf(passage: QueueCandidatePassage, today: Day): Selected[] {
+  const promoted = passage.passage
+  if (promoted === null) return []
+  if (!isPassageDue(promoted, today, passage.upkeepState)) return []
+  return [
+    {
+      kind: 'passage',
+      passageId: passage.passageId,
+      segmentId: null,
+      orderIndex: 0,
+      listOrder: passage.listOrder,
+      dueDate: promoted.passageDueDate,
+    },
+  ]
+}
+
+/**
+ * Every line of this passage that has come round. Overdue lines are included.
+ *
+ * **A promoted passage offers none of them.** Scope 8.7: "segment state is
+ * retained but not surfaced." The rows stay exactly as they were, which is what
+ * lets a demotion pick the lines back up rather than start them again.
+ */
 function dueOf(passage: QueueCandidatePassage, today: Day): Selected[] {
+  if (passage.passage !== null) return promotedOf(passage, today)
   return inOrder(passage.segments).flatMap((segment) => {
     const progress = segment.progress
     if (progress === null) return []
@@ -95,6 +136,12 @@ function dueOf(passage: QueueCandidatePassage, today: Day): Selected[] {
  * line four waits until three has been met.
  */
 function newOf(passage: QueueCandidatePassage): Selected[] {
+  // A promoted passage has no new lines by definition: every line was met before
+  // it could be recited whole. Guarded all the same, because a passage the user
+  // re-segments after promotion would otherwise start feeding new lines into a
+  // queue that is already offering the whole thing.
+  if (passage.passage !== null) return []
+
   const ordered = inOrder(passage.segments)
   const first = ordered.findIndex((segment) => segment.progress === null)
   if (first === -1) return []
@@ -127,8 +174,11 @@ function byListPosition(a: Selected, b: Selected): number {
   if (a.listOrder !== b.listOrder) return a.listOrder - b.listOrder
   if (a.orderIndex !== b.orderIndex) return a.orderIndex - b.orderIndex
   // Two lines of two different passages can share both numbers only if a list
-  // order was written twice. Ordering by id keeps the queue stable anyway.
-  return a.segmentId < b.segmentId ? -1 : a.segmentId > b.segmentId ? 1 : 0
+  // order was written twice. Ordering by id keeps the queue stable anyway; a
+  // whole-passage card has no line, and sorts ahead of one that has.
+  const left = a.segmentId ?? ''
+  const right = b.segmentId ?? ''
+  return left < right ? -1 : left > right ? 1 : 0
 }
 
 function asItem(selected: Selected): QueueItem {

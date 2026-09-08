@@ -154,6 +154,45 @@ export const strings = {
     passageCount,
 
     /**
+     * **The door to the milestone.** Scope 9.5, decision D9.1, Safa's call.
+     *
+     * A section of the Memorise tab that exists only when a passage qualifies,
+     * which is once the app has shown the reader every one of its lines. On
+     * every other morning the tab holds exactly what it held before, which is
+     * the thing decision D8.1 was protecting when it refused a second door.
+     *
+     * The invitation stands until it is taken. It is never a prompt at the end
+     * of a session and it never asks twice, because scope 9.5 says the milestone
+     * is deliberately attempted and an attempt the app chose the moment for is
+     * not deliberate.
+     */
+    reciteSection: 'FROM MEMORY',
+    /**
+     * What a row in that section holds, where a row of today's queue would carry
+     * a count of lines. The whole passage is not a number of lines, and saying
+     * "8 LINES" of a thing you are about to recite in one breath would be the
+     * wrong unit.
+     */
+    wholePassage: 'THE WHOLE PASSAGE',
+
+    /**
+     * What is said on returning from a recital, on the tab it returns to.
+     *
+     * All four are statements of what happened to the passage. **None of them
+     * congratulates**: principle 7.1 forbids the arcade, principle 7.5 forbids
+     * encouragement built out of scripture, and scope 9.6 makes the reader's own
+     * rating the only judgement in the product, so a second one here would be
+     * the app marking work it has already said it does not mark.
+     *
+     * The milestone is marked by the screen it happens on (decision D9.2), not
+     * by a word afterwards.
+     */
+    milestoneReached: 'Memorised. It comes round as a whole passage now.',
+    milestoneScheduled: 'It will come round again in its own time.',
+    milestoneDemoted: 'Back to its lines for a while.',
+    milestoneUnchanged: 'Its lines carry on as they were.',
+
+    /**
      * Scope 8.6: "a persistent line on the Memorise tab states what is paused
      * and when focus lifts." Named where there is one passage, counted where
      * there are several, because five titles in a row is not a line.
@@ -228,6 +267,32 @@ export const strings = {
     showOrder: 'SHOW THE ORDER',
 
     /**
+     * **Levels 5 and 6.** Scope 9.1: recite, reveal, self-rate.
+     *
+     * Level 5 leaves the first letter of each word standing and level 6 leaves
+     * nothing, and the sentence says which without making it sound like a step
+     * up or a step down. There is no "you should know this by now" anywhere in
+     * the product and this is the rung where one would be easiest to write.
+     *
+     * "Aloud or in your head" is there because it is the only instruction the
+     * app can honestly give: scope 9.2 removed typed input entirely, so nothing
+     * is entered, checked or graded, and a reader who does not know that will
+     * sit waiting for a box to appear.
+     */
+    reciteScaffold: 'Recite it from memory. The first letter of each word is there to help.',
+    reciteFree: 'Recite it from memory, aloud or in your head.',
+    /**
+     * The pinned button at levels 5 and 6. Scope 9.4 makes this reveal
+     * **progressive, segment by segment**, so it is tapped once per line and
+     * says which line it is about to show rather than "reveal".
+     */
+    showNextLine: 'SHOW THE NEXT LINE',
+    /** Every line shown. The same shape as level 4's, and just as unjudging. */
+    reciteRevealed: 'This is what it says.',
+    /** A line still hidden, for anyone who cannot see that it is. */
+    hiddenLine: 'hidden line',
+
+    /**
      * Which line of this prayer's work today, in the caps slot. A count of what
      * you have taken on, already capped by scope 8.3, and the only number on the
      * screen. Principle 7.3 forbids counting what the cap left out, and nothing
@@ -262,6 +327,43 @@ export const strings = {
       `${chosen} is not the word. The word is ${correct}.`,
     /** A chip that has been used. Read where the dimming cannot be seen. */
     chipUsed: (word: string) => `${word}, already used`,
+  },
+
+  /**
+   * **The milestone screen.** Scope 9.5.
+   *
+   * > First five words or so visible, so you know which passage you are
+   * > reciting. Everything else hidden. Recite from memory. Reveal. Self-rate.
+   *
+   * **It reveals all at once**, unlike levels 5 and 6 (scope 9.4): "the
+   * milestone reveals in one movement because it is a single honest moment and a
+   * staged reveal turns it into an exam."
+   *
+   * Three words are not here and each absence is deliberate. There is no
+   * congratulation, because principle 7.5 forbids one built out of scripture and
+   * principle 7.1 forbids the arcade. There is no count of anything, because
+   * scope 9.6 auto-scores nothing and there is nothing to count. And there is no
+   * word for what the reader has achieved, because the screen itself is what
+   * says it (decision D9.2).
+   */
+  milestone: {
+    /**
+     * The one sentence above the passage. It names the act and stops.
+     *
+     * "The whole of it" rather than "the whole passage" because the reader is
+     * looking at the title of a specific prayer and the phrase should belong to
+     * that prayer rather than to a category of thing.
+     */
+    recite: 'Recite the whole of it from memory.',
+    /** The pinned button. One movement, so one tap, so one word for it. */
+    reveal: 'SHOW THE PASSAGE',
+    /** After it. A statement about the text, never about the reader. */
+    revealed: 'This is the whole of it.',
+    /**
+     * What a screen reader is told stands in for the hidden remainder, which is
+     * drawn as a run of hairline rules and is otherwise silent.
+     */
+    hidden: 'The rest of the passage is hidden.',
   },
 
   /**
@@ -529,6 +631,22 @@ export const strings = {
     chipBank: 'Words to choose from',
     orderLines: 'The lines to put in order',
     selfRating: 'How did that go?',
+    /** The lines of a recital, at levels 5 and 6 and on the milestone screen. */
+    reciteLines: 'The lines to recite',
+    /**
+     * What is announced in place of a first-letter scaffold.
+     *
+     * A scaffold is a visual mnemonic: "R n, O L," read aloud is noise, and a
+     * screen reader given the letters would either spell them out one by one or
+     * run them together into a word that is not one. So the region says what is
+     * drawn on the screen, and the recital itself is the one level 6 asks for.
+     * See decision D9.4.
+     */
+    scaffoldLine: 'The first letter of each word of this line.',
+    /** The section of the Memorise tab that offers a whole passage (D9.1). */
+    reciteList: 'Passages you can recite from memory',
+    /** A row of it, where the trailing caps label alone would not say what of. */
+    reciteRow: (title: string) => `${title}, the whole passage`,
     /** The two ordered screens of scope 6.5 and 6.7. */
     bookmarkList: 'Bookmarks',
     myList,

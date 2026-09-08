@@ -128,6 +128,7 @@ export async function removePassagesNotIn(committed: readonly PassageRow[]): Pro
       if (withdrawn.length === 0) return []
 
       const ids = withdrawn.map((row) => row.id)
+      const withdrawnIds = new Set(ids)
       const segments = await db.passage_segments.where('passage_id').anyOf(ids).toArray()
       const segmentIds = new Set(segments.map((segment) => segment.id))
 
@@ -136,7 +137,15 @@ export async function removePassagesNotIn(committed: readonly PassageRow[]): Pro
       await db.bookmarks.where('passage_id').anyOf(ids).delete()
       await db.user_prayers.where('passage_id').anyOf(ids).delete()
       await db.segment_progress.filter((row) => segmentIds.has(row.segment_id)).delete()
-      await db.review_log.filter((row) => segmentIds.has(row.segment_id)).delete()
+      // Two shapes of row. A line review names its line; a whole-passage
+      // recital names only the passage and has no line at all (decision D9.3).
+      await db.review_log
+        .filter(
+          (row) =>
+            (row.passage_id !== null && withdrawnIds.has(row.passage_id)) ||
+            (row.segment_id !== null && segmentIds.has(row.segment_id)),
+        )
+        .delete()
       await db.passages.bulkDelete(ids)
 
       return ids

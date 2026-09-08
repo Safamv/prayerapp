@@ -113,9 +113,16 @@ async function withList(prepare: () => Promise<void>): Promise<void> {
   await prepare()
 }
 
-/** Opens the prayer's work from its row on the Memorise tab. */
+/**
+ * Opens the prayer's work from its row in TODAY on the Memorise tab.
+ *
+ * Scoped to that section rather than to the whole screen, because from session 9
+ * a prayer whose every line has been met also has a row in FROM MEMORY offering
+ * the whole of it (decision D9.1), and an unscoped query would find both.
+ */
 async function openWork(title: string): Promise<void> {
-  fireEvent.click(await screen.findByRole('link', { name: new RegExp(title) }))
+  const today = await screen.findByLabelText(strings.accessibility.queueList)
+  fireEvent.click(within(today).getByRole('link', { name: new RegExp(title) }))
 }
 
 function theLine(): HTMLElement {

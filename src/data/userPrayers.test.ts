@@ -150,6 +150,7 @@ describe('removing from the list', () => {
       lapses: 0,
     })
     await appendReviewLog(USER, {
+      passageId: passage.id,
       segmentId: segment.id,
       quizType: 'level3',
       selfRating: 'good',
@@ -211,6 +212,7 @@ describe('taking a passage off the list, and putting it back', () => {
         lapses: 1,
       })
       await appendReviewLog(USER, {
+        passageId: passage.id,
         segmentId: segment.id,
         quizType: 'level4',
         selfRating: 'good',

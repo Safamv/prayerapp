@@ -17,6 +17,7 @@ import { Announcement } from '../../components/VisuallyHidden'
 import { ChipBank } from './ChipBank'
 import { ClozeLine, type PlacedWord } from './ClozeLine'
 import { OrderedLines } from './OrderedLines'
+import { RecitedLines } from './RecitedLines'
 import { today as todayOf } from '../../data/clock'
 import { getPassageWork, type PassageWork } from '../../data/dailyQueue'
 import { recordReview } from '../../data/review'
@@ -26,6 +27,7 @@ import {
   chipFills,
   misplacedLines,
   orderingGroup,
+  recitalGroup,
   servedLevel,
   shuffledOrdering,
   type Cloze,
@@ -72,10 +74,26 @@ import { typeStyle } from '../../theme'
  * | 2 | About one word in seven taken out | immediate, per answer |
  * | 3 | About two words in five taken out | immediate, per answer |
  * | 4 | The lines to put back in order | the whole order, at the reveal |
+ * | 5 | The run of lines, as first letters | **progressive, one line at a time** |
+ * | 6 | The run of lines, hidden | **progressive, one line at a time** |
  *
- * Levels 5 and 6 are session 9. Until then `HIGHEST_LEVEL_BUILT` holds a reader
- * who has climbed past level 4 at the ordering rung, rather than at a blank
- * screen, and nothing stored has to be undone when the ceiling lifts.
+ * **The reveal changes shape at the top of the ladder**, and the difference is
+ * the point rather than an inconsistency. Scope 9.4: levels 2 to 4 reveal
+ * immediately, per answer, because the reader is answering; levels 5 and 6
+ * reveal progressively, segment by segment, "so you can check yourself as you
+ * go", because the reader is reciting and nothing they do reaches the app until
+ * they rate themselves.
+ *
+ * **The top two rungs ask for the run, not the line.** Scope 8.1 builds a
+ * passage cumulatively, and scope 9.5 calls level 6's scope a "segment group".
+ * So they get the same run level 4 puts in order - the served line and up to
+ * four before it - and recite it. The lines beyond it are never shown, at any
+ * rung, because a line the reader has not met must not be in front of them.
+ *
+ * **The milestone is not here.** It is the whole passage rather than a run of
+ * it, it is reached deliberately rather than served, and it is drawn on its own
+ * screen: `RecitalScreen`. The two share `RecitedLines`, which is scope 9.5's
+ * "one component with two configurations".
  *
  * ## What a finished line looks like, and a finished day
  *
@@ -114,6 +132,12 @@ type Answer =
       readonly spent: readonly string[]
     }
   | { readonly kind: 'order'; readonly attempt: readonly string[]; readonly revealed: boolean }
+  /**
+   * Levels 5 and 6. There is no answer to hold, because nothing is answered:
+   * what is held is how much of the run has been revealed, one line per tap
+   * (scope 9.4).
+   */
+  | { readonly kind: 'recite'; readonly revealed: number }
 
 export function ReviewScreen() {
   const { passageId = '' } = useParams()
@@ -142,6 +166,17 @@ export function ReviewScreen() {
     [work, lineIndex],
   )
 
+  /**
+   * The run levels 5 and 6 recite. Its own cap rather than the ordering one, for
+   * the reason in `src/quiz/group.ts`: five is a screenful of draggable rows and
+   * it is also a morning's worth of reciting, and the two numbers happening to
+   * agree today is not a reason to share one.
+   */
+  const spoken = useMemo<readonly QuizLine[]>(
+    () => (work == null || lineIndex === -1 ? [] : recitalGroup(work.lines, lineIndex)),
+    [work, lineIndex],
+  )
+
   const progress = item === undefined ? null : (work?.progress.get(item.segmentId) ?? null)
   const level: QuizLevel =
     line === undefined ? 1 : servedLevel(progress, { linesInGroup: group.length, line: line.text })
@@ -167,11 +202,13 @@ export function ReviewScreen() {
 
   /** A line nobody has answered yet, in the shape the rung needs. */
   const blank: Answer =
-    level === 4
-      ? { kind: 'order', attempt: shuffledGroup.map((each) => each.segmentId), revealed: false }
-      : level === 2 || level === 3
-        ? { kind: 'cloze', placed: [], spent: [] }
-        : { kind: 'read' }
+    level === 5 || level === 6
+      ? { kind: 'recite', revealed: 0 }
+      : level === 4
+        ? { kind: 'order', attempt: shuffledGroup.map((each) => each.segmentId), revealed: false }
+        : level === 2 || level === 3
+          ? { kind: 'cloze', placed: [], spent: [] }
+          : { kind: 'read' }
 
   const answer =
     answered !== null && item !== undefined && answered.segmentId === item.segmentId
@@ -261,7 +298,8 @@ export function ReviewScreen() {
   const clozeDone =
     cloze !== null && answer.kind === 'cloze' && answer.placed.length === cloze.blanks.length
   const orderDone = answer.kind === 'order' && answer.revealed
-  const revealed = level === 1 || clozeDone || orderDone
+  const reciteDone = answer.kind === 'recite' && answer.revealed >= spoken.length
+  const revealed = level === 1 || clozeDone || orderDone || reciteDone
 
   return (
     <Screen
@@ -310,6 +348,15 @@ export function ReviewScreen() {
               </PinnedRow>
             ) : cloze !== null && answer.kind === 'cloze' ? (
               <ChipBank chips={cloze.chips} spent={new Set(answer.spent)} onTap={tapChip} />
+            ) : answer.kind === 'recite' ? (
+              /* Scope 9.4: one line per tap, so you can check yourself as you
+                 go. The rating row replaces it once the last line is shown. */
+              <PrimaryButton
+                label={strings.review.showNextLine}
+                onClick={() => {
+                  setAnswer({ kind: 'recite', revealed: answer.revealed + 1 })
+                }}
+              />
             ) : (
               <PrimaryButton
                 label={strings.review.showOrder}
@@ -346,12 +393,14 @@ export function ReviewScreen() {
 
           {cloze !== null && answer.kind === 'cloze' ? (
             <ClozeLine tokens={cloze.tokens} blanks={cloze.blanks} placed={answer.placed} />
+          ) : answer.kind === 'recite' ? (
+            <RecitedLines lines={spoken} revealed={answer.revealed} scaffold={level === 5} />
           ) : answer.kind === 'order' ? (
             <OrderedLines
               lines={answer.revealed ? group : linesInAttemptOrder(group, answer.attempt)}
               misplaced={answer.revealed ? misplacedLines(group, answer.attempt) : EMPTY}
               revealed={answer.revealed}
-              announcement={announcement(cloze, answer)}
+              announcement={announcement(cloze, answer, spoken.length)}
               onReorder={(orderedIds) => {
                 setAnswer({ kind: 'order', attempt: orderedIds, revealed: false })
               }}
@@ -373,7 +422,9 @@ export function ReviewScreen() {
 
           {/* One live region per screen. At level 4 it is the reordered list's
               own, which this screen speaks through rather than beside. */}
-          {answer.kind !== 'order' && <Announcement>{announcement(cloze, answer)}</Announcement>}
+          {answer.kind !== 'order' && (
+            <Announcement>{announcement(cloze, answer, spoken.length)}</Announcement>
+          )}
           <ScrollTail />
         </div>
       )}
@@ -402,6 +453,10 @@ function linesInAttemptOrder(
  * would be a second one.
  */
 function guidance(level: QuizLevel, met: boolean, revealed: boolean): string {
+  if (level === 5 || level === 6) {
+    if (revealed) return strings.review.reciteRevealed
+    return level === 5 ? strings.review.reciteScaffold : strings.review.reciteFree
+  }
   if (level === 4) return revealed ? strings.review.orderRevealed : strings.review.putInOrder
   if (level === 2 || level === 3) return strings.review.fillBlanks
   return met ? strings.review.readAgain : strings.review.readNew
@@ -414,8 +469,13 @@ function guidance(level: QuizLevel, met: boolean, revealed: boolean): string {
  * of step with what is drawn. The two sentences it can produce are the same
  * shape on purpose: what happened to the text, never how the reader did.
  */
-function announcement(cloze: Cloze | null, answer: Answer): string {
+function announcement(cloze: Cloze | null, answer: Answer, spoken: number): string {
   if (answer.kind === 'order') return answer.revealed ? strings.review.orderRevealed : ''
+  // Nothing is said line by line: each revealed line is real text in the
+  // document and a live region repeating it would read the passage twice. What
+  // is said is that there is no more to come.
+  if (answer.kind === 'recite')
+    return answer.revealed >= spoken ? strings.review.reciteRevealed : ''
   if (cloze === null || answer.kind !== 'cloze') return ''
 
   const last = answer.placed[answer.placed.length - 1]

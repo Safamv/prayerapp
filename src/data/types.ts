@@ -58,8 +58,16 @@ export type UpkeepState = 'active' | 'occasional' | 'resting'
 /** Scope 9.6. The user's self-rating. Nothing is auto-scored. */
 export type SelfRating = 'again' | 'hard' | 'good' | 'easy'
 
-/** Scope 9.1. The six rungs of the quiz ladder, built in sessions 7 and 8. */
-export type QuizType = 'level1' | 'level2' | 'level3' | 'level4' | 'level5' | 'level6'
+/**
+ * Scope 9.1's ladder, as `review_log.quiz_type` records it.
+ *
+ * The six rungs, and the milestone. Scope 9.1's own table lists Milestone as a
+ * row beneath level 6 - "Whole passage, first line visible" - so it is a kind of
+ * review the log has to be able to name. Added in session 9 with the whole
+ * passage recital (decision D9.3); no stored row is affected, because before
+ * session 9 no row could have carried it.
+ */
+export type QuizType = 'level1' | 'level2' | 'level3' | 'level4' | 'level5' | 'level6' | 'milestone'
 
 /** D1.10. Belongs to the quotation's appearance in a section, not to the text. */
 export type RuhiDesignation = 'memorise' | 'reflection'
@@ -194,10 +202,42 @@ export interface SegmentProgressRow {
   readonly lapses: number
 }
 
+/**
+ * One completed review, append-only. Scope 11.3: "`review_log` stores every
+ * self-rating with a timestamp from day one."
+ *
+ * **Two of these columns changed shape in session 9, and neither is a schema
+ * change.** Dexie's `stores()` string declares the primary key and the indexes,
+ * not the columns, so a column that is never queried by is simply stored. No
+ * version was bumped, no upgrade runs, and no row on a tester's device was
+ * touched. See decision D9.3.
+ *
+ * The reason is scope 8.7. On reaching the milestone a passage is promoted to a
+ * single whole-passage card and its lines stop being reviewed individually, so
+ * from that day on the reader produces reviews that are not of any one line. As
+ * the columns stood there was nowhere to put one, and a reader who had finished
+ * everything on their list would have been writing no log rows at all - which
+ * would have taken the streak of scope 11.4 with it, since session 10 derives
+ * that from this table.
+ */
 export interface ReviewLogRow {
   readonly id: string
   readonly user_id: string
-  readonly segment_id: string
+  /**
+   * The line reviewed, or `null` for a whole-passage recital, which is not a
+   * line. `quiz_type` is `milestone` on exactly those rows.
+   */
+  readonly segment_id: string | null
+  /**
+   * The passage the review belongs to. Written on every row from session 9 -
+   * a segment review knows its passage and it costs nothing to say so.
+   *
+   * `null` means a row written before session 9, whose passage is found through
+   * its line. Nothing backfills them: a backfill is a migration running on a
+   * tester's phone against a fortnight of real data, which is precisely what
+   * declaring columns early exists to avoid.
+   */
+  readonly passage_id: string | null
   readonly quiz_type: QuizType
   readonly self_rating: SelfRating
   readonly created_at: Instant
