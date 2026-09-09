@@ -63,16 +63,34 @@ Populate it from three places:
 **Run `/compact` between sessions**, and again inside a session that passes roughly ten exchanges.
 
 **Model and effort are the first line of the prompt, always**, written exactly
-`Recommended: <Sonnet|Opus> / <Normal|High|Max> effort`. Take the pair from that session's row in
-the build sequence table in scope section 16, which carries a Model and an Effort column for exactly
-this. It is the first thing Safa acts on and the one part of the prompt he cannot supply himself,
-because the table is not in front of him. Dropped once, in session 4's handoff, which is why this
-paragraph now says it twice and CLAUDE.md section 5 says it a third time.
+`Recommended: <Sonnet|Opus> / <Normal|High|Max> effort`. It is the first thing Safa acts on and the
+one part of the prompt he cannot supply himself, because the build sequence table is not in front of
+him. Dropped once, in session 4's handoff, which is why this paragraph says it twice and CLAUDE.md
+section 5 says it a third time.
 
-Where the table is silent, the standing rules decide: Opus for new screens, architecture, and
-complex interaction; Sonnet for feature additions, bug fixes, CSS, and scripts. Max effort for new
-screens, architecture, and multi-file refactors. When the two rules disagree, effort wins. When in
-doubt, Opus Max.
+**Derive it, then check the table. Do not copy the table.** This paragraph used to say the opposite,
+and the opposite was wrong twice over. See decision D11.6.
+
+**The standing rules.** Opus for new screens, architecture, complex interaction, a data pipeline, or
+any session that asks Safa to decide something a user will see. Sonnet only for a session that is
+provably narrow: a script with no UI, a documentation follow-up, a fix inside one file. Max effort
+for new screens, architecture and multi-file refactors. When the model rule and the effort rule
+disagree, effort wins. **When in doubt, Opus Max.**
+
+**Where the standing rules and the table disagree, the standing rules win**, and the handoff says so
+in one line outside the code block with the reason. The table was written before the build started
+and cannot know what a session turned out to contain; the person writing the prompt has just spent a
+session finding out. Its record bears this out: of its eleven rows, nine say Opus and have never
+needed changing, and of its two Sonnet rows one was right (session 3, a fetch script with no UI) and
+one was overridden to Opus (freshness and the streak, which held two new screens). **A Sonnet call
+therefore needs a positive reason written down. An Opus call does not.**
+
+**The table's row numbers are one behind the session numbers**, from row 10 onward. Decision D10.0
+renumbered the sessions when installability was brought forward and did not renumber the table,
+which only Safa may edit. **Table row N is session N + 1.** Row 10, freshness and the streak, was
+session 11; row 11, Ruhi, is session 12. This has already been got wrong once, in session 11's
+handoff, which read row 10's Sonnet against row 11's session and shipped a prompt recommending
+Sonnet for a session the table itself marks Opus Max.
 
 ---
 

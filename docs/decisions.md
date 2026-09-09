@@ -3105,3 +3105,65 @@ judgement scope 11.5 deleted from the freshness states.
 **Nothing was added to the database.** Scope 11.3 promises the passage detail view "falls straight
 out of `segment_progress`. No new instrumentation." It did. No column, no Dexie version, no upgrade,
 nothing migrated on a phone.
+
+---
+
+### D11.6 — The model line is derived and not copied, Opus is the default, and the table's rows are one behind
+
+**Decided by Safa, 10 September 2026**, after noticing a pattern: "this happens every session wrap
+where sonnet is recommended then when i ask you agree opus is better. how can we fix this and reduce
+the back and forth?"
+
+He was right that it was a pattern, and the cause turned out to be two mechanical faults rather than
+a matter of taste.
+
+**Fault one: the rule that carried the judgement could never fire.**
+`/docs/session-prompt-template.md` said the model and effort should be taken from scope section 16's
+table, and then, in the next paragraph, "**where the table is silent**, the standing rules decide:
+Opus for new screens, architecture, and complex interaction". **The table is never silent.** It
+carries a Model and an Effort column for every row. So the clause holding the actual reasoning was
+unreachable, the table won every time, and the standing rules were only ever applied when Safa
+stopped and asked - at which point whoever was asked would look at the session, notice it contained
+two new screens, and say Opus.
+
+**Fault two: an off-by-one the build introduced and nobody wrote down where it was needed.** Decision
+D10.0 renumbered the sessions when installability was brought forward, and could not renumber scope
+section 16's table, which only Safa may edit. **Table row N has been session N + 1 ever since.**
+Session 11's handoff read row 10 - freshness and the streak, Sonnet / High - and put it on session
+12, Ruhi, which row 11 marks **Opus / Max**. The prompt then carried a paragraph explaining why the
+table's Sonnet recommendation had been left in place, about a recommendation the table does not
+make. D10.0 records the renumbering; it did not record it next to the instruction that trips over it.
+
+**What changed.**
+
+- The precedence is inverted. **The standing rules decide; the table is checked afterwards.** Where
+  they disagree the standing rules win and the handoff says so in one line with the reason.
+- **Opus is the default. A Sonnet call now needs a positive reason written down; an Opus call does
+  not.** This is not a preference, it is the table's own record: of eleven rows nine say Opus and
+  none has ever needed changing, while of the two Sonnet rows one was right (session 3, a fetch
+  script with no UI) and one was overridden to Opus (freshness and the streak, which held two new
+  screens). A recommendation wrong half the time is not a default.
+- **"Table row N is session N + 1" is now written in both places that need it**, CLAUDE.md section 5
+  and the prompt template, rather than only in the decision that caused it.
+
+**Options considered.**
+
+- *Leave the rule and rely on judgement each session.* Rejected: that is what has been happening,
+  and it produced a wrong recommendation in a handoff that also stated, confidently, a value the
+  source document does not contain.
+- *Ask Safa each session which model to use.* Rejected. It is the question he asked to stop having.
+- *Edit scope section 16's table so the rows match the sessions.* Not available. CLAUDE.md section 2:
+  only Safa issues scope revisions. **It remains worth doing when he next revises the scope**, along
+  with the two words `review_log` has needed since D9.3.
+
+**Reversible.** Yes. It is two paragraphs in two documents.
+
+**What this means for you.** You should stop having to ask. The model line at the top of each
+session's prompt will now be worked out from what the session actually contains, and it will say
+Opus unless there is a stated reason it does not need to. If it ever says Sonnet, the reason will be
+written next to it, and that is the sentence to disagree with.
+
+**And a correction to session 11's handoff.** The prompt it issued for session 12 said
+`Recommended: Sonnet / High effort` and claimed the table said so. The table says **Opus / Max**.
+The prompt was also short three items the table names: the To Memorise and Reflection filter, bulk
+add, and search within the route. It has been reissued in full.

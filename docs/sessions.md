@@ -541,3 +541,41 @@ sixth section would have to go). In the repo, `src/data/ruhi.ts`, which has been
 by nothing since session 2; `src/data/passages.ts` for the exclusion that keeps a quotation out of
 the library; `src/principles/discover-isolation.test.ts`, which already forbids the Ruhi route in
 Discover; and `src/features/memorise/MemoriseScreen.tsx`, which is now four sections deep.
+
+## Session 11 follow-up — The model line stops being copied
+
+**Version:** v0.11.1   **Branch:** session-11-followup   **Date:** 10 September 2026
+
+**Nothing in the app changed.** Safa asked why every session wrap recommends Sonnet and then agrees
+Opus is better when he questions it. It was not a matter of taste. Two mechanical faults, both now
+fixed and both recorded as D11.6.
+
+**The prompt template's judgement clause could never run.** It said to take the model from scope
+section 16's table, then said "where the table is silent, the standing rules decide: Opus for new
+screens, architecture, and complex interaction". The table is never silent - it has a Model column
+for every row - so the standing rules were unreachable and the table won every time, including when
+the table was written before anyone knew what a session would hold.
+
+**And an off-by-one.** D10.0 renumbered the sessions and could not renumber the table. Table row N
+has been session N + 1 ever since. Session 11's handoff read row 10 (freshness, Sonnet) against
+session 12 (Ruhi, row 11, **Opus / Max**) and shipped a prompt recommending Sonnet while explaining
+that it was honouring a table which says the opposite. That prompt was also short three items row 11
+names: the filter, bulk add, and search within the route. It has been reissued.
+
+**What changed.** The standing rules now decide and the table is checked afterwards; where they
+disagree the rules win and the reason is written in one line. **Opus is the default and a Sonnet
+call needs a stated reason**, which is the table's own record rather than a preference: nine of its
+eleven rows say Opus and none has needed changing, and of its two Sonnet rows one was right and one
+was overridden. "Table row N is session N + 1" is now in CLAUDE.md section 5 and in the template,
+next to the instruction that trips over it.
+
+**Two things still need Safa's pen** when he next revises the scope: section 16's row numbers, and
+the two words `review_log` has wanted since D9.3 (`passage_id`, and `milestone` among the quiz
+types).
+
+**Surprise.** That the faulty clause had been sitting in the template since session 1 and had never
+once fired.
+
+**Next session should read first.** Exactly what the session 11 entry above says. It is session 12,
+**Ruhi**, and it is **Opus / Max**, which is what scope section 16 row 11 says and what the standing
+rules independently give it.

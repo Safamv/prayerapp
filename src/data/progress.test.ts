@@ -25,7 +25,23 @@ import type { Day } from './types'
  */
 
 const USER = 'user-1'
-const TODAY: Day = '2026-09-08'
+
+/**
+ * **Today, from the real clock, not a date written down here.**
+ *
+ * Most of this file could use a fixed day and be clearer for it. One test
+ * cannot: `recordMilestone` stamps its `review_log` row with `nowInstant()`,
+ * which is right - the log records when something actually happened, and
+ * flattening an instant onto a calendar day passed in for scheduling would
+ * lose the time of day. So a fixed `TODAY` here agrees with the clock on the
+ * day it is written and disagrees with it the next morning, and the streak
+ * test quietly starts asserting nought.
+ *
+ * It did. This was pinned to 2026-09-08, passed on 8 September, and failed on
+ * the 10th. Every day in this file is derived from the real one so that the
+ * suite cannot rot by sitting still. `src/app/progress.test.tsx` does the same.
+ */
+const TODAY: Day = todayOf()
 
 const passage = makePassage({ title: 'Remove not, O Lord' })
 const other = makePassage({ title: 'Blessed is the spot' })
