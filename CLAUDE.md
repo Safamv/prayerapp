@@ -141,10 +141,19 @@ Preconditions, all five, every time:
 block ready to copy.
 
 - **The first line of the prompt is the model and the effort**, written exactly
-  `Recommended: <Sonnet|Opus> / <Normal|High|Max> effort`, taken from that session's row in the
-  build sequence table in scope section 16. It is the first thing Safa acts on, before he has read
-  a word of the prompt, and he cannot supply it himself because the table is not in front of him.
-  A prompt without it is incomplete and is to be reissued, not explained.
+  `Recommended: <Sonnet|Opus> / <Normal|High|Max> effort`. It is the first thing Safa acts on,
+  before he has read a word of the prompt, and he cannot supply it himself because the build
+  sequence table is not in front of him. A prompt without it, or with the wrong one, is incomplete
+  and is to be reissued, not explained.
+  - **Derive it from the standing rules in `/docs/session-prompt-template.md`, then check it against
+    scope section 16's table.** Do not copy the table. Where the two disagree the standing rules
+    win, and you say so in one line with the reason. **Opus is the default; a Sonnet call needs a
+    positive reason written down.** The table was written before the build started; you have just
+    spent a session finding out what the work is actually like.
+  - **Scope section 16's row numbers are one behind the session numbers, from row 10 on.** Decision
+    D10.0 renumbered the sessions and could not renumber the table, which only Safa edits.
+    **Table row N is session N + 1.** Getting this wrong is how session 11's handoff recommended
+    Sonnet for a session the table marks Opus Max. See D11.6.
 - **The goal and the item list come from the build sequence table in scope section 16.** Do not
   invent a session and do not resequence.
 - If the build has taught you the sequence is wrong, **say so as a proposal with reasons, outside
