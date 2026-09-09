@@ -579,3 +579,38 @@ once fired.
 **Next session should read first.** Exactly what the session 11 entry above says. It is session 12,
 **Ruhi**, and it is **Opus / Max**, which is what scope section 16 row 11 says and what the standing
 rules independently give it.
+
+## Session 11 follow-up 2 — Book 3's Ruhi dataset is finished
+
+**Version:** v0.11.2   **Branch:** session-11-followup-2   **Date:** 10 September 2026
+
+**Nothing in the app changed.** This is the parallel non-coding work scope 16 lists, done
+before session 12 rather than inside it, at Safa's instruction. D11.7.
+
+**Book 3's two gaps are closed.** All 136 quotations now carry To Memorize or Reflection,
+on the same basis Books 1 and 2 used: the instructional sentence that introduces them. 110
+are To Memorize, 26 Reflection, and every Reflection entry is in the discursive first unit.
+And the twenty four lessons are extracted, in their own subsection - footnotes 98 to 127,
+one quotation per lesson plus the six prayers, thirty entries. The file is
+`ruhi_book3_quotations_v2.0.md`; v1.0 is kept beside it.
+
+**How it was read.** macOS PDFKit through `osascript`, nothing installed, no conversion
+step - Safa had offered to convert the PDF in Google Docs and did not need to. Plain text
+loses bold, and bold is how Ruhi marks a quotation, so completeness was checked against the
+PDF's **font runs**: every bold run in the lessons ending in a footnote number is in the
+extraction and nothing else is. The 21 bold quotations without footnotes are coloring-sheet
+captions reprinting the lesson's own quotation.
+
+**Two things worth knowing.** The six lesson prayers already appear earlier in the file,
+because the book reprints them with a second footnote number; all six were compared
+character by character and are identical, so one passage will map to two curriculum
+positions. And nothing from v1.0 was altered - strip the tags from v2.0 and it is
+byte-identical.
+
+**Surprise.** The first cross-check of those six prayers reported five of six differing. The
+comparison was wrong, not the data: entry numbers restart at 1 in each unit, so the search
+was matching Unit 1's entries. Scoped properly, all six are identical.
+
+**Next session should read first.** What the session 11 entry says. It is session 12,
+**Ruhi**, **Opus / Max**. Scope 5.1's curation status paragraph is now out of date and D11.7
+says how; the To Memorise filter can be built whole.

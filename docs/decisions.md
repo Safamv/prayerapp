@@ -3167,3 +3167,61 @@ written next to it, and that is the sentence to disagree with.
 `Recommended: Sonnet / High effort` and claimed the table said so. The table says **Opus / Max**.
 The prompt was also short three items the table names: the To Memorise and Reflection filter, bulk
 add, and search within the route. It has been reissued in full.
+
+---
+
+### D11.7 — Book 3's two curation gaps are closed, and scope 5.1's status paragraph is out of date
+
+**Done by Claude, 10 September 2026**, at Safa's instruction, as a non-coding pass before
+session 12 rather than inside it. Scope 16 lists this work under "Parallel, non-coding".
+
+**What scope 5.1 says today.** "**Two pieces remain.** Book 3's 136 quotations carry no
+category. And Book 3's extraction deliberately stops before its twenty four per-lesson
+memorisation quotations . . . Until the first is done, the To Memorise filter of 5.4 does
+nothing in Book 3, which reads as broken rather than absent."
+
+**Both are now done**, in `/Ruhi Books/Extracted Quotes/ruhi_book3_quotations_v2.0.md`.
+v1.0 is kept beside it.
+
+**The categories.** All 136 now carry To Memorize or Reflection, assigned on the basis
+Books 1 and 2 used for their own v1.1: the instructional sentence that introduces the
+quotation in the book. Book 3 says it three ways rather than one - "try to memorize",
+"commit them to memory", and "learn or recite by heart" - and all three count, which is a
+question v1.0's own notes had flagged and left open. **110 are To Memorize and 26 are
+Reflection.** All 26 of the Reflection entries are in Unit 1, which is discursive; Unit 2
+is the lesson-preparation unit and every section of it either sets a prayer to be committed
+to memory or closes on "Try to memorize at least one passage from each of the sets above".
+
+**The lessons.** Footnotes 98 to 127, in their own subsection at Safa's request: one
+memorisation quotation for each of the 24 lessons, and the six prayers, one per block of
+four lessons. Thirty entries. **The six prayers already appear earlier in the file**, in
+Unit 2 Sections 2, 6, 10, 13, 16 and 19, because the book reprints them in the lessons with
+a second footnote number. All six were checked character by character against their earlier
+appearance and are identical. A loader should expect one passage to map to two curriculum
+positions, which is what `ruhi_quotations` is for.
+
+**How the PDF was read, and how the result was checked.** macOS's own PDFKit, through
+`osascript -l JavaScript`, with nothing installed and no conversion step. Plain text loses
+bold, and bold is how Ruhi marks a quotation, so the check was done against the PDF's font
+runs rather than against the text: **every bold run in the lessons that ends in a footnote
+number is in the extraction, and nothing else is.** The 21 bold quotations that carry no
+footnote are the coloring-sheet captions, which reprint the lesson's own quotation and are
+not separate entries. Three prayers run to a second paragraph and so end a continuation run
+rather than an opening one; all three were caught and are joined into one flowing quotation,
+which is how Unit 2 already prints them.
+
+**Nothing from v1.0 was altered.** Asserted programmatically: strip the category tags from
+v2.0's first 136 entries and the result is byte-identical to v1.0. No quotation text and no
+citation was touched.
+
+**What this means for session 12.** The To Memorise and Reflection filter of scope 5.4 can
+be built whole, and it will be honest in all three books. The question this prompt was
+going to have to put to Safa - what Book 3 does while it has no categories - does not
+arise.
+
+**What this means for you.** The Ruhi dataset is finished for all three books. Every
+quotation in Book 3 now says whether it is one to learn by heart or one to think about, and
+the twenty four lesson quotations the children actually memorise - which are the most useful
+part of that book for this app - are in it. **Scope 5.1's curation status paragraph should
+be updated when you next revise the scope**, along with section 16's row numbers (D11.6) and
+`review_log`'s two words (D9.3).
