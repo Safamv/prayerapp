@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
-import { DISCOVER_PATH, passagePath } from '../../app/routes'
+import { useLocation, useNavigate, useParams } from 'react-router'
+import { DISCOVER_PATH, passagePath, RUHI_PATH } from '../../app/routes'
 import { useAsyncValue } from '../../app/useAsyncValue'
 import { useBack } from '../../app/useBack'
 import { useUserId } from '../../app/userContext'
@@ -10,7 +10,7 @@ import { PinnedButtons, PrimaryButton } from '../../components/PinnedButtons'
 import { Screen } from '../../components/Screen'
 import { getPassage } from '../../data/corpus'
 import { confirmSegmentation } from '../../data/segmentation'
-import type { PassageRow } from '../../data/types'
+import { RUHI_COLLECTION, type PassageRow } from '../../data/types'
 import { getUserPrayer } from '../../data/userPrayers'
 import { strings } from '../../strings'
 import { collectionLabel, passageAttribution } from '../../strings/attribution'
@@ -70,9 +70,7 @@ export function ConfirmLinesScreen() {
   const { passageId = '' } = useParams()
   const userId = useUserId()
   const navigate = useNavigate()
-  // Up one level from here is the passage it was reached from. Only used on a
-  // cold start, when there is no history to step back through; see `useBack`.
-  const back = useBack(passagePath(passageId))
+  const location = useLocation()
 
   const loaded = useAsyncValue<Loaded>(async () => {
     const [passage, existing] = await Promise.all([
@@ -83,6 +81,28 @@ export function ConfirmLinesScreen() {
   }, passageId)
 
   const passage = loaded?.passage
+
+  /**
+   * Where this screen sends the reader back to, and where it sends them after
+   * they confirm.
+   *
+   * For a prayer that is the reading view it was opened from. **For a Ruhi
+   * quotation it cannot be**: the reading view is a Discover screen and decision
+   * D1.10 forbids a quotation appearing there at all, so a passage in the `ruhi`
+   * collection would be sent to a screen that correctly refuses to draw it and
+   * would land in the library instead.
+   *
+   * The screen that opened it says where it came from, and the collection is the
+   * fallback for a cold start, where router state is gone. The data decides,
+   * which is D1.10's own arrangement: no screen has to remember a rule.
+   */
+  const cameFrom = returnPathIn(location.state)
+  const destination =
+    cameFrom ?? (passage?.collection === RUHI_COLLECTION ? RUHI_PATH : passagePath(passageId))
+
+  // Only used on a cold start, when there is no history to step back through.
+  const back = useBack(destination)
+
   const segmentation = useMemo(() => segmentPassage(passage?.text ?? ''), [passage?.text])
 
   // The proposal, until the user changes it. Held against the boundaries it was
@@ -109,8 +129,8 @@ export function ConfirmLinesScreen() {
       void navigate(DISCOVER_PATH, { replace: true })
       return
     }
-    if (loaded.onList) void navigate(passagePath(passageId), { replace: true })
-  }, [loaded, navigate, passageId])
+    if (loaded.onList) void navigate(destination, { replace: true })
+  }, [loaded, navigate, destination])
 
   const lines = segmentsFrom(segmentation, breaks)
   const ranges = lineRanges(segmentation, breaks)
@@ -119,10 +139,11 @@ export function ConfirmLinesScreen() {
     if (passage === undefined || lines.length === 0) return
     void confirmSegmentation(userId, passage.id, lines).then(
       () => {
-        // Back to the passage, with the band that says what happened and offers
-        // the way out of it (decision D4.10). `replace` because the screen just
-        // left has nothing to come back to: the passage is on the list now.
-        void navigate(passagePath(passage.id), {
+        // Back to where it was opened from, with the band that says what
+        // happened and offers the way out of it (decision D4.10). `replace`
+        // because the screen just left has nothing to come back to: the passage
+        // is on the list now.
+        void navigate(destination, {
           replace: true,
           state: { addedPassageId: passage.id },
         })
@@ -221,6 +242,21 @@ export function ConfirmLinesScreen() {
       )}
     </Screen>
   )
+}
+
+/**
+ * The path the screen that opened this one asked to be returned to.
+ *
+ * Read defensively because it is a router value and can be anything at all: a
+ * restored tab, a hand-typed history entry, a future screen navigating here with
+ * something else in it. Only an in-app absolute path is accepted.
+ */
+function returnPathIn(state: unknown): string | null {
+  const from =
+    typeof state === 'object' && state !== null && 'from' in state
+      ? (state as { from?: unknown }).from
+      : undefined
+  return typeof from === 'string' && from.startsWith('/') ? from : null
 }
 
 /**

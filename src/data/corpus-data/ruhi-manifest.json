@@ -1,0 +1,29 @@
+{
+  "builtAt": "2026-09-10T00:29:06.122Z",
+  "datasetVersion": "1.0.0",
+  "editions": {
+    "Book 1": "4.1.2.PE, May 2020",
+    "Book 2": "2.1.1.PE, September 2020",
+    "Book 3": "2.2.1.PE, September 2021"
+  },
+  "sourceFiles": [
+    "ruhi_book1_quotations_v1.1.md",
+    "ruhi_book2_quotations_v1.1.md",
+    "ruhi_book3_quotations_v2.0.md"
+  ],
+  "counts": {
+    "entries": 344,
+    "distinctTexts": 315,
+    "linkedTexts": 25,
+    "linkedQuotations": 32,
+    "ownPassages": 290,
+    "memorise": 223,
+    "reflection": 121
+  },
+  "files": {
+    "ruhi.json": {
+      "records": 344,
+      "sha256": "9eecc52b7eb8f9a4013d33e82fc403a7fdfc7587b0b270257af51a5fdd3f8215"
+    }
+  }
+}

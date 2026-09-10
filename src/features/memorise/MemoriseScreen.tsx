@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import {
   MY_LIST_PATH,
+  RUHI_PATH,
   SETTINGS_PATH,
   passageDetailPath,
   recitePath,
@@ -59,7 +60,8 @@ import { FreshnessStar } from './FreshnessStar'
  * one line and no more; **today's work**; **what can be recited whole**; and
  * **what you know**, which is every passage on the list with its star. Settings
  * came across with the Log tab too, which is Safa answering the question
- * decision D2.4 left open.
+ * decision D2.4 left open. Session 12 added a third row beside those two, which
+ * opens scope 5's Ruhi books.
  *
  * ## Why WHAT YOU KNOW is not the roll call coming back
  *
@@ -306,6 +308,16 @@ export function MemoriseScreen() {
                 : strings.memorise.passageCount(loaded.listed.length)
             }
           />
+          {/* Scope 5's Ruhi collections, reached from here and from nowhere
+              else. Safa's call, session 12: one row at the foot rather than a
+              section of three books on the tab itself or a row above the day's
+              work. A book of quotations is something you go and look for, and
+              the top of this screen is kept for what is due today.
+
+              No count beside it. My list carries one because it changes; the
+              number of Ruhi books does not, and a number that is always three
+              is a number saying nothing. */}
+          <ListRow to={RUHI_PATH} title={strings.ruhi.door} />
           <ListRow to={SETTINGS_PATH} title={strings.settings.open} />
 
           <ScrollTail />

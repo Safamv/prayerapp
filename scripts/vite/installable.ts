@@ -1,5 +1,6 @@
 import type { Plugin } from 'vite'
 import corpusManifest from '../../src/data/corpus-data/manifest.json' with { type: 'json' }
+import ruhiManifest from '../../src/data/corpus-data/ruhi-manifest.json' with { type: 'json' }
 import { strings } from '../../src/strings/index.ts'
 import { defaultPalette } from '../../src/theme/palettes.ts'
 import { APP_ICON_FILES, appIconSvg, FAVICON_SVG, renderAppIcon } from '../lib/appIcon.ts'
@@ -148,7 +149,13 @@ export function installable(options: InstallableOptions): Plugin {
       const precache = precacheUrls(Object.keys(bundle), rootFiles())
       // Fails the build rather than shipping an app that launches in aeroplane
       // mode with an empty library. See the function's docblock.
-      assertCorpusPrecached(precache, corpusChunkStems(corpusManifest.files))
+      // The Ruhi mapping is loaded lazily, the first time somebody opens that
+      // route, so it is the one dataset a reader could first ask for while
+      // offline. It has to be in the precache or that first ask finds nothing.
+      assertCorpusPrecached(precache, [
+        ...corpusChunkStems(corpusManifest.files),
+        ...corpusChunkStems(ruhiManifest.files),
+      ])
 
       this.emitFile({
         type: 'asset',
