@@ -156,3 +156,48 @@ export function upkeepPath(passageId: string): string {
 export function passageDetailPath(passageId: string): string {
   return `${MEMORISE_PATH}/passage/${encodeURIComponent(passageId)}`
 }
+
+/**
+ * **The Ruhi route.** Scope 5.3 and 5.4, decision D1.10.
+ *
+ * > The Ruhi route is reached from the memorisation side of the app. Discover
+ * > never surfaces a Ruhi quotation, in browse or in search.
+ *
+ * Under `/memorise` for the same reason every path above it is: a study
+ * curriculum met while opening the app to pray is the wrong experience, which is
+ * principle 7.6's own reasoning. It is reached from one row at the foot of the
+ * Memorise tab, between My list and Settings (Safa's call, session 12).
+ *
+ * ## The shape is D4.9's, applied to a curriculum
+ *
+ * The container comes before its contents and the path carries where the reader
+ * came from, so the back chevron walks back up the way they came and a section's
+ * address says which unit of which book it was read in. That is the same
+ * arrangement the library uses for collections and categories, and it is here
+ * for the same reason: put a unit's sections beside its book rather than inside
+ * it, and the shape would be lying about what the material is.
+ *
+ * **A quotation is addressed by itself**, `/memorise/ruhi/quotation/:id`, rather
+ * than under the section it was found in. It is reachable from two places - the
+ * section it belongs to, and a search that crosses all three books - and a path
+ * that had to spell out one of them would make the other one lie. The screen
+ * names its own book, unit and section, which is what scope 5.4 asks a quotation
+ * to show anyway.
+ */
+export const RUHI_PATH = `${MEMORISE_PATH}/ruhi`
+
+export function ruhiBookPath(bookId: string): string {
+  return `${RUHI_PATH}/book/${encodeURIComponent(bookId)}`
+}
+
+export function ruhiUnitPath(bookId: string, unitId: string): string {
+  return `${ruhiBookPath(bookId)}/unit/${encodeURIComponent(unitId)}`
+}
+
+export function ruhiSectionPath(bookId: string, unitId: string, sectionId: string): string {
+  return `${ruhiUnitPath(bookId, unitId)}/section/${encodeURIComponent(sectionId)}`
+}
+
+export function ruhiQuotationPath(quotationId: string): string {
+  return `${RUHI_PATH}/quotation/${encodeURIComponent(quotationId)}`
+}

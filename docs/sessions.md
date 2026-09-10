@@ -614,3 +614,65 @@ was matching Unit 1's entries. Scoped properly, all six are identical.
 **Next session should read first.** What the session 11 entry says. It is session 12,
 **Ruhi**, **Opus / Max**. Scope 5.1's curation status paragraph is now out of date and D11.7
 says how; the To Memorise filter can be built whole.
+
+## Session 12 — Ruhi collections: the mapping, the browse, and what you can do with a quotation
+
+**Version:** v0.12.0   **Branch:** session-12-ruhi   **Date:** 10 September 2026
+
+**Shipped.** Scope section 5, whole. The 344 curated quotations from Books 1 to 3 are a committed
+JSON dataset with its own manifest, its own version and the Ruhi edition of each book on it (scope
+5.2), built by `node scripts/build-ruhi.ts` from the three markdown files, which are now in the
+repository at `scripts/ruhi-source/` so the build can be re-run by anyone who has it. On the Memorise
+tab, one row at the foot opens the drill: three books, eight units, 115 sections, ending in a
+quotation you can read whole with its Ruhi reference, its attribution and the copyright notice. The
+To Memorise and Reflection filter, search across the mapping only, and a whole section onto My list
+in one action. 89 new tests, 1067 in all. No dependency, no column, no Dexie version: the four tables
+session 2 declared and left empty needed no migration, which was the whole of what decision D1.10
+promised.
+
+**Four things you decided or would want to know.** Where the door goes and what it says (D12.2, your
+call): one row between My list and Settings, reading "Ruhi books". How a quotation is matched to a
+prayer the app already has (D12.1): only when it is word for word the whole of one, which is 25 of
+315 - an excerpt keeps its own record, because linking would have put a nine hundred word Gleaning on
+your list when you asked for one sentence of it. Where Book 3's twenty four lessons sit (D12.3): as
+sections of its second unit, printed under their own names. And how adding a whole section meets
+scope 8.4's confirm screen (D12.4): the button states how many lines it is about to add and takes the
+app's own proposal, while adding one quotation still walks through the confirm screen.
+
+**Deferred, and it is the one thing from scope 5.4 not built.** Adding a **whole book** in one
+action. This session's brief asked for a section and that is what was built; a whole book is up to
+166 quotations and several hundred lines in one tap, which is a different kind of commitment and
+deserves its own question. Progress per Ruhi book stays `[v1.0]`.
+
+**The surprise, and it would have shipped.** `\b` in a JavaScript regular expression is ASCII-only,
+so it never matches after the á of `'Abdu'l-Bahá` - and thirty-two quotations were being attributed
+to the volume they were compiled in rather than to him. Principle 7.10 admits no exception, so that
+is the worst kind of bug this feature could have had. The unit tests written first did not catch it;
+running the resolver over all 344 real citations did. Everything the build cannot resolve now stops
+the build with the citation printed rather than guessing.
+
+**A second surprise, and the reason to test the real data through the real code.** 32 quotations
+point at a prayer or a Hidden Word the library already holds rather than at a passage of their own
+(D12.1), and those rows are written by the library's load, not by the mapping's. So a reader who
+reached the Ruhi route before the library had finished loading would have found 32 quotations missing
+from their sections and would have been told nothing: the read drops a quotation whose passage is not
+there rather than drawing a blank row. The library starts loading beside the first render and would
+nearly always have won that race, which is exactly what makes it the kind of bug that happens once,
+on a cold morning, and cannot be reproduced. Every smaller test passed; the one that puts the real
+344 through the real loader failed on the first run. The mapping now waits on the library.
+
+**The gap that was worth closing, again.** `discover-isolation.test.ts` reads what a file *imports*,
+so a Ruhi-aware row put in `src/components/` and handed its data as a prop would pass it and still
+breach D1.10. `src/principles/ruhi-in-memorise.test.ts` closes it from the other side, as session
+11's `one-star.test.ts` does for the star, and adds the rule no other test could catch: a Ruhi screen
+is inside the folder the star lives in, and it imports no star, no queue and no scheduler. Both
+breaches were introduced deliberately and confirmed to fail the build before being removed.
+
+**Next session should read first.** `/CLAUDE.md` in full, then `/docs/scope.md` section 16's v0.1 and
+v1.0 tables to see what is left, and section 17's V0 exit criteria. This session finished the last
+`[v0.1]` item in the build sequence, so **the next session is not a build session by default** and
+what it should be is Safa's to say: the V0 exit review of scope 17 and the Playwright suite CLAUDE.md
+section 10 defers to it, or the first `[v1.0]` row. Decisions D12.1 to D12.6 are this session's, and
+D12.1 is the one that departs from an earlier decision. In the repo, `scripts/build-ruhi.ts` and the
+three modules under `scripts/lib/` it is built from; `src/data/loadRuhi.ts` and `src/data/ruhi.ts`;
+and the five `Ruhi*` screens under `src/features/memorise/`.

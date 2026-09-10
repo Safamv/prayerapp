@@ -3225,3 +3225,251 @@ the twenty four lesson quotations the children actually memorise - which are the
 part of that book for this app - are in it. **Scope 5.1's curation status paragraph should
 be updated when you next revise the scope**, along with section 16's row numbers (D11.6) and
 `review_log`'s two words (D9.3).
+
+---
+
+## D12 — Session 12, Ruhi collections: the mapping, the browse, and what you can do with a quotation
+
+### D12.1 — A quotation links to a prayer only when it is the whole of one, and 25 of 315 are
+
+**The decision.** The 344 curated quotations become 315 distinct texts. **25 of those turned out to
+be word for word a passage the devotional corpus already carries**, and each of those points at the
+prayer or Hidden Word it already is rather than becoming a second copy of it. The other 290 become
+passages of their own, in the `ruhi` collection, exactly as decision D1.10 describes.
+
+**The rule, and it is the strictest one available.** Two texts are the same when they are the same
+words from end to end, compared through `normalise` - the same fold the chip quiz uses to decide
+whether the word you tapped is the word that was taken out: lowercase, accents folded, punctuation
+stripped, whitespace collapsed. **Anything short of the whole passage is not a match.**
+
+**Why that line and not a looser one.** 119 of the quotations are *inside* a passage the corpus
+holds - one sentence of a Gleaning that runs to nine hundred words. Linking those would have been
+easy and would have been wrong in a way the reader would feel immediately: they asked to learn
+"Beware, O people of Bahá, lest ye walk in the ways of them whose words differ from their deeds" and
+the app would have put the whole Gleaning on their list. So an excerpt keeps its own record, holding
+exactly the words the curriculum asks for and nothing else.
+
+**How sure this is.** Certain for the 25, because identity after normalisation is not a judgement.
+The residual risk is the other direction - a quotation that *should* have matched and did not,
+because the corpus renders it slightly differently - and the cost of that is one extra passage in a
+list of 290, which is the state the whole feature would have been in anyway.
+
+**Two passages in the corpus sometimes hold the same words.** 104 of them, because the prayers feed
+and the Prayers and Meditations feed both carry them. Two quotations met that. The earlier feed wins,
+in the library's own order, so the choice is the app's arrangement rather than whichever file was
+read first.
+
+**This departs from D1.10, in the one place D1.10 left open.** That decision said a quotation that is
+also a prayer "will exist twice... that is correct rather than duplication to be cleaned up", and
+then said: "If that turns out to feel wrong in use, linking them is an additive change later." Two
+things have happened since which D1.10 could not have known. Session 11 built WHAT YOU KNOW, which
+lists every passage on the list with its freshness star - so a duplicated Short Obligatory Prayer
+would now appear twice on that screen, with two different stars, and neither would be wrong. And this
+session's prompt asked for the link. It is a narrow change: it touches 25 texts of 315, and only
+where identity is exact.
+
+**One fragility, named.** A linked quotation depends on a corpus passage it does not own. If the
+prayers feed ever withdraws that passage, `removePassagesNotIn` takes it, and the quotation quietly
+drops out of its section rather than breaking anything. Re-running `node scripts/build-ruhi.ts` puts
+it back as a Ruhi passage of its own.
+
+**Reversible.** Yes, and it is one function. Making everything its own passage again is deleting the
+match; it would change 25 passage ids, so a reader who had already put one of them on their list
+would find it there twice.
+
+**What this means for you.** If a Ruhi quotation is a whole prayer or a whole Hidden Word that is
+already in the app, it is the same one: put it on your list from the Ruhi side and it is the same
+prayer, with one star and one schedule, not a second copy of it. If the quotation is a sentence taken
+out of something longer, it is its own thing, and learning it means learning that sentence.
+
+---
+
+### D12.2 — The way into Ruhi is one row at the foot of the Memorise tab, reading "Ruhi books"
+
+**Decided by Safa, 10 September 2026**, from three sketches.
+
+The Memorise tab is the one screen the app is opened on every morning, and it already holds the
+streak, today's work, what can be recited whole, everything you know, My list and Settings. The
+question was where a study curriculum goes on it.
+
+**The three options.** One row at the foot, between My list and Settings, opening a screen that lists
+the three books. A section on the tab itself, listing Books 1, 2 and 3 as three rows. Or one row at
+the very top, above the day's work.
+
+**Safa chose the row at the foot.** A book of quotations is something you go and look for, and the
+top of that tab is kept for what is due today. It costs one extra tap to reach a book and it keeps
+the daily screen exactly the shape it was, which is decision D7.3's argument continuing to hold.
+
+**The row reads "Ruhi books"**, chosen over "Ruhi collections" and "Ruhi quotations". "Collection"
+already means something else in this app - it is what Prayers, Gleanings and The Hidden Words are in
+Devotions - and "quotations" promises what is two levels down. The screen behind it lists three
+books, and that is how it would be said out loud in a study circle.
+
+**No count beside it.** My list carries one because it changes. The number of Ruhi books does not,
+and a number that always reads three is a number saying nothing.
+
+**Reversible.** Yes, in about ten minutes. It is one row in one file.
+
+**What this means for you.** Open Memorise and the bottom of the screen now reads My list, Ruhi
+books, Settings. Nothing above them moved.
+
+---
+
+### D12.3 — Book 3's twenty four lessons are sections of its second unit, printed under their own names
+
+**The problem.** `ruhi_sections` has four columns - id, unit_id, number, title - and scope section 10
+is finished for V0. Book 3's second unit prints its numbered sections and then twenty four lesson
+plans, which are a subsection of the unit rather than sections of it, and which are the child-facing
+memorisation content D11.7 added (thirty entries, footnotes 98 to 127).
+
+**The decision.** They are sections of Unit 2, listed after the numbered ones, each keeping its own
+name: "Lesson 1", not "Section 23". The distinction lives in the two columns there are - **`title` is
+what the reader sees and `number` is only what orders** - with a lesson taking `100 + n` so it lands
+after every section whatever a later edition renumbers.
+
+**The two arrangements not taken.** A unit of their own would have said Book 3 has three units when
+it has two, which is the app confidently stating a wrong address - the exact failure scope 5.2 exists
+to prevent. Renumbering them into the section sequence would have printed "Section 23" against a page
+the participant is holding that is headed "Lesson 1".
+
+**Reversible.** Yes. It is one constant in `scripts/lib/ruhiSource.ts` and a rebuild.
+
+**What this means for you.** Open Book 3, then "Lessons for Children's Classes", and you get its
+teaching sections first and then Lesson 1 through Lesson 24, named as the book names them.
+
+---
+
+### D12.4 — Adding a whole section takes the app's own lines, and says how many
+
+**The tension.** Scope 5.4 asks for a whole section on the list "in one action". Scope 8.4 says
+segmentation is suggested then confirmed at add time, and the confirm screen session 5 built is where
+a reader joins or splits a line before starting. A section holds two quotations at the median and
+sixteen at the worst, so a confirm screen for each would not be one action.
+
+**The decision.** The two doors are different and they say so.
+
+- **Adding one quotation goes through the confirm screen, unchanged.** Same screen a prayer goes
+  through, same proposal, same ability to move a break.
+- **Adding a whole section takes the proposal for every quotation in it**, and the button states how
+  many lines that is: `ADD THIS SECTION · 7 LINES`. That is the same number the confirm screen puts
+  above its own list, so nothing is hidden - what is given up is moving a break before starting.
+
+**Why that is a smaller loss than it sounds.** 137 of the 290 Ruhi passages are a single line, so for
+nearly half of them the confirm screen has nothing to confirm. A quotation whose lines a reader does
+want arranged differently can be taken off My list and added again on its own, which walks through
+the confirm screen.
+
+**Two things it is careful about.** The count is of what is **not already on the list**, and a passage
+already there is left exactly as it is - its lines, its schedule and its history untouched - so adding
+a section twice never throws a schedule away. And **the filter narrows the add**: what the button adds
+is what the screen shows, because a button that added something the reader had filtered out would be
+doing something they did not ask for.
+
+**Deferred.** Scope 5.4 also offers "a whole book" in one action. This session's brief asked for a
+section and that is what was built. A whole book is up to 166 quotations and several hundred lines in
+one tap, which is a different kind of commitment and deserves its own question.
+
+**Reversible.** Yes. It is one function and one button.
+
+**What this means for you.** At the foot of a section there is a button saying how many lines adding
+the lot would put on your list. Tap it and they are all there, cut into lines the way the app would
+have proposed. Add one at a time instead and you still get the screen where you can join and split
+them first.
+
+---
+
+### D12.5 — The filter is built whole and drawn in three places out of 115
+
+**Scope 5.4 asks for it**: "filter a section's quotations by To Memorise or Reflection". It is built,
+and it appears only where a section holds both categories, **which is 3 of the 115 sections**.
+
+**That is not the filter being half-finished.** It is the curriculum having already sorted its own
+material: a Ruhi section is nearly always a run of quotations under one instruction. 112 sections
+hold one category only. Decision D7.2 set this rule on the Bookmarks screen - a filter row appears
+only when it means something - and a control that can only ever have one answer is chrome on a screen
+this app cannot afford to put chrome on.
+
+**Where the categories are actually useful is one level up**, and that is where they went. A section's
+row on its unit's screen names the category it holds, where it holds one: `SECTION 3 · TO MEMORISE ·
+5 QUOTATIONS`. That is what a participant looking for what to memorise needs, and they can see it
+without opening anything.
+
+The same rule governs the word on a quotation's row: it is drawn only where the list it is in holds
+both. A column of sixteen rows all reading TO MEMORISE is design-tokens 5.3's caps line spent on a
+word the screen has already said, which is the mistake decision D4.8 named about a column of passages
+all reading THE HIDDEN WORDS.
+
+**Reversible.** Yes, and it is one boolean.
+
+**What this means for you.** Every section tells you what it is for on the way in, and inside the
+three sections that hold a mixture there is a row of chips to show one kind or the other.
+
+---
+
+### D12.6 — Contained decisions, session 12
+
+- **The three curation files are committed to the repository**, at `scripts/ruhi-source/`. They were
+  curated in an iCloud folder beside the repository, and scope 4.2's whole argument for committing
+  the corpus is that "anyone with the repository can rebuild the database from scratch" - which is
+  not true of a build whose input is in somebody's iCloud. They are also the proprietary asset scope
+  5.1 describes, which is a further reason to keep them somewhere versioned, diffable and backed up.
+  They add 250KB to the repository and nothing at all to the app.
+- **The mapping has its own manifest and its own version.** Scope 5.2 requires the dataset to be
+  "versioned independently of the app" and to carry the Ruhi edition it was built against.
+  `ruhi-manifest.json` holds both, plus a hash. It is a second file rather than more keys in
+  `manifest.json` because `fetch-corpus.ts` rewrites that one from scratch, and a Ruhi entry inside
+  it would vanish the next time the prayers were re-fetched.
+- **The edition is shown at the foot of the book it belongs to.** Scope 5.2 puts it on the credits
+  screen, which is scope 4.3's and is `[v1.0]`. Until that exists, "Mapped against Ruhi edition
+  4.1.2.PE, May 2020" sits under Book 1's units, which is where somebody holding a printed copy would
+  look to find out whether the app is talking about the same book.
+- **The build stops rather than guessing at an attribution.** Principle 7.10 admits no exception, and
+  a citation is a line of prose. `scripts/lib/ruhiCitation.ts` holds a table of the 39 works the three
+  books cite with the author each carries, and anything it cannot resolve fails the build with the
+  citation printed - the same shape `refuseBooks` has had in the corpus fetch since session 3. It also
+  stops if the same words are ever attributed to two different people.
+- **One bug that would have shipped, found by the real material.** `\b` in a JavaScript regular
+  expression is ASCII-only, so it never matched after the á of `'Abdu'l-Bahá`. Thirty-two quotations
+  were being attributed to whatever volume they were compiled in rather than to him. The unit tests
+  written first did not catch it; running the resolver over all 344 real citations did.
+- **The mapping is loaded lazily, the first time somebody opens the route**, rather than beside the
+  first render as the library is. It is 434KB and a reader who never opens a study circle screen never
+  needs it. The service worker precaches the chunk all the same, so that first time can be offline,
+  and `assertCorpusPrecached` now fails the build if it is missing.
+- **And it waits for the library, which it did not at first.** The 25 linked texts of D12.1 point at
+  rows the corpus load writes, not the Ruhi load, so a reader who reached the Ruhi route before the
+  library had finished would have found **32 quotations missing from their sections, silently** -
+  `listRuhiQuotations` drops a quotation whose passage is not there rather than drawing a blank row.
+  The library starts loading beside the first render and would nearly always have won that race,
+  which is what makes it the kind of bug that appears once, on a cold morning, and cannot be
+  reproduced afterwards. Found by `src/data/loadRuhi.test.ts`, which puts the real 344 through the
+  real loader; every smaller test passed.
+- **The same words in two places in the curriculum are one passage.** Book 3 reprints its six lesson
+  prayers with a second footnote number (D11.7); "Truthfulness is the foundation of all human virtues"
+  is in Book 1 and in Book 3's Lesson 4. Deduplicated on the normalised text, they are one passage
+  with a `ruhi_quotations` row for each place, which is exactly what scope 5.3 says that table is for
+  and why `designation` sits on the quotation.
+- **A quotation is addressed by itself**, `/memorise/ruhi/quotation/:id`, rather than under the
+  section it was found in. It is reachable from its section and from a search that crosses all three
+  books, and a path that spelled out one of those would make the other one lie.
+- **The add moment now returns to where it was opened from.** It used to go back to the reading view,
+  which is a Discover screen that correctly refuses to draw a Ruhi quotation - so a reader adding one
+  would have landed in the library. The screen that opened it says where it came from, and the
+  passage's own collection is the fallback for a cold start. The data decides, which is D1.10's own
+  arrangement.
+- **The search field of design-tokens 5.2 is drawn for the first time**, at every measurement that
+  section gives it, inside the compact header of the Ruhi books screen rather than the tall header
+  5.2 describes. Scope 5.4's search is on a pushed screen, which has no tall header; the scope owns
+  behaviour and the tokens document owns appearance, so where they meet the scope wins (CLAUDE.md
+  section 2). The library's tall header still has none, because scope 6.3 is `[v1.0]`.
+- **Search results are grouped by section rather than listed flat**, each group headed by its Ruhi
+  reference in design-tokens 5.3's own section header row. Scope 5.4 wants every quotation to show
+  its source work and its reference together, and on a flat list that reference would be repeated on
+  every row.
+- **`src/principles/ruhi-in-memorise.test.ts` closes the wall from the other side**, the way
+  `one-star.test.ts` does for the freshness star: every Ruhi screen is inside
+  `src/features/memorise/`, nothing outside that folder and the data layer reads the mapping, and no
+  Ruhi screen imports the star, the queue, the scheduler or anything else that carries how the reader
+  is going. Both breaches were introduced deliberately and confirmed to fail the build before being
+  removed. Test files are exempt, for the reason decision D4.8 gives: a test driving the app from
+  outside is not part of the folder, and what these rules protect is what ships.

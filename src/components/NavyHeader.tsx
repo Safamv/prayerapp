@@ -48,8 +48,22 @@ export function TallHeader({ eyebrow, title }: { eyebrow: string; title: string 
 /**
  * **Compact with title.** Padding `46px 22px 22px`. Back chevron, then a 25px
  * display title in `accent`.
+ *
+ * `children` is the optional search field of design-tokens 5.2, at the tall
+ * header's own 22px above it. 5.2 puts the field inside a tall header, and the
+ * one search this app has - scope 5.4's, within the Ruhi route - sits on a
+ * pushed screen, which has no tall header to put it in. See `SearchField` for
+ * the whole of that argument.
  */
-export function CompactTitleHeader({ title, onBack }: { title: string; onBack: BackAction }) {
+export function CompactTitleHeader({
+  title,
+  onBack,
+  children,
+}: {
+  title: string
+  onBack: BackAction
+  children?: ReactNode
+}) {
   return (
     <header className={CLOTH} style={{ padding: '46px 22px 22px' }}>
       <div className="flex items-center" style={{ gap: HEADER_GAP }}>
@@ -58,6 +72,7 @@ export function CompactTitleHeader({ title, onBack }: { title: string; onBack: B
           {title}
         </h1>
       </div>
+      {children !== undefined && <div style={{ marginTop: 22 }}>{children}</div>}
     </header>
   )
 }

@@ -11,6 +11,11 @@ import { MemoriseScreen } from '../features/memorise/MemoriseScreen'
 import { MyListScreen } from '../features/memorise/MyListScreen'
 import { PassageDetailScreen } from '../features/memorise/PassageDetailScreen'
 import { RecitalScreen } from '../features/memorise/RecitalScreen'
+import { RuhiBookScreen } from '../features/memorise/RuhiBookScreen'
+import { RuhiBooksScreen } from '../features/memorise/RuhiBooksScreen'
+import { RuhiQuotationScreen } from '../features/memorise/RuhiQuotationScreen'
+import { RuhiSectionScreen } from '../features/memorise/RuhiSectionScreen'
+import { RuhiUnitScreen } from '../features/memorise/RuhiUnitScreen'
 import { ReviewScreen } from '../features/memorise/ReviewScreen'
 import { UpkeepScreen } from '../features/memorise/UpkeepScreen'
 import { SettingsScreen } from '../features/settings/SettingsScreen'
@@ -98,6 +103,25 @@ export function App() {
                   and whether you are done. Reached from the WHAT YOU KNOW
                   section of the Memorise tab. Decision D11.1. */}
               <Route path="/memorise/passage/:passageId" element={<PassageDetailScreen />} />
+              {/* Scope 5's Ruhi collections. Under `/memorise` because decision
+                  D1.10 keeps a study curriculum off the devotional side of the
+                  app entirely: Devotions never surfaces a quotation, in browse
+                  or in search. The drill is book, unit, section, quotation, with
+                  the whole path in the address so the back chevron walks back up
+                  the way the reader came (decision D4.9's shape). */}
+              <Route path="/memorise/ruhi" element={<RuhiBooksScreen />} />
+              <Route path="/memorise/ruhi/book/:bookId" element={<RuhiBookScreen />} />
+              <Route path="/memorise/ruhi/book/:bookId/unit/:unitId" element={<RuhiUnitScreen />} />
+              <Route
+                path="/memorise/ruhi/book/:bookId/unit/:unitId/section/:sectionId"
+                element={<RuhiSectionScreen />}
+              />
+              {/* Addressed by itself, because a quotation is reached both from
+                  its own section and from a search across all three books. */}
+              <Route
+                path="/memorise/ruhi/quotation/:quotationId"
+                element={<RuhiQuotationScreen />}
+              />
               <Route path="/settings" element={<SettingsScreen />} />
               <Route path="*" element={<Navigate to="/discover" replace />} />
             </Routes>

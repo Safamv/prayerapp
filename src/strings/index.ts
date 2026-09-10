@@ -46,6 +46,43 @@ const lineCount = (count: number) => (count === 1 ? '1 LINE' : `${String(count)}
 const passageCount = (count: number) => (count === 1 ? '1 PASSAGE' : `${String(count)} PASSAGES`)
 
 /**
+ * How many quotations a Ruhi book, unit or section holds, in the caps slot.
+ * Written once so the four screens of the Ruhi route cannot word it differently.
+ */
+const quotationCount = (count: number) =>
+  count === 1 ? '1 QUOTATION' : `${String(count)} QUOTATIONS`
+
+/**
+ * **Scope 5.4's two categories.** The curriculum's own words, not the app's:
+ * a Ruhi book says which quotations are to be memorised and which are there to
+ * be reflected on, and this is that, folded to Australian spelling.
+ *
+ * Both cases are written out rather than transformed, because design-tokens 2.3
+ * bans `text-transform` and the caps form carries tracking.
+ *
+ * **It is not a freshness state and it is not progress.** It says what the book
+ * asks of the reader, and it would read the same on the day they installed the
+ * app. Design-tokens 4's second hard rule is about the star, and nothing here is
+ * a second measure of how well anything is known.
+ */
+const ruhiDesignations = {
+  memorise: 'To memorise',
+  reflection: 'Reflection',
+} as const
+
+const ruhiDesignationsCaps = {
+  memorise: 'TO MEMORISE',
+  reflection: 'REFLECTION',
+} as const
+
+/**
+ * Scope 5.4's label for the door and the screen behind it, chosen by Safa over
+ * "Ruhi collections" and "Ruhi quotations": the screen it opens lists three
+ * books, and that is how it would be said out loud in a study circle.
+ */
+const ruhiBooks = 'Ruhi books'
+
+/**
  * Scope 11.5's word for the third upkeep state, written once so that the
  * vocabulary table and the control that sets it can never disagree.
  */
@@ -124,6 +161,7 @@ export const strings = {
     memorise: 'Memorise',
     myList,
     settings: 'Settings',
+    ruhi: ruhiBooks,
   },
 
   /**
@@ -542,6 +580,78 @@ export const strings = {
       `${title} moved to ${String(position)} of ${String(total)}.`,
   },
 
+  /**
+   * **The Ruhi route.** Scope 5, decision D1.10.
+   *
+   * Every word here is either the curriculum's own or one the app already uses.
+   * Nothing on these screens says anything about how the reader is going: a book
+   * of quotations is a reading surface, and principle 7.6's reasoning applies to
+   * it even though the folder wall does not.
+   */
+  ruhi: {
+    /** The door at the foot of the Memorise tab, and the title of the screen it opens. */
+    door: ruhiBooks,
+    bookLabel: (number: number) => `BOOK ${String(number)}`,
+    unitLabel: (number: number) => `UNIT ${String(number)}`,
+    quotationCount,
+    designations: ruhiDesignations,
+    designationsCaps: ruhiDesignationsCaps,
+
+    /**
+     * Where a quotation sits, said in one line. Scope 5.4: "every quotation
+     * shows its source work and its Ruhi reference together."
+     *
+     * `within` is whatever names the level below the unit, and it is a string
+     * rather than a number because Book 3's twenty four lessons are named
+     * "Lesson 1" and are not sections. On a search result and on a quotation it
+     * is the section; on a section's own screen, where the section is already
+     * the title in the header, it is the unit's name instead.
+     */
+    reference: (book: number, unit: number, within: string) =>
+      `BOOK ${String(book)} · UNIT ${String(unit)} · ${within.toLocaleUpperCase('en-AU')}`,
+
+    /**
+     * Scope 5.2: the mapping carries the Ruhi edition it was built against, and
+     * that edition is meant to be visible. The credits screen of scope 4.3 is
+     * `[v1.0]`, so until it exists the edition sits quietly at the foot of the
+     * book it belongs to, where somebody comparing the app against a printed
+     * book would look for it.
+     */
+    edition: (edition: string) => `Mapped against Ruhi edition ${edition}.`,
+
+    /** The search field of scope 5.4, which searches the mapping and nothing else. */
+    searchPlaceholder: 'Search the Ruhi quotations',
+    searchLabel: 'Search the Ruhi quotations',
+    searchNothing: 'Nothing in the three books matches that.',
+    searchCount: (count: number) =>
+      count === 1 ? '1 QUOTATION FOUND' : `${String(count)} QUOTATIONS FOUND`,
+
+    /** The filter of scope 5.4, drawn only where a section holds both categories. */
+    filterLabel: 'SHOW',
+    filterAll: 'ALL',
+
+    /**
+     * The two ways onto the list. One quotation goes through the confirm screen
+     * of scope 8.4; a whole section takes the app's proposal and says how many
+     * lines that is, which is the same number the confirm screen states.
+     */
+    addOne: 'ADD TO MY LIST',
+    addOneAlready: 'ALREADY ON YOUR LIST',
+    addSection: (lines: number) =>
+      lines === 1 ? 'ADD THIS SECTION · 1 LINE' : `ADD THIS SECTION · ${String(lines)} LINES`,
+    /**
+     * What is said afterwards, on the screen the reader is left on (D4.10's
+     * shape). It states what changed and nothing else: no encouragement, and no
+     * count of what is left to do.
+     */
+    added: (count: number) =>
+      count === 1 ? 'One quotation added to your list' : `${String(count)} added to your list`,
+    addedNone: 'They are all on your list already',
+
+    /** An id that is not in the mapping: a hand-typed address, or an old link. */
+    missing: 'That quotation is not in the mapping.',
+  },
+
   settings: {
     /** The row on Memorise that opens the settings screen. */
     open: 'Settings',
@@ -800,6 +910,20 @@ export const strings = {
      */
     knownList: 'How each passage is going',
     knownRow: (title: string, state: string) => `${title}, ${state.toLowerCase()}`,
+    /** The four lists of the Ruhi route (scope 5.4). */
+    ruhiBookList: 'Ruhi books',
+    ruhiUnitList: 'Units',
+    ruhiSectionList: 'Sections',
+    ruhiQuotationList: 'Quotations',
+    ruhiSearchResults: 'Quotations that match',
+    /**
+     * A quotation row, where the title is a truncation of the quotation's own
+     * opening and the caps line beside it is its category.
+     */
+    ruhiQuotationRow: (title: string, designation: string) =>
+      `${title}, ${designation.toLowerCase()}`,
+    /** The filter of scope 5.4, which is one choice out of three. */
+    ruhiFilter: 'Show which quotations',
     /** How many lines of a passage sit at each state. Scope 11.3. */
     lineStates: 'How many lines sit at each state',
     linesAtState: (state: string, lines: string) => `${state}, ${lines.toLowerCase()}`,
