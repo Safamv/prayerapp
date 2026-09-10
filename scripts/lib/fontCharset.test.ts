@@ -28,3 +28,26 @@ describe('collectCharset', () => {
     expect(charset.split('a').length - 1).toBe(1)
   })
 })
+
+describe('characters that are never drawn', () => {
+  /**
+   * A newline, a tab and the left-to-right mark are all in the corpus and none
+   * of them is a letter. No font has a glyph for any of them, so asking every
+   * subset to keep one means `scripts/lib/fontCoverage.ts` reports a gap in all
+   * fifteen faces - which would bury the real gaps it exists to find.
+   */
+  it('leaves out a newline, a tab and a bidi mark', () => {
+    const charset = collectCharset(['one\nline\ttwo‎three'])
+    expect(charset).not.toContain('\n')
+    expect(charset).not.toContain('\t')
+    expect(charset).not.toContain('‎')
+  })
+
+  it('keeps the ordinary space, which is drawn and is a glyph like any other', () => {
+    expect(collectCharset([])).toContain(' ')
+  })
+
+  it('keeps a letter that happens to sit beside one', () => {
+    expect(collectCharset(['‎ḥ'])).toContain('ḥ')
+  })
+})

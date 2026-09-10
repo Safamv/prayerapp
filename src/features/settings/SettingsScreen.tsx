@@ -5,14 +5,15 @@ import { useUserId } from '../../app/userContext'
 import { BackChevron } from '../../components/BackChevron'
 import { ScrollTail } from '../../components/ListSurface'
 import { Screen } from '../../components/Screen'
-import { SettingsRow, SettingsSection } from '../../components/SettingsRow'
+import { SettingsRow, SettingsSection, SettingsSpecimenRow } from '../../components/SettingsRow'
 import { Stepper } from '../../components/Stepper'
+import { TextSizeControl } from '../../components/TextSizeControl'
 import { buildStamp } from '../../config/build'
 import { DAILY_NEW_LIMIT_RANGE, DAILY_REVIEW_LIMIT_RANGE } from '../../config/defaults'
 import type { UserSettingsRow } from '../../data/types'
 import { getOrCreateUserSettings, updateUserSettings } from '../../data/userSettings'
 import { strings } from '../../strings'
-import { typeStyle } from '../../theme'
+import { shippedTypefaces, typeStyle, useTheme } from '../../theme'
 
 /**
  * Settings.
@@ -31,10 +32,18 @@ import { typeStyle } from '../../theme'
  * invites turning the number up when the day looks long. That is precisely the
  * pressure principle 7.3's cap exists to remove.
  *
- * The palette, text size and `[v0.1]` typeface controls all read and write
- * through the theme registry and `user_settings`. Those controls are still not
- * built: scope 12.3 ships the text size control in V0 and tags the seven-option
- * typeface picker `[v0.1]`, and neither has been on a session's list yet.
+ * ## And, from session 13, what the app looks like
+ *
+ * Scope 7.9's text size control and scope 12.3's seven-option typeface picker.
+ * Both go through the theme registry rather than through this screen: the
+ * provider holds the selection, writes it onto the document as CSS custom
+ * properties, and reports the change back so it is persisted to `user_settings`.
+ * So neither control here knows what a colour or a font family is, and the whole
+ * app re-renders in CSS with no React state below the provider.
+ *
+ * The palette picker is still not built. Scope 12.3 ships two palettes and
+ * session 13 added none, so there is one palette to choose from and a picker
+ * offering one option is furniture. It is on the open questions list.
  */
 
 /** Design-tokens 5.3: the list surface is `0 26px` over paper. */
@@ -42,6 +51,7 @@ const SURFACE = { padding: '0 26px' }
 
 export function SettingsScreen() {
   const userId = useUserId()
+  const theme = useTheme()
   const [revision, setRevision] = useState(0)
   const settings = useAsyncValue<UserSettingsRow>(
     () => getOrCreateUserSettings(userId),
@@ -116,6 +126,39 @@ export function SettingsScreen() {
         >
           {strings.settings.queueNote}
         </p>
+
+        {/* Scope 7.9: "adjustable text size with a genuinely large maximum
+            ships in V0". Design-tokens 2.4 is the arithmetic and D2.6 is why
+            the clamp is on the user's scale rather than on the final size. */}
+        <SettingsSection label={strings.settings.textSizeSection} />
+        <SettingsRow label={strings.settings.textSize} caption={strings.settings.textSizeCaption}>
+          <TextSizeControl scale={theme.textScale} onChange={theme.setTextScale} />
+        </SettingsRow>
+
+        {/* Scope 12.3's seven options, drawn as design-tokens 5.7's specimen
+            row: each written in the face it offers, because a row that names a
+            font in words tells a reader nothing. `role="radiogroup"` makes the
+            seven one choice rather than seven switches. */}
+        <SettingsSection label={strings.settings.typefaceSection} />
+        <div role="radiogroup" aria-label={strings.settings.typefaceSection}>
+          {shippedTypefaces().map((typeface) => (
+            <SettingsSpecimenRow
+              key={typeface.id}
+              typeface={typeface}
+              textScale={theme.textScale}
+              specimen={strings.settings.typefaceSpecimen}
+              caption={strings.settings.typefaceCaption(
+                typeface.name,
+                strings.settings.typefaceDescriptors[typeface.id] ?? '',
+              )}
+              label={strings.settings.typefaceOption(typeface.name)}
+              selected={typeface.id === theme.typeface.id}
+              onSelect={() => {
+                theme.setTypefaceId(typeface.id)
+              }}
+            />
+          ))}
+        </div>
 
         <SettingsSection label={strings.settings.versionEyebrow} />
         <p className="text-on-paper-60" style={typeStyle('settingsRowCaption')}>

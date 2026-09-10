@@ -4,11 +4,14 @@ import { BrowserRouter } from 'react-router'
 import { App } from './app/App'
 import { registerServiceWorker } from './app/serviceWorker'
 import { corpusReady } from './data/loadCorpus'
+import { readThemeHint } from './data/themeHint'
 import {
   applyThemeVariables,
-  defaultPalette,
-  defaultTypeface,
+  DEFAULT_PALETTE_ID,
   DEFAULT_TEXT_SCALE,
+  DEFAULT_TYPEFACE_ID,
+  getPalette,
+  getTypeface,
   themeVariables,
 } from './theme'
 import './index.css'
@@ -33,17 +36,28 @@ void corpusReady().catch((error: unknown) => {
 registerServiceWorker()
 
 /**
- * The default palette is written onto the document before React renders, so the
- * first paint is already Paris Navy on bone paper. The ThemeProvider then
- * replaces it with the user's stored selection once `user_settings` has been
- * read, which on a local database is a few milliseconds and is invisible.
+ * **The theme is written onto the document before React renders**, so the first
+ * paint is already the palette, the typeface and the text size the user chose.
  *
  * Without this the app would flash white on every launch, which for something
  * opened at six in the morning is worth ten lines.
+ *
+ * It reads localStorage rather than the database because the first paint happens
+ * before an IndexedDB read can finish, and until session 13 that meant painting
+ * the *default* theme and correcting it a few milliseconds later. With one
+ * typeface nobody could see that. With seven it is a flash of Italiana on every
+ * launch for six of them. See `data/themeHint.ts`, which is a cache of the
+ * selection and never its source: the ThemeProvider is still handed what
+ * `user_settings` says, and where the two disagree the database wins.
  */
+const hint = readThemeHint()
 applyThemeVariables(
   document.documentElement,
-  themeVariables(defaultPalette(), defaultTypeface(), DEFAULT_TEXT_SCALE),
+  themeVariables(
+    getPalette(hint?.paletteId ?? DEFAULT_PALETTE_ID),
+    getTypeface(hint?.typefaceId ?? DEFAULT_TYPEFACE_ID),
+    hint?.textScale ?? DEFAULT_TEXT_SCALE,
+  ),
 )
 
 const root = document.getElementById('root')

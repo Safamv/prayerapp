@@ -676,3 +676,57 @@ section 10 defers to it, or the first `[v1.0]` row. Decisions D12.1 to D12.6 are
 D12.1 is the one that departs from an earlier decision. In the repo, `scripts/build-ruhi.ts` and the
 three modules under `scripts/lib/` it is built from; `src/data/loadRuhi.ts` and `src/data/ruhi.ts`;
 and the five `Ruhi*` screens under `src/features/memorise/`.
+
+## Session 13 — The typeface picker, the text size control, and a face behind every face
+
+**Version:** v0.13.0   **Branch:** session-13-typeface   **Date:** 10 September 2026
+
+**Shipped.** Scope 12.3's seven-option typeface picker, on Settings, each row written in the face it
+offers at the size design-tokens 5.8 gives it with 5.8's own caption, rather than naming a font in
+words. Fifteen font files across the ten families of 8.1, fetched and subset by the script, which now
+**derives what it needs from the typeface registry** instead of keeping a list beside it. And scope
+7.9's text size control, which is a V0 checklist item no session had ever named: six steps, two marks
+and a letter that grows, so it demonstrates itself and invents no vocabulary. Safa chose the sample
+phrase, "By Heart", and chose to have the text size control built here. 56 new tests, 1135 in all.
+No dependency, no column, no migration.
+
+**Session 2's promise held, with one exception, and the exception was the interesting part.** Adding
+the six faces was appending nothing at all - the registry already had all seven with their scalars,
+and the work was flipping a flag and fetching fonts. But the fetch script kept its **own** list of
+families, so appending an eighth option would have produced a picker row rendering in Georgia with
+nothing anywhere failing. It now computes the list from the registry's own slots and stops with the
+face named if it cannot supply one. A deliberate eighth option was added and confirmed to stop both
+the script and the suite before being removed.
+
+**The surprise, and it was already shipping.** Subsetting removes glyphs; it cannot add one. Six of
+the ten families were cut **without the underdot letters the writings use** - ḥ, Ḥ, ṭ, ṣ, ḍ - and
+without the flower that closes every reading view. The corpus holds 26 of those letters. So
+`Ḥusayn` would have been set in your typeface with one letter of it in the phone's default font, and
+this was **already true of Italiana**, in the app on the phone, for eleven sessions. Every font stack
+now carries Cormorant behind the chosen face, a browser picks a font per character, and a check that
+reads each font's own character map prints every gap and fails the build if Cormorant stops being
+complete. D13.1.
+
+**Two smaller things that were also already wrong.** The first paint used the *default* theme and
+corrected itself once the database had been read, which nobody could see with one typeface and is a
+flash on every launch with seven; the selection is now mirrored where it can be read before paint
+(D13.2). And the italic line under every title, on fourteen screens, was a roman slanted by the
+browser rather than a drawn italic. Six of the seven options now have a real one. Goudy Bookletter
+1911 has no italic anywhere and is written down rather than left to be noticed.
+
+**Design-tokens 2.4 rule 4, answered.** `src/theme/scalarRange.test.ts` prints the whole matrix,
+eighteen roles by seven faces at both ends, and it is in the test run. Two numbers want Safa's eye
+and are on the open questions list: Tangerine's drop cap reaches 120px, which is decision D2.8's
+prediction exactly and does not break the layout but pushes its swash left of the text column; and
+Goudy 1911's attribution line bottoms out at 6.73px.
+
+**Nothing was deferred from the brief.** The palette picker was **not** built, and was not asked for:
+scope 12.3 ships two palettes and this session added none, so it would offer a choice of one.
+
+**Next session should read first.** `/CLAUDE.md` in full, then `/docs/scope.md` section 16's v0.1 and
+v1.0 tables and section 17's V0 exit criteria. **Both `[v0.1]` build items are now done** except the
+Playwright suite, which CLAUDE.md section 10 ties to the V0 exit review, so what comes next is
+Safa's to say. Decisions D13.1 to D13.4 are this session's, and D13.1 is the one that changed
+something already shipping. In the repo: `scripts/fetch-fonts.ts` and `scripts/lib/fontCoverage.ts`,
+`src/theme/typefaces.ts` and `src/theme/scalarRange.test.ts`, `src/data/themeHint.ts`, and
+`SettingsSpecimenRow` in `src/components/SettingsRow.tsx`.

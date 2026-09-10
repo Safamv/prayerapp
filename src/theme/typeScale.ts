@@ -110,3 +110,27 @@ export function roleFontSize(role: TypeRole, typeface: Typeface, userTextScale: 
   const computed = role.base * opticalScalar(typeface, role.slot) * effective
   return Math.round(computed * 100) / 100
 }
+
+/**
+ * **The size one typeface's sample is set at on the picker.** Design-tokens 5.8.
+ *
+ * Two things this deliberately does not do, and one it does.
+ *
+ * **It does not apply the optical scalar.** Design-tokens 5.8's seven sizes were
+ * chosen by eye so that all seven faces "read at a comparable weight on the
+ * row", which is the same job the scalar does elsewhere and is already done
+ * here. Multiplying by the scalar as well would correct a correction: Tangerine
+ * would be set at 57px and Cinzel Decorative at 11px, and the row would stop
+ * being a fair comparison, which is the only thing a specimen is for.
+ *
+ * **It does apply the user's text size**, clamped as a display role is. Scaling
+ * all seven by the same number preserves 5.8's relative sizing exactly, so the
+ * comparison survives, and a reader who has turned the text up is not handed
+ * seven samples too small to judge. Clamped at the display bound because an
+ * unclamped Tangerine sample would be 66px on a row.
+ */
+export function specimenFontSize(typeface: Typeface, userTextScale: number): number {
+  const requested = clampTextScale(userTextScale)
+  const effective = Math.min(maxScaleFor('display'), Math.max(TEXT_SCALE_MIN, requested))
+  return Math.round(typeface.specimenSize * effective * 100) / 100
+}

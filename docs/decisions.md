@@ -3473,3 +3473,145 @@ three sections that hold a mixture there is a row of chips to show one kind or t
   is going. Both breaches were introduced deliberately and confirmed to fail the build before being
   removed. Test files are exempt, for the reason decision D4.8 gives: a test driving the app from
   outside is not part of the folder, and what these rules protect is what ships.
+
+---
+
+### D13.1 — Six of the ten typefaces cannot draw the writings' own accents, so every stack now carries a face that can
+
+**Decided by Claude, 10 September 2026.** Found while building the picker, and it is the reason this
+session was worth doing carefully rather than quickly.
+
+**What was found.** The app subsets each font down to the characters it can actually render, which
+is what decisions D3.6 and D4.7 established. Subsetting removes letters. **It cannot add one.** And
+six of the ten families scope 12.3's seven options are built from were cut without the underdot
+letters the writings use - ḥ, Ḥ, ṭ, Ṭ, ṣ, Ṣ, ẓ, ḍ - and without the small flower that closes every
+reading view.
+
+The corpus contains twenty four of those letters in prayer text, one in a title and one in the name
+of a work. So a reader who chose Bodoni Moda, IM Fell English, Goudy 1911, Cinzel Decorative,
+Tangerine - or Italiana, which the app has shipped for eleven sessions - would have met a word like
+`Ḥusayn` set in their typeface with one letter of it in the phone's default font. And the flower at
+the foot of every prayer would have been whatever the phone happened to have, which on some Android
+builds is an empty box.
+
+This is decision D4.7's bug for the third time, and the first time it could not be fixed by widening
+the subset, because there was nothing to widen it to.
+
+**Chosen: a second face behind every one, before the phone's own.** Every font stack now reads
+`<the chosen face>, Cormorant, Georgia, ...`. A browser picks a font **per character**, not per
+screen, so the middle entry costs nothing on any letter the chosen face can draw and is reached only
+by the handful it cannot. Cormorant is the one because it carries every character the app can
+render, it is already in the app for three of the seven options, and it is a serif of the same
+period as everything it stands in for.
+
+**Options considered.**
+
+- *Leave it.* Rejected. It is a licence-bearing attribution line and the writings' own transliteration
+  on the devotional half of the product, which principle 7.7 says has to be good.
+- *Drop the six faces that cannot draw them.* That is scope 12.3's seven options reduced to two, to
+  solve a problem that shows up on perhaps thirty characters in a corpus of six hundred passages.
+- *Redraw the missing letters.* Real work, and it would put a hand-drawn glyph inside a licensed font.
+
+**And the check that makes it stay true.** `scripts/lib/fontCoverage.ts` reads each font's own
+character map before the font is cut down, prints what every family cannot draw, and **stops the
+build** if Cormorant itself ever stops being complete. The gap used to be invisible; it is now
+printed every time the fonts are fetched.
+
+**Reversible.** Yes. It is one constant in `src/theme/typefaces.ts`.
+
+**What this means for you.** In any of the seven typefaces, a word like `Ḥusayn` and the little
+flower at the end of a prayer are drawn properly, in a face that matches, instead of one letter of
+the word jumping into your phone's default font. This was already slightly wrong in the app you have
+now, and it is fixed for that too.
+
+---
+
+### D13.2 — The app paints what you chose, before it knows what you chose
+
+**Decided by Claude, 10 September 2026.**
+
+**Why it came up.** The app's settings live in the phone's database, and that database can only be
+read a few milliseconds *after* the first thing appears on screen. So the app has always painted the
+default look first and corrected it immediately afterwards. With one typeface and one palette in use,
+there was nothing to correct and nobody could see it.
+
+With seven typefaces, six of them would flash Italiana on every single launch before becoming the
+face you chose. **A face that flashes in and out on every launch is worse than one face.**
+
+**Chosen: the choice is mirrored into a second, simpler store that can be read instantly**
+(`src/data/themeHint.ts`), and the app paints from that before it renders anything at all. The
+database is still the source of truth: it is read a moment later, and where the two disagree the
+database wins and the mirror is rewritten. The same storage and the same reasoning as the anonymous
+device id, which has worked this way since session 2.
+
+**The mirror is never trusted.** It can be missing, left over from an older version, or nonsense.
+Every field is checked rather than assumed, and anything unexpected costs one launch painted in the
+default look - which is exactly what happened on every launch before this existed.
+
+**Reversible.** Yes, and harmlessly: deleting the file returns the app to the old behaviour.
+
+**What this means for you.** The first time you open the app after this update it will still show
+Italiana for an instant, because there is no mirror on your phone yet and this launch is the one that
+writes it. Every launch after that opens straight into the typeface, palette and text size you chose,
+with nothing flickering.
+
+---
+
+### D13.3 — A typeface's name comes from the registry and the words about it come from the strings module
+
+**Decided by Claude, 10 September 2026.** Contained, but worth a note because two rules met.
+
+Design-tokens 5.8 words each caption on the picker as a name and a description: "Italiana · art
+nouveau". CLAUDE.md rule 2 says a font family is named inside `src/theme/` and nowhere else, and it
+is enforced by lint. Principle 7.11 says every user-facing word lives in `src/strings/`. Written
+whole in either place, the caption breaks one of them.
+
+So it is assembled from both: the name half stays in the typeface registry beside the family it
+names, the description half is in the strings module where a future tone pass would look for it, and
+the picker joins them. Neither module holds the other's half, and the name exists once rather than
+twice.
+
+The lint rule fired twice while this session was written - once on the captions, once on a test whose
+title happened to contain the word "Italiana". Both were reworded rather than excused. It is a blunt
+rule and being blunt is what makes it work.
+
+---
+
+### D13.4 — Contained decisions, session 13
+
+- **The font script derives what to fetch from the registry rather than listing it.** Session 2 built
+  the theme registry so that "adding a theme is appending an object", and this session was the one to
+  find out whether that held. It held everywhere except here: the fetch script kept its own list of
+  families beside the registry, so appending an option would have produced a picker row rendering in
+  the phone's default font with nothing anywhere failing. The list is now computed from the seven
+  options' own slots, and the script stops with the face named if it cannot supply one. A deliberate
+  breach - an eighth option with a font nobody has - was introduced and confirmed to stop both the
+  script and the test suite before being removed.
+- **Fifteen font files, four hundred kilobytes, all of them stored on your phone at install.** Seven
+  options across ten families is more than seven files: a face is a family at one weight in one
+  style, and several options share Cormorant. They are precached with the rest of the app, so every
+  typeface works with no signal.
+- **Every option but one has a real italic for the line under a title.** That line appears on fourteen
+  screens and was previously slanted by the browser rather than drawn, even in Italiana. Goudy
+  Bookletter 1911 was cut as a single upright and has no italic anywhere, so that one option is still
+  slanted; it is written down in the script rather than left to be noticed.
+- **The variable fonts are pinned to one weight when they are cut.** Cormorant's file defaults to a
+  lighter weight than the app asks for, and whether a browser corrects that depends on it reading one
+  rule of the stylesheet the way the specification says. Measured in Chrome, it does. Pinning makes
+  the file *be* the weight, so it is the same in every browser and the file is smaller. Nothing looks
+  different: the pinned and unpinned renderings were measured against each other and are identical.
+- **A newline and a bidi mark stopped being asked for.** Both are in the corpus, neither is drawn, and
+  no font has a glyph for either. Harmless until something checked - and now something does, so they
+  would have been reported as a gap in all fifteen faces and hidden the real ones.
+- **The specimen on the picker grows with the text size but is not corrected by the optical scalar.**
+  Design-tokens 5.8's seven sizes were already chosen by eye to make the faces comparable, which is
+  the same job the scalar does elsewhere; applying both would correct a correction and Tangerine's
+  sample would be 57px. Scaling all seven by the user's setting keeps them comparable and keeps the
+  picker usable for somebody who has turned the text up.
+- **The text size control has no words for its six steps.** Naming them means inventing six labels,
+  and scope 11.5 defers vocabulary deliberately. It is the same two marks the queue caps use with a
+  letter between them, drawn at the size the setting produces, so the control demonstrates itself.
+- **The charset check now covers the whole strings module and the Ruhi mapping**, not the corpus and
+  two hand-picked lines. Session 12 added 344 quotations rendered in these faces and the subset was
+  never cut from them; it happens to contain no new character, and the point is that the next edition
+  cannot quietly introduce one.

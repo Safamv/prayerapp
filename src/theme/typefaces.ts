@@ -6,10 +6,10 @@
  * three optical scalars, so that all seven options sit at the same apparent size
  * when given the same nominal size.
  *
- * **All seven are defined here from this session**, per design-tokens 2.1 and
- * scope 12.3. Only Italiana ships in V0; the picker UI and the six other font
- * loads are `[v0.1]`. Defining them now is what makes the picker a screen
- * rather than a refactor.
+ * **All seven are defined here**, per design-tokens 2.1 and scope 12.3. Session
+ * 2 wrote all seven while only Italiana shipped, which is what made session 13's
+ * picker a screen rather than a refactor: the six others needed their font files
+ * fetched and `shipped` flipped, and not one line of this table changed.
  *
  * ## The families are named here and nowhere else
  *
@@ -17,15 +17,17 @@
  * It uses `var(--family-display)`, `var(--family-body)` or `var(--family-caps)`,
  * and this registry decides what those resolve to.
  *
- * ## Why the stacks already name fonts nobody has yet
+ * ## The font files follow this table, rather than sitting beside it
  *
- * The real font files arrive in session 3, which fetches them from Google Fonts
- * and subsets them (decision D1.8, design-tokens 8.1). Until the `@font-face`
- * rules exist, a browser asked for "Italiana" simply falls through to the next
- * family in the stack, which is `SYSTEM_SERIF`. So the app renders in a system
- * serif today and in Italiana the moment session 3 lands, **with no code change
- * here at all**. That is the intended behaviour, not a placeholder to remember
- * to remove.
+ * `scripts/fetch-fonts.ts` derives the set of faces it fetches from the three
+ * slots below plus the byline italic of design-tokens 2.2, and stops with the
+ * face named if it cannot supply one (decision D1.8, design-tokens 8.1). So a
+ * face appended here with no source is a failed script, never an option that
+ * renders in Georgia on somebody's phone.
+ *
+ * `SYSTEM_SERIF` remains behind every stack all the same. It is what the browser
+ * draws in the moment between the first paint and the woff2 arriving on a cold
+ * first run, and both fallbacks are old-style serifs so the layout does not jump.
  */
 
 /**
@@ -34,6 +36,29 @@
  * not jump when the real face loads.
  */
 const SYSTEM_SERIF = "Georgia, 'Times New Roman', Times, serif"
+
+/**
+ * **The coverage face**, which sits between the chosen family and the system
+ * serif in every stack. Decision D13.1.
+ *
+ * Six of the ten families in design-tokens 8.1 were cut without the underdot
+ * transliteration marks the writings use - ḥ, Ḥ, ṭ, Ṭ, ṣ, Ṣ, ẓ, ḍ - and without
+ * the fleuron `❦` that closes every reading view. Subsetting cannot add a glyph
+ * a font never had, so in Bodoni Moda, IM Fell English, Goudy Bookletter 1911,
+ * Cinzel Decorative, Tangerine and Italiana those characters have nowhere to go.
+ *
+ * This is decision D4.7's bug for the third time, and the first time it could
+ * not be fixed by widening the subset. Without a face named here, `Ḥusayn` would
+ * be set in the app's typeface with one letter of it in Georgia, and the one
+ * ornament in the app would be whatever the phone happened to have - which on
+ * some Android builds is an empty box.
+ *
+ * Cormorant is the face because it is complete, it is already subset and
+ * committed for the body slot of three options, and it is an old-style serif in
+ * the same idiom as everything it stands in for. `scripts/fetch-fonts.ts` fails
+ * the build if it ever stops being complete.
+ */
+const COVERAGE_FACE = 'Cormorant'
 
 export interface TypefaceSlot {
   /** The family name, quoted if it contains a space. */
@@ -58,9 +83,29 @@ export interface Typeface {
   readonly bs: number
   readonly cs: number
   /**
-   * Whether the font files are in the repository yet. Only Italiana is true in
-   * V0. Session 3 sets Cormorant's; the `[v0.1]` picker offers only the shipped
-   * ones, so a user can never select a face that would render as a fallback.
+   * **The size this face's sample is set at on the picker.** Design-tokens 5.8:
+   * "each specimen is set at the size that makes that face read at a comparable
+   * weight on the row".
+   *
+   * These are not the optical scalars and must not be confused with them. A
+   * scalar corrects a face's apparent size across the whole app; this is one
+   * number for one row, chosen by eye, and the two disagree on purpose:
+   * Tangerine's scalar is 1.5 and its specimen is 38px, while Cinzel
+   * Decorative's scalar is 0.62 and its specimen is 18px, because a specimen is
+   * a sample of letterforms rather than a heading.
+   */
+  readonly specimenSize: number
+  /** Design-tokens 5.8 gives two of the seven a line-height. `null` is `normal`. */
+  readonly specimenLineHeight: number | null
+  /**
+   * Whether every face this option's three slots name is a committed font file.
+   *
+   * All seven are true from session 13, which fetched the other eight families.
+   * The flag stays because it is the guard, not a record: the picker offers only
+   * shipped options, so an eighth face appended to this table before its fonts
+   * exist is invisible rather than an option that renders in Georgia.
+   * `src/theme/fonts.test.ts` fails the build if a face claims `true` and
+   * `fonts.css` does not carry a rule for all three of its slots.
    */
   readonly shipped: boolean
 }
@@ -78,6 +123,8 @@ export const TYPEFACES: readonly Typeface[] = Object.freeze([
     ds: 1.0,
     bs: 1.0,
     cs: 1.0,
+    specimenSize: 25,
+    specimenLineHeight: null,
     shipped: true,
   }),
   Object.freeze({
@@ -89,7 +136,9 @@ export const TYPEFACES: readonly Typeface[] = Object.freeze([
     ds: 1.5,
     bs: 0.92,
     cs: 1.05,
-    shipped: false,
+    specimenSize: 38,
+    specimenLineHeight: 0.9,
+    shipped: true,
   }),
   Object.freeze({
     id: 'cormorant-unicase',
@@ -100,7 +149,9 @@ export const TYPEFACES: readonly Typeface[] = Object.freeze([
     ds: 0.68,
     bs: 1.0,
     cs: 1.05,
-    shipped: false,
+    specimenSize: 22,
+    specimenLineHeight: null,
+    shipped: true,
   }),
   Object.freeze({
     id: 'cormorant-italic',
@@ -111,7 +162,9 @@ export const TYPEFACES: readonly Typeface[] = Object.freeze([
     ds: 1.1,
     bs: 1.0,
     cs: 1.05,
-    shipped: false,
+    specimenSize: 30,
+    specimenLineHeight: null,
+    shipped: true,
   }),
   Object.freeze({
     id: 'im-fell-english',
@@ -122,7 +175,9 @@ export const TYPEFACES: readonly Typeface[] = Object.freeze([
     ds: 0.8,
     bs: 0.92,
     cs: 1.12,
-    shipped: false,
+    specimenSize: 26,
+    specimenLineHeight: null,
+    shipped: true,
   }),
   Object.freeze({
     id: 'goudy-1911',
@@ -133,7 +188,9 @@ export const TYPEFACES: readonly Typeface[] = Object.freeze([
     ds: 0.62,
     bs: 0.95,
     cs: 0.88,
-    shipped: false,
+    specimenSize: 18,
+    specimenLineHeight: 1.3,
+    shipped: true,
   }),
   Object.freeze({
     id: 'bodoni-moda',
@@ -144,7 +201,9 @@ export const TYPEFACES: readonly Typeface[] = Object.freeze([
     ds: 0.74,
     bs: 0.9,
     cs: 0.95,
-    shipped: false,
+    specimenSize: 23,
+    specimenLineHeight: null,
+    shipped: true,
   }),
 ])
 
@@ -165,14 +224,36 @@ export function defaultTypeface(): Typeface {
   return typeface
 }
 
-/** The value of `--family-<slot>`: the chosen face, then the system serif behind it. */
+const quote = (family: string): string => (family.includes(' ') ? `'${family}'` : family)
+
+/**
+ * The value of `--family-<slot>`: the chosen face, then the coverage face for
+ * the handful of characters it may not carry, then the system serif.
+ *
+ * A browser resolves a font stack **per character**, not per element, so the
+ * middle entry costs nothing on any character the chosen face can draw. It is
+ * only reached by a ḥ, a ṣ or a fleuron in a face that has none.
+ */
 export function fontStack(typeface: Typeface, name: TypeSlot): string {
   const family = typeface[name].family
-  const quoted = family.includes(' ') ? `'${family}'` : family
-  return `${quoted}, ${SYSTEM_SERIF}`
+  const stack = family === COVERAGE_FACE ? [quote(family)] : [quote(family), quote(COVERAGE_FACE)]
+  return `${stack.join(', ')}, ${SYSTEM_SERIF}`
 }
 
 /** The optical scalar for a slot. Design-tokens 2.1's `ds`, `bs` and `cs`. */
 export function opticalScalar(typeface: Typeface, name: TypeSlot): number {
   return name === 'display' ? typeface.ds : name === 'body' ? typeface.bs : typeface.cs
+}
+
+/**
+ * The options the picker may offer: those whose font files are committed.
+ *
+ * The picker reads this rather than `TYPEFACES`, so an option defined ahead of
+ * its fonts - which is exactly what all seven of these were between session 2
+ * and session 13 - is simply not on the screen. Design-tokens 8.1's rule that
+ * fonts are self-hosted is only kept if there is no way to select a face that
+ * has no file.
+ */
+export function shippedTypefaces(): readonly Typeface[] {
+  return TYPEFACES.filter((typeface) => typeface.shipped)
 }
