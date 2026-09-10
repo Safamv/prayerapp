@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { roleVariablePrefix } from './cssVariables'
-import type { TypeRoleName } from './typeScale'
+import { fontStack, type Typeface } from './typefaces'
+import { specimenFontSize, type TypeRoleName } from './typeScale'
 
 /**
  * How a component asks for a piece of type.
@@ -27,5 +28,28 @@ export function typeStyle(role: TypeRoleName): CSSProperties {
     fontStyle: `var(${prefix}-style)`,
     letterSpacing: `var(${prefix}-tracking)`,
     lineHeight: `var(${prefix}-line-height)`,
+  }
+}
+
+/**
+ * How the picker asks for one typeface's sample, in that typeface.
+ *
+ * Every other piece of type in the app is set in the *active* face through a
+ * `var()` reference, which is why `typeStyle` above never touches the registry.
+ * A specimen row is the one exception in the product: seven rows, each set in a
+ * face the reader has not chosen, so that the choice is made by looking rather
+ * than by reading a name (design-tokens 5.7, 5.8).
+ *
+ * It lives here, inside `src/theme/`, for the reason CLAUDE.md rule 2 exists: a
+ * component may not name a font family, and this returns the family as a value
+ * out of the registry so that none ever has to.
+ */
+export function specimenStyle(typeface: Typeface, userTextScale: number): CSSProperties {
+  return {
+    fontFamily: fontStack(typeface, 'display'),
+    fontSize: `${String(specimenFontSize(typeface, userTextScale))}px`,
+    fontWeight: typeface.display.weight,
+    fontStyle: typeface.display.style,
+    lineHeight: typeface.specimenLineHeight ?? 'normal',
   }
 }

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { STAR_POLYGON_POINTS, typeStyle } from '../theme'
+import { specimenStyle, STAR_POLYGON_POINTS, typeStyle, type Typeface } from '../theme'
 
 /**
  * The settings row. Design-tokens 5.7, transcribed.
@@ -143,5 +143,71 @@ export function SelectionStar({ selected }: { selected: boolean }) {
     >
       <polygon fill="currentColor" points={STAR_POLYGON_POINTS} />
     </svg>
+  )
+}
+
+/**
+ * **The specimen row of design-tokens 5.7**, which is the typeface picker.
+ *
+ * > The row renders its own sample in its own face, at the sample size given in
+ * > 5.8, colour `ink`, with a caption in body 13px `on-paper-50`.
+ *
+ * ## Why the row shows a sample rather than a name
+ *
+ * A row reading "Bodoni Moda" tells a reader who has not met Bodoni Moda
+ * nothing at all, and there is no reason to expect that they have. Seven rows
+ * each set in the face they offer make the choice by looking, which is the only
+ * way a typeface can honestly be chosen. Scope 12.3 calls for seven options; it
+ * is design-tokens 5.8 that makes them legible.
+ *
+ * ## The one place in the app that draws in a face nobody has chosen
+ *
+ * Every other piece of type resolves through `var(--family-<slot>)` and follows
+ * the active typeface. These seven do not, by definition. `specimenStyle` is in
+ * the registry for that reason: the family arrives here as a value and this file
+ * never names one, which is CLAUDE.md rule 2 kept rather than excused.
+ */
+export function SettingsSpecimenRow({
+  typeface,
+  textScale,
+  specimen,
+  caption,
+  label,
+  selected,
+  onSelect,
+}: {
+  typeface: Typeface
+  textScale: number
+  /** The phrase every row is set in. The same eight characters seven times. */
+  specimen: string
+  caption: string
+  /** What a screen reader hears, since the sample reads the same on every row. */
+  label: string
+  selected: boolean
+  onSelect: () => void
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      aria-label={label}
+      onClick={onSelect}
+      className="flex w-full items-center border-b border-rule text-left last:border-b-0"
+      style={ROW}
+    >
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-ink" style={specimenStyle(typeface, textScale)}>
+          {specimen}
+        </span>
+        <span
+          className="block text-on-paper-50"
+          style={{ ...typeStyle('settingsRowCaption'), marginTop: 2 }}
+        >
+          {caption}
+        </span>
+      </span>
+      <SelectionStar selected={selected} />
+    </button>
   )
 }

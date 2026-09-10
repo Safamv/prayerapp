@@ -12,7 +12,7 @@ export { FLEURON, FLEURON_SIZE, STAR_POLYGON_POINTS } from './ornaments'
 export { ThemeProvider } from './ThemeProvider'
 export type { ThemeProviderProps, ThemeSelection } from './ThemeProvider'
 export type { ThemeContextValue } from './themeContext'
-export { typeStyle } from './typeStyle'
+export { specimenStyle, typeStyle } from './typeStyle'
 export {
   DEFAULT_TYPEFACE_ID,
   TYPEFACES,
@@ -21,6 +21,7 @@ export {
   fontStack,
   getTypeface,
   opticalScalar,
+  shippedTypefaces,
 } from './typefaces'
 export type { Typeface, TypefaceSlot, TypeSlot } from './typefaces'
 export {
@@ -32,6 +33,7 @@ export {
   TYPE_ROLE_NAMES,
   clampTextScale,
   roleFontSize,
+  specimenFontSize,
 } from './typeScale'
 export type { TypeRole, TypeRoleName } from './typeScale'
 export { useTheme } from './useTheme'

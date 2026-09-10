@@ -6,6 +6,7 @@ import {
   fontStack,
   getTypeface,
   opticalScalar,
+  shippedTypefaces,
   TYPEFACES,
   TYPE_SLOTS,
 } from './typefaces'
@@ -78,9 +79,38 @@ describe('the typefaces', () => {
     ])
   })
 
-  it('ships only Italiana in V0, per scope 12.3', () => {
+  it('ships all seven from session 13, with Italiana still the default', () => {
+    // Scope 12.3 ships one typeface in V0 and tags the seven-option picker
+    // `[v0.1]`. Session 13 fetched the other eight families, so every option
+    // now has its font files and the picker may offer all seven.
     expect(DEFAULT_TYPEFACE_ID).toBe('italiana')
-    expect(TYPEFACES.filter((typeface) => typeface.shipped).map((t) => t.id)).toEqual(['italiana'])
+    expect(shippedTypefaces()).toHaveLength(7)
+    expect(shippedTypefaces().map((typeface) => typeface.id)).toEqual(
+      TYPEFACES.map((typeface) => typeface.id),
+    )
+  })
+
+  it('gives every option the specimen size design-tokens 5.8 names for it', () => {
+    const sizes = Object.fromEntries(
+      TYPEFACES.map((typeface) => [typeface.id, typeface.specimenSize]),
+    )
+    expect(sizes).toEqual({
+      italiana: 25,
+      tangerine: 38,
+      'cormorant-unicase': 22,
+      'cormorant-italic': 30,
+      'im-fell-english': 26,
+      'goudy-1911': 18,
+      'bodoni-moda': 23,
+    })
+  })
+
+  it('gives a specimen line height only to the two design-tokens 5.8 names', () => {
+    const withLineHeight = TYPEFACES.filter((typeface) => typeface.specimenLineHeight !== null)
+    expect(withLineHeight.map((typeface) => [typeface.id, typeface.specimenLineHeight])).toEqual([
+      ['tangerine', 0.9],
+      ['goudy-1911', 1.3],
+    ])
   })
 
   it('carries the three optical scalars design-tokens 2.1 gives each option', () => {
@@ -103,15 +133,38 @@ describe('the typefaces', () => {
     expect(opticalScalar(tangerine, 'caps')).toBe(1.05)
   })
 
-  it('puts a system serif behind every family, so V0 renders before the fonts land', () => {
-    // Decision D1.8: the real files arrive in session 3. Until the @font-face
-    // rules exist the browser falls straight through to the fallback, and the
-    // app starts using Italiana the moment they land, with no change here.
+  it('puts a system serif behind every family, so a face that fails to load still reads', () => {
     for (const typeface of TYPEFACES) {
       for (const name of TYPE_SLOTS) {
         expect(fontStack(typeface, name)).toMatch(/serif$/)
       }
     }
+  })
+
+  it('puts the coverage face in every stack that is not already it', () => {
+    // Decision D13.1. Six of the ten families have no ḥ, no ṣ and no fleuron,
+    // and subsetting cannot invent a glyph the source never had. Without
+    // Cormorant in the stack those characters reach Georgia, which is decision
+    // D4.7's bug on the two most-repeated marks in a reading view.
+    for (const typeface of TYPEFACES) {
+      for (const name of TYPE_SLOTS) {
+        const stack = fontStack(typeface, name)
+        expect(stack, `${typeface.id} ${name} has no coverage face`).toContain('Cormorant')
+      }
+    }
+  })
+
+  it('names the chosen family first, so the coverage face is only ever reached per character', () => {
+    // A browser resolves a stack per character. The coverage face must sit
+    // behind the chosen one or it would draw the whole screen.
+    expect(fontStack(getTypeface('bodoni-moda'), 'body')).toBe(
+      "'Bodoni Moda', Cormorant, Georgia, 'Times New Roman', Times, serif",
+    )
+  })
+
+  it('does not name the coverage face twice when it is the chosen one', () => {
+    const stack = fontStack(getTypeface('italiana'), 'body')
+    expect(stack.match(/Cormorant/g)).toHaveLength(1)
   })
 
   it('quotes a family whose name contains a space', () => {

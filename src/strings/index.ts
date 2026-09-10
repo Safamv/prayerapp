@@ -674,6 +674,87 @@ export const strings = {
      * the cap, and it says what principle 7.3 does rather than what it forbids.
      */
     queueNote: 'Anything above the cap waits for another day. Nothing is lost.',
+
+    /**
+     * **Text size.** Scope 7.9 requires an adjustable text size with a genuinely
+     * large maximum in V0, and design-tokens 2.4 is the arithmetic behind it.
+     *
+     * The control itself is two marks and a letter that grows, so it needs no
+     * word for each of its six steps and invents no vocabulary. These three
+     * strings are the section, the row, and what a screen reader announces.
+     */
+    textSizeSection: 'TEXT SIZE',
+    textSize: 'Text size',
+    textSizeCaption: 'Prayer text and lists grow the most. Headings stop sooner.',
+    /** The letter the control grows and shrinks. A specimen, not a word. */
+    textSizeSpecimen: 'A',
+    textSizeSmaller: 'Smaller text',
+    textSizeLarger: 'Larger text',
+    /**
+     * What a screen reader says instead of the letter: which of the six steps
+     * is selected. The steps have no names, deliberately (see above), so this
+     * says the position rather than inventing one.
+     */
+    textSizeStep: (step: number, total: number) => `Text size ${String(step)} of ${String(total)}`,
+
+    /**
+     * **The typeface picker.** Scope 12.3's seven options, design-tokens 5.8.
+     *
+     * Each row is written *in* the face it offers rather than naming it, so the
+     * choice is made by looking. Two strings do the work.
+     *
+     * `typefaceSpecimen` is the phrase all seven rows are set in, chosen by Safa
+     * in session 13. It is the app's own name, so the screen invents no words at
+     * all; it carries a capital, a lowercase ascender and no descender, so every
+     * face shows what it does; and it is short enough that Tangerine's 38px row
+     * never wraps.
+     *
+     * **It is not a line of scripture, and must never become one.** Principle
+     * 7.5 forbids sacred text used as chrome and 7.10 requires every rendered
+     * passage to carry its attribution. A prayer fragment used as a font sample
+     * would breach both.
+     */
+    typefaceSection: 'TYPEFACE',
+    typefaceSpecimen: 'By Heart',
+
+    /**
+     * **The caption under each specimen.** Design-tokens 5.8's own column, in
+     * two halves, for a reason worth stating.
+     *
+     * 5.8 words each caption as a name and a description: "Italiana · art
+     * nouveau". The name half is the face's own, and it lives in the typeface
+     * registry beside the family it names, because CLAUDE.md rule 2 and the lint
+     * rule behind it say a font family is named in `src/theme/` and nowhere
+     * else. The description half is the app's own words about that face, and so
+     * it is vocabulary and lives here, which is principle 7.11.
+     *
+     * So neither module holds the other's half and the caption is assembled from
+     * both. See decision D13.3.
+     *
+     * The `goudy-1911` row reads "Goudy 1911" rather than "Cinzel Decorative"
+     * because that is the registry's name for the option, and 5.8 names the
+     * option there rather than the display face: the body text a reader would
+     * actually live with is the Goudy.
+     */
+    typefaceDescriptors: {
+      italiana: 'art nouveau',
+      tangerine: 'a written hand',
+      'cormorant-unicase': 'carved',
+      'cormorant-italic': 'the Paris hand',
+      'im-fell-english': 'Oxford metal',
+      'goudy-1911': 'letterpress',
+      'bodoni-moda': 'neoclassical',
+    } as Record<string, string>,
+
+    /** Design-tokens 5.8's caption, assembled from the two halves above. */
+    typefaceCaption: (name: string, descriptor: string) => `${name} · ${descriptor}`,
+
+    /**
+     * What a screen reader announces for a specimen row. The sample itself is
+     * the same eight characters on all seven rows, so heard rather than seen it
+     * would say "By Heart" seven times over; this names the face instead.
+     */
+    typefaceOption: (name: string) => `Typeface: ${name}`,
   },
 
   /**

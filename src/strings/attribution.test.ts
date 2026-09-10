@@ -146,6 +146,49 @@ describe('the subset font can draw every attribution the corpus produces', () =>
     expect([...missing]).toEqual([])
   })
 
+  /**
+   * **And every word the app stores, not only the ones it generates.**
+   *
+   * The block above covers what `attribution.ts` builds out of corpus data.
+   * This covers the other half: principle 7.11's module, which by construction
+   * is every literal the app can draw. Session 13 added seven typeface captions
+   * to it, each carrying a middle dot, and a session that adds a word with an
+   * accent in it should find out here rather than on a phone.
+   *
+   * Functions in the module are skipped: what they return is made of their
+   * arguments and of the literals around them, and the arguments are corpus
+   * data, which the block above already puts through the same check.
+   */
+  it('leaves no character of the strings module without a glyph', () => {
+    const corpusText: string[] = []
+    for (const file of CORPUS_FILES) {
+      const rows = JSON.parse(readFileSync(join(CORPUS_DIR, file), 'utf8')) as Record<
+        string,
+        unknown
+      >[]
+      for (const row of rows) {
+        for (const value of Object.values(row)) {
+          if (typeof value === 'string') corpusText.push(value)
+        }
+      }
+    }
+    const subset = new Set(collectCharset(corpusText))
+
+    const missing = new Set<string>()
+    const walk = (value: unknown): void => {
+      if (typeof value === 'string') {
+        for (const char of value) if (!subset.has(char)) missing.add(char)
+      } else if (Array.isArray(value)) {
+        value.forEach(walk)
+      } else if (value !== null && typeof value === 'object') {
+        Object.values(value).forEach(walk)
+      }
+    }
+    walk(strings)
+
+    expect([...missing]).toEqual([])
+  })
+
   it('carries the uppercase diacritics whether or not the corpus proves each one', () => {
     // Ú is the one this test was written for: it exists in the corpus only as ú.
     for (const char of 'ÁÍÚḤṬṢẒ') expect(BASE_CHARSET).toContain(char)

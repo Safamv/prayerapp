@@ -48,7 +48,16 @@ function Mark({ children }: { children: ReactNode }) {
   )
 }
 
-function StepButton({
+/**
+ * The two marks, as path data rather than components, so the text size control
+ * of `TextSizeControl.tsx` draws the same minus and plus as the queue caps do
+ * without a second copy of them existing. Design-tokens 8.3: one drawing per
+ * mark in the app.
+ */
+export const FEWER_MARK = 'M5 12 H19'
+export const MORE_MARK = 'M12 5 V19 M5 12 H19'
+
+export function StepButton({
   label,
   disabled,
   onClick,
@@ -104,7 +113,7 @@ export function Stepper({
           onChange(Math.max(value - range.step, range.minimum))
         }}
       >
-        <path d="M5 12 H19" />
+        <path d={FEWER_MARK} />
       </StepButton>
       <span
         className="text-center text-deep tabular-nums"
@@ -119,7 +128,7 @@ export function Stepper({
           onChange(Math.min(value + range.step, range.maximum))
         }}
       >
-        <path d="M12 5 V19 M5 12 H19" />
+        <path d={MORE_MARK} />
       </StepButton>
     </div>
   )

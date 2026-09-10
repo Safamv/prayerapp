@@ -79,12 +79,27 @@ export const BASE_CHARSET =
   APP_PUNCTUATION +
   ORNAMENTS
 
-/** Every distinct character across the base set and the given strings, as one string. */
+/**
+ * Characters that are in the text and are not letters: a newline, a tab, the
+ * left-to-right mark that a few corpus rows carry.
+ *
+ * No font has a glyph for any of them, because none of them is drawn. Leaving
+ * them in the charset asks every subset for something that cannot exist, which
+ * is harmless until something checks - and `scripts/lib/fontCoverage.ts` now
+ * does, so they would be reported as a gap in all fifteen faces and would hide
+ * a real one. Unicode's control (`Cc`), format (`Cf`) and separator (`Zl`, `Zp`)
+ * categories are exactly this set.
+ */
+const NOT_DRAWN = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u
+
+/** Every distinct drawable character across the base set and the given strings. */
 export function collectCharset(texts: readonly string[]): string {
   const seen = new Set<string>()
   for (const char of BASE_CHARSET) seen.add(char)
   for (const text of texts) {
-    for (const char of text) seen.add(char)
+    for (const char of text) {
+      if (!NOT_DRAWN.test(char)) seen.add(char)
+    }
   }
   return [...seen].join('')
 }
